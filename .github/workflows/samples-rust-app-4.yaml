@@ -1,0 +1,118 @@
+name: samples-rust-app-4
+
+on:
+  workflow_dispatch:
+  push:
+    tags: [ 'sample-rust-app-4@*' ]
+    paths:
+    - '../../lang-samples/rust/app-3/**'
+    - '.github/workflows/samples-rust-app-4.yaml'
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
+  #rust_nightly: nightly-2025-04-07
+
+  RUN_MSERV_CHECK: false
+
+defaults:
+  run:
+    working-directory: lang-samples/rust/app-4
+
+jobs:
+
+  build:
+    runs-on: ${{ matrix.runner }}
+    environment: ${{ matrix.environment  }}
+    strategy:
+      matrix:
+        include:
+          - runner: pvel-vm
+            environment: pvel
+          - runner: world1l-vm
+            environment: world1l
+    defaults:
+      run:
+        working-directory: lang-samples/rust/app-4
+
+    env:
+      APP_NAME: "sample-rust-app-4"
+
+    steps:
+    - run: echo "CONTAINER=harbor.ing.vm.pvel.worldl.xpt/main/${APP_NAME}" >> $GITHUB_ENV
+    - uses: actions/checkout@v5
+    - run: echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+
+    - name: Extract Git metadata.
+      id: git_info
+      run: |
+        echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        echo "branch=$(echo ${GITHUB_REF#refs/heads/} | sed 's/\//-/g')" >> $GITHUB_OUTPUT
+        echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        echo "version=${GITHUB_REF#refs/tags/${APP_NAME}@*}" >> $GITHUB_OUTPUT
+        cat $GITHUB_OUTPUT
+
+    - uses: dtolnay/rust-toolchain@1.86.0
+      with:
+        components: rustfmt, clippy
+
+    - run: cargo --version
+
+    - name: 🧪 Run Rust tests.
+      run: cargo test --all
+
+    #- uses: Swatinem/rust-cache@v2
+    #  with:
+    #    cache-all-crates: "true"
+
+    - name: 📦 Compile (release)
+      run: cargo build --release
+
+    - name: Login to Harbor Registry
+      uses: docker/login-action@v3
+      with:
+        registry: harbor.ing.vm.pvel.worldl.xpt
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        buildkitd-config-inline: |
+          [registry."harbor.ing.vm.pvel.worldl.xpt"]
+            ca = ["/usr/local/share/ca-certificates/harbor.crt"]
+
+    - name: 🐳 Build and push Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: ./lang-samples/rust/app-4
+        file: ./lang-samples/rust/app-4/Dockerfile
+        push: true
+        tags: ${{env.CONTAINER}}:${{ steps.git_info.outputs.version }}
+
+
+  # https://github.com/DioxusLabs/dioxus/blob/main/.github/workflows/main.yml
+  check-msrv:
+    if: false
+    name: 🧪 MSRV Compatibility Check
+    strategy:
+      matrix:
+        runner: [world1l]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.86.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-all-crates: "true"
+      # https://github.com/foresterre/cargo-msrv/blob/4345edfe3f4fc91cc8ae6c7d6804c0748fae92ae/.github/workflows/msrv.yml
+      - name: install_cargo_msrv
+        run: cargo install cargo-msrv --all-features --version 0.16.3 --locked
+      - name: version_of_cargo_msrv
+        run: cargo msrv --version
+      - name: run_cargo_msrv
+        run: cargo msrv --output-format json verify -- cargo check
+      - name: run_cargo_msrv_on_verify_failure
+        if: ${{ failure() }}
+        run: cargo msrv --output-format json -- cargo check

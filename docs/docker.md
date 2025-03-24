@@ -1,0 +1,4 @@
+```shell
+docker builder prune
+
+```

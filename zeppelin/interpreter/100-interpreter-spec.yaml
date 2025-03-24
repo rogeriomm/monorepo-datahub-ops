@@ -1,0 +1,317 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+kind: Pod
+apiVersion: v1
+metadata:
+  namespace: {{zeppelin.k8s.interpreter.namespace}}
+  name: {{zeppelin.k8s.interpreter.pod.name}}
+  labels:
+    app: {{zeppelin.k8s.interpreter.pod.name}}
+    interpreterGroupId: {{zeppelin.k8s.interpreter.group.id}}
+    interpreterSettingName: {{zeppelin.k8s.interpreter.setting.name}}
+    user: {{ zeppelin.k8s.interpreter.user }}
+  {% if zeppelin.k8s.server.uid is defined %}
+  ownerReferences:
+  - apiVersion: v1
+    controller: false
+    blockOwnerDeletion: false
+    kind: Pod
+    name: {{zeppelin.k8s.server.pod.name}}
+    uid: {{zeppelin.k8s.server.uid}}
+  {% endif %}
+spec:
+  serviceAccountName: {{zeppelin.k8s.interpreter.serviceAccount}}
+  {% if zeppelin.k8s.interpreter.group.name == "spark" %}
+  automountServiceAccountToken: true
+  {% else %}
+  automountServiceAccountToken: false
+  {% endif %}
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 30
+  containers:
+  - name: {{zeppelin.k8s.interpreter.container.name}}
+    image: {{zeppelin.k8s.interpreter.container.image}}
+    {% if zeppelin.k8s.interpreter.container.imagePullPolicy is defined %}
+    imagePullPolicy: {{zeppelin.k8s.interpreter.container.imagePullPolicy}}
+    {% endif %}
+    args:
+      - "$(ZEPPELIN_HOME)/bin/interpreter.sh"
+      - "-d"
+      - "$(ZEPPELIN_HOME)/interpreter/{{zeppelin.k8s.interpreter.group.name}}"
+      - "-r"
+      - "{{zeppelin.k8s.interpreter.rpc.portRange}}"
+      - "-c"
+      - "{{zeppelin.k8s.server.rpc.service}}"
+      - "-p"
+      - "{{zeppelin.k8s.server.rpc.portRange}}"
+      - "-i"
+      - "{{zeppelin.k8s.interpreter.group.id}}"
+      - "-l"
+      - "{{zeppelin.k8s.interpreter.localRepo}}/{{zeppelin.k8s.interpreter.setting.name}}"
+      - "-g"
+      - "{{zeppelin.k8s.interpreter.setting.name}}"
+    env:
+  {% for key, value in zeppelin.k8s.envs.items() %}
+    - name: {{key}}
+      value: {{value}}
+  {% endfor %}
+  {% if zeppelin.k8s.interpreter.cores is defined and zeppelin.k8s.interpreter.memory is defined %}
+    resources:
+      requests:
+        memory: "{{zeppelin.k8s.interpreter.memory}}"
+        cpu: "{{zeppelin.k8s.interpreter.cores}}"
+{# limits.memory is not set because of a potential OOM-Killer. https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits #}
+      limits:
+        cpu: "{{zeppelin.k8s.interpreter.cores}}"
+        {% if zeppelin.k8s.interpreter.gpu.type is defined and zeppelin.k8s.interpreter.gpu.nums is defined %}
+        {{zeppelin.k8s.interpreter.gpu.type}}: "{{zeppelin.k8s.interpreter.gpu.nums}}"
+        {% endif %}
+  {% else %}
+  {% if zeppelin.k8s.interpreter.gpu.type is defined and zeppelin.k8s.interpreter.gpu.nums is defined %}
+    resources:
+      limits:
+        {{zeppelin.k8s.interpreter.gpu.type}}: "{{zeppelin.k8s.interpreter.gpu.nums}}"
+  {% endif %}
+  {% endif %}
+  {% if zeppelin.k8s.interpreter.group.name == "spark" %}
+    volumeMounts:
+    - name: spark-home
+      mountPath: /spark
+  initContainers:
+  - name: spark-home-init
+    image: {{zeppelin.k8s.spark.container.image}}
+    {% if zeppelin.k8s.spark.container.imagePullPolicy is defined %}
+    imagePullPolicy: {{zeppelin.k8s.spark.container.imagePullPolicy}}
+    {% endif %}
+    command: ["sh", "-c", "cp -r /opt/spark/* /spark/"]
+    volumeMounts:
+    - name: spark-home
+      mountPath: /spark
+  {% if zeppelin.k8s.interpreter.imagePullSecrets is defined %}
+  imagePullSecrets:
+  {% for secret in zeppelin.k8s.interpreter.imagePullSecrets.split(',') %}
+  - name: {{secret}}
+  {% endfor %}
+  {% endif %}
+  volumes:
+  - name: spark-home
+    emptyDir: {}
+  {% endif %}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: {{zeppelin.k8s.interpreter.namespace}}
+  name: {{zeppelin.k8s.interpreter.pod.name}}             # keep Service name the same to Pod name.
+  {% if zeppelin.k8s.server.uid is defined %}
+  ownerReferences:
+  - apiVersion: v1
+    controller: false
+    blockOwnerDeletion: false
+    kind: Pod
+    name: {{zeppelin.k8s.server.pod.name}}
+    uid: {{zeppelin.k8s.server.uid}}
+  {% endif %}
+spec:
+  clusterIP: None
+  ports:
+    - name: intp
+      port: 12321
+    {% if zeppelin.k8s.interpreter.group.name == "spark" %}
+    - name: spark-driver
+      port: 22321
+    - name: spark-blockmanager
+      port: 22322
+    - name: spark-ui
+      port: 4040
+    {% endif %}
+  selector:
+    app: {{zeppelin.k8s.interpreter.pod.name}}
+{% if zeppelin.k8s.interpreter.group.name == "spark" %}
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{zeppelin.k8s.interpreter.pod.name}}
+  namespace: {{zeppelin.k8s.interpreter.namespace}}
+  {% if zeppelin.k8s.server.uid is defined %}
+  ownerReferences:
+  - apiVersion: v1
+    controller: false
+    blockOwnerDeletion: false
+    kind: Pod
+    name: {{zeppelin.k8s.server.pod.name}}
+    uid: {{zeppelin.k8s.server.uid}}
+  {% endif %}
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps"]
+  verbs: ["create", "get", "update", "list", "delete", "watch" ]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{zeppelin.k8s.interpreter.pod.name}}
+  namespace: {{zeppelin.k8s.interpreter.namespace}}
+  {% if zeppelin.k8s.server.uid is defined %}
+  ownerReferences:
+  - apiVersion: v1
+    controller: false
+    blockOwnerDeletion: false
+    kind: Pod
+    name: {{zeppelin.k8s.server.pod.name}}
+    uid: {{zeppelin.k8s.server.uid}}
+  {% endif %}
+subjects:
+- kind: ServiceAccount
+  name: {{zeppelin.k8s.interpreter.serviceAccount}}
+roleRef:
+  kind: Role
+  name: {{zeppelin.k8s.interpreter.pod.name}}
+  apiGroup: rbac.authorization.k8s.io
+{% if zeppelin.k8s.spark.useIngress is defined and zeppelin.k8s.spark.useIngress == "true" %}
+---
+# create ingress of spark UI
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spark-ui-{{zeppelin.k8s.interpreter.pod.name}}
+  annotations:
+    cert-manager.io/cluster-issuer: spnw-intermediate-ca1-issuer
+    cert-manager.io/common-name: "zeppelin.ing.vm.world1l.worldl.xpt"
+    cert-manager.io/duration: "2160h" # 90 days
+    #nginx.ingress.kubernetes.io/rewrite-target: /  # Rewrite to root path
+  namespace: {{zeppelin.k8s.interpreter.namespace}}
+  {% if zeppelin.k8s.server.uid is defined %}
+  ownerReferences:
+  - apiVersion: v1
+    controller: false
+    blockOwnerDeletion: false
+    kind: Pod
+    name: {{zeppelin.k8s.server.pod.name}}
+    uid: {{zeppelin.k8s.server.uid}}
+  {% endif %}
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: worldl-zeppelin.worldb.site
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/jobs"
+        backend:
+          service:
+            name: {{zeppelin.k8s.interpreter.pod.name}}
+            port:
+              number: 4040
+  - host: worldl-zeppelin.worldb.site
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/static"
+        backend:
+          service:
+            name: {{zeppelin.k8s.interpreter.pod.name}}
+            port:
+              number: 4040
+  - host: worldl-zeppelin.worldb.site
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/stages"
+        backend:
+          service:
+            name: {{zeppelin.k8s.interpreter.pod.name}}
+            port:
+              number: 4040
+  - host: worldl-zeppelin.worldb.site
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/storage"
+        backend:
+          service:
+            name: {{zeppelin.k8s.interpreter.pod.name}}
+            port:
+              number: 4040
+  - host: worldl-zeppelin.worldb.site
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/executors"
+        backend:
+          service:
+            name: {{zeppelin.k8s.interpreter.pod.name}}
+            port:
+              number: 4040
+  - host: worldl-zeppelin.worldb.site
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/environment"
+        backend:
+          service:
+            name: {{zeppelin.k8s.interpreter.pod.name}}
+            port:
+              number: 4040
+  - host: worldl-zeppelin.worldb.site
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/SQL"
+        backend:
+          service:
+            name: {{zeppelin.k8s.interpreter.pod.name}}
+            port:
+              number: 4040
+---
+# create ingress of spark UI test
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spark-ui-test-{{zeppelin.k8s.interpreter.pod.name}}
+  annotations:
+    cert-manager.io/cluster-issuer: spnw-intermediate-ca1-issuer
+    cert-manager.io/common-name: "zeppelin.ing.vm.world1l.worldl.xpt"
+    cert-manager.io/duration: "2160h" # 90 days
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /  # Rewrite to root path
+  namespace: {{zeppelin.k8s.interpreter.namespace}}
+  {% if zeppelin.k8s.server.uid is defined %}
+  ownerReferences:
+  - apiVersion: v1
+    controller: false
+    blockOwnerDeletion: false
+    kind: Pod
+    name: {{zeppelin.k8s.server.pod.name}}
+    uid: {{zeppelin.k8s.server.uid}}
+  {% endif %}
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: spark-ui.ing.vm.world1l.worldl.xpt
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/sparkui"
+        backend:
+          service:
+            name: {{zeppelin.k8s.interpreter.pod.name}}
+            port:
+              number: 4040
+{% endif %}
+{% endif %}

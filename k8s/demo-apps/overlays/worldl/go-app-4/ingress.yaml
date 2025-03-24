@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sample-go-app-4
+  annotations:
+    cert-manager.io/cluster-issuer: spnw-intermediate-ca1-issuer
+    cert-manager.io/common-name: "sample-go-app-4.vm.world1l.worldl.xpt"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: sample-go-app-4.vm.world1l.worldl.xpt
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sample-go-app-4
+                port:
+                  number: 8080
+    - host: worldl-sample-go-app-4.worldb.site
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sample-go-app-4
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - sample-go-app-4.vm.world1l.worldl.xpt
+      secretName: sample-go-app-4-cert-secret

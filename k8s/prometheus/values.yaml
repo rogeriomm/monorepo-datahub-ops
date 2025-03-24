@@ -1,0 +1,12 @@
+#files:
+#  additional-scrape-configs.yaml: |
+#    - job_name: 'external-app'
+#      static_configs:
+#        - targets: ['192.168.15.250:9100']
+#          labels:
+#            instance: external-node
+
+
+prometheus:
+   prometheusSpec:
+      maximumStartupDurationSeconds: 60

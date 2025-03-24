@@ -1,0 +1,6 @@
+namespace: jupyter
+
+resources:
+  - deploy-jupyter-ds.yaml
+  - service-jupyter-ds.yaml
+  - ingress-jupyter-ds.yaml

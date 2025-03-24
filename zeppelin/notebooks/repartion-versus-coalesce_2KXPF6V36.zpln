@@ -1,0 +1,191 @@
+{
+  "paragraphs": [
+    {
+      "text": "%md\n- [Spark - repartition() vs coalesce()](https://stackoverflow.com/questions/31610971/spark-repartition-vs-coalesce)",
+      "user": "anonymous",
+      "dateUpdated": "2025-06-20 14:23:29.435",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href\u003d\"https://stackoverflow.com/questions/31610971/spark-repartition-vs-coalesce\"\u003eSpark - repartition() vs coalesce()\u003c/a\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1750429409435_333956705",
+      "id": "paragraph_1750426476716_1629262022",
+      "dateCreated": "2025-06-20 14:23:29.435",
+      "status": "READY"
+    },
+    {
+      "text": "%spark.ipyspark\ndef get_num_executors(spark):\n  \"\"\"\n  Gets the number of active Spark executors (workers).\n\n  Args:\n    spark:  The SparkSession object.\n\n  Returns:\n    The number of active executors (excluding the driver).\n  \"\"\"\n\n  num_executors \u003d int(sc._conf.get(\"spark.executor.instances\"))\n  if num_executors \u003e 0:\n    return num_executors  #Explicitly set by user\n  else:\n    return len(sc._jsc.sc().getExecutorMemoryStatus()) - 1 #Implicitly inferred by cluster\n\nworkers \u003d get_num_executors(spark)\nprint(\"Spark workers: \", workers)",
+      "user": "anonymous",
+      "dateUpdated": "2025-06-20 14:27:45.936",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true,
+          "completionKey": "TAB"
+        },
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "Spark workers:  4\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1750429550154_1734198516",
+      "id": "paragraph_1750429550154_1734198516",
+      "dateCreated": "2025-06-20 14:25:50.154",
+      "dateStarted": "2025-06-20 14:27:42.997",
+      "dateFinished": "2025-06-20 14:27:43.209",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%spark.ipyspark\n\nfrom pyspark.sql.functions import spark_partition_id\n\n# Create a sample DataFrame with some data\ndata \u003d [(\"Alice\", 25), (\"Bob\", 30), (\"Charlie\", 28), (\"David\", 35), (\"Eve\", 22)]\ncolumns \u003d [\"Name\", \"Age\"]\ndf \u003d spark.createDataFrame(data, columns)\ndf \u003d df.withColumn(\"partition_id\", spark_partition_id())\n\n# Check the number of partitions *before* repartitioning\nprint(f\"Number of partitions before repartitioning: {df.rdd.getNumPartitions()}\")\n\n# Display the data\ndf.show()\n\n# Repartition the DataFrame to 3 partitions\nrepartitioned_df \u003d df.repartition(2)\n\n# Add a column with the partition ID\nrepartitioned_df \u003d repartitioned_df.withColumn(\"partition_id\", spark_partition_id())\n\n# Check the number of partitions *after* repartitioning\nprint(f\"Number of partitions after repartitioning: {repartitioned_df.rdd.getNumPartitions()}\")\n\n# Repartitioned DataFrame\nrepartitioned_df.show()\n\n# Repartition using specific columns (equal to groupBy + aggregate)\nrepartitioned_df_by_name \u003d df.repartition(\"Name\")\nprint(f\"Number of partitions after repartitioning by name: {repartitioned_df_by_name.rdd.getNumPartitions()}\")\nrepartitioned_df_by_name.show()",
+      "user": "anonymous",
+      "dateUpdated": "2025-06-20 18:34:24.642",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "results": {},
+        "enabled": true,
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true,
+          "completionKey": "TAB"
+        }
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "Number of partitions before repartitioning: 4\n+-------+---+------------+\n|   Name|Age|partition_id|\n+-------+---+------------+\n|  Alice| 25|           0|\n|    Bob| 30|           1|\n|Charlie| 28|           2|\n|  David| 35|           3|\n|    Eve| 22|           3|\n+-------+---+------------+\n\nNumber of partitions after repartitioning: 2\n+-------+---+------------+\n|   Name|Age|partition_id|\n+-------+---+------------+\n|  David| 35|           0|\n|Charlie| 28|           0|\n|    Bob| 30|           1|\n|    Eve| 22|           1|\n|  Alice| 25|           1|\n+-------+---+------------+\n\nNumber of partitions after repartitioning by name: 1\n+-------+---+------------+\n|   Name|Age|partition_id|\n+-------+---+------------+\n|Charlie| 28|           2|\n|  Alice| 25|           0|\n|    Eve| 22|           3|\n|  David| 35|           3|\n|    Bob| 30|           1|\n+-------+---+------------+\n\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://xxx.com/4040-//jobs/job?id\u003d0"
+            },
+            {
+              "jobUrl": "http://xxx.com/4040-//jobs/job?id\u003d1"
+            },
+            {
+              "jobUrl": "http://xxx.com/4040-//jobs/job?id\u003d2"
+            },
+            {
+              "jobUrl": "http://xxx.com/4040-//jobs/job?id\u003d3"
+            },
+            {
+              "jobUrl": "http://xxx.com/4040-//jobs/job?id\u003d4"
+            },
+            {
+              "jobUrl": "http://xxx.com/4040-//jobs/job?id\u003d5"
+            },
+            {
+              "jobUrl": "http://xxx.com/4040-//jobs/job?id\u003d6"
+            },
+            {
+              "jobUrl": "http://xxx.com/4040-//jobs/job?id\u003d7"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1750429409435_707146533",
+      "id": "paragraph_1750428974607_2040628085",
+      "dateCreated": "2025-06-20 14:23:29.435",
+      "dateStarted": "2025-06-20 18:34:24.651",
+      "dateFinished": "2025-06-20 18:34:48.157",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%spark.ipyspark\n",
+      "user": "anonymous",
+      "dateUpdated": "2025-06-20 14:36:16.339",
+      "progress": 0,
+      "config": {},
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1750430176339_1363266141",
+      "id": "paragraph_1750430176339_1363266141",
+      "dateCreated": "2025-06-20 14:36:16.339",
+      "status": "READY"
+    }
+  ],
+  "name": "repartion-versus-coalesce",
+  "id": "2KXPF6V36",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.12.0",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "personalizedMode": "false",
+    "looknfeel": "default",
+    "isZeppelinNotebookCronEnable": false
+  },
+  "info": {}
+}

@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: simple-web-cert
+spec:
+  secretName: simple-web-cert-secret
+  isCA: false
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - "simple-web.world1l.worldl.xpt"
+  issuerRef:
+    name:  spnw-intermediate-ca1-issuer
+    kind: ClusterIssuer

@@ -1,0 +1,12 @@
+#mysql:
+#  image:
+#      registry: docker.io
+#     repository: bitnamilegacy/mysql
+#     tag: 8.0.32-debian-11-r26
+
+#  https://github.com/bitnami/containers/issues/83267
+# Original:
+#image:
+#  registry: docker.io
+#  repository: bitnami/mysql
+#  tag: 8.0.22-debian-10-r23

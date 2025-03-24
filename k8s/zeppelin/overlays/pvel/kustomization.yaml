@@ -1,0 +1,5 @@
+namespace: zeppelin
+resources:
+  - ../../base
+  - ingress.yaml
+  - pvc-git.yaml

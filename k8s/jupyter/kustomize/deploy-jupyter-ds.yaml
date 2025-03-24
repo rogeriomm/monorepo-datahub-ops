@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter-ds
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter-ds
+  template:
+    metadata:
+      labels:
+        app: jupyter-ds
+    spec:
+      containers:
+        - name: jupyter-ds
+          image: quay.io/jupyter/datascience-notebook
+          ports:
+            - containerPort: 8888
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter-all-spark
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter-all-spark
+  template:
+    metadata:
+      labels:
+        app: jupyter-all-spark
+    spec:
+      containers:
+        - name: jupyter-all-spark
+          image: quay.io/jupyter/all-spark-notebook
+          ports:
+            - containerPort: 8888

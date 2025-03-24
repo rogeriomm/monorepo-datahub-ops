@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openmetadata-prerequisites
+  namespace: argo-cd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  sources:
+    - repoURL: https://helm.open-metadata.org/
+      targetRevision: "1.10.1"
+      chart: openmetadata-dependencies
+      helm:
+        valueFiles:
+          - $values/k8s/openmetadata/helm/prerequisites-values.yaml
+    - repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+      targetRevision: master
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openmetadata
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

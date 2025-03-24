@@ -1,0 +1,24 @@
+# Install CRDs (CustomResourceDefinitions)
+crds:
+  enabled: true
+
+# Set replica count for HA
+replicaCount: 1
+
+# Webhook settings
+webhook:
+  timeoutSeconds: 4
+
+# Pod Disruption Budget configuration
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Enable the NameConstraints feature gate
+# https://cert-manager.io/v1.16-docs/installation/configuring-components/
+# https://cert-manager.io/docs/usage/certificate/
+featureGates: "NameConstraints=true"
+
+config:
+  featureGates:
+    NameConstraints: true # BETA - default=true

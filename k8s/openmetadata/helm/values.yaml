@@ -1,0 +1,20 @@
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: spnw-intermediate-ca1-issuer
+    cert-manager.io/common-name: "openmetadata.ing.vm.world1l.worldl.xpt"
+  hosts:
+    - host: openmetadata.ing.vm.world1l.worldl.xpt
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+    - host: worldl-openmetadata.worldb.site
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - openmetadata.ing.vm.world1l.worldl.xpt
+      secretName: openmetadata.ing.vm.world1l-cert-secret
+

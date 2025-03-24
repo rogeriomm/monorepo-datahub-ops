@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sample-go-app-3
+  labels:
+    release: prometheus  # 🔴 MUST match the Helm release name of kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sample-go-app-3
+  endpoints:
+    - port: metrics   # This must match the named port in the Service
+      path: /metrics
+      interval: 2s
+      scheme: http

@@ -1,0 +1,33 @@
+[tools]
+argocd = "latest"
+aws = "latest"
+bat = "latest"
+cloudflared = "latest"
+eza = "latest"
+fastfetch = "latest"
+fzf = "latest"
+gh = "latest"
+gum = "latest"
+helm = "latest"
+kubecolor = "latest"
+kubectx = "latest"
+kubie = "latest"
+neovim = "latest"
+pipx = "latest"
+poetry = "latest"
+python = "3.12"
+slsa-verifier = "latest"
+terraform = "latest"
+yq = "latest"
+zoxide = "latest"
+
+[env]
+SOME_VAR = "foo"
+
+[tasks.setup]
+run = [
+        "echo mise install packages",
+        "mise install",
+        "echo poetry install",
+        "poetry lock && poetry install",
+      ]

@@ -1,0 +1,778 @@
+{
+  "paragraphs": [
+    {
+      "text": "%md\n## Introduction\n\u003cspan style\u003d\"color:red\"\u003eTo be noticed, this is outdated tutorial for using Matplotlib in Zeppelin. We recommend user to use IPython in Zeppelin. Please refer the IPython Tutorial.\u003c/span\u003e\n\nIn this tutorial we will go through some of the basic features of Zeppelin\u0027s built-in matplotlib integration. To be noticed, this tutorial is only for Vanilla Python Interpreter (`%python` or `%spark.pyspark`). You can refer another tutorial (IPython Visualization Tutorial) for using Matplotlib in IPython Interpreter.\n\n### Prerequisites\n`matplotlib` must be installed to your local python installation. (use `pip install matplotlib` or `conda install matplotlib` if you have `conda`). Additionally, you will need Zeppelin\u0027s matplotlib backend files which are usually found in `$ZEPPELIN_HOME/lib/python`. Although Zeppelin should automatically find this directory, it might be a good idea to add it to your `PYTHONPATH` just in case. \n\n### Interpreters\nMost of the examples shown in this tutorial can be used interchangeably with either the `python` or `pyspark` interpreters. Iterative plotting using the Angular Display System is currently only available for `pyspark`, but this functionality will eventually be added to the base `python` interpreter. \n\n### macOS\nMake sure locale is set, to avoid `ValueError: unknown locale: UTF-8`\n\n### virtualenv\nIn case you want to use virtualenv or conda env:\n - configure python interpreter property -\u003e `absolute/path/to/venv/bin/python`\n - see *Working with Matplotlib in Virtual environments* in the [Matplotlib FAQ](http://matplotlib.org/faq/virtualenv_faq.html)\n \n### A simple example\nLet\u0027s start by making a very simple line plot:",
+      "user": "anonymous",
+      "dateUpdated": "2021-07-26 03:47:56.575",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/text",
+        "editorHide": true,
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ],
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false
+        },
+        "fontSize": 9.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eIntroduction\u003c/h2\u003e\n\u003cp\u003e\u003cspan style\u003d\"color:red\"\u003eTo be noticed, this is outdated tutorial for using Matplotlib in Zeppelin. We recommend user to use IPython in Zeppelin. Please refer the IPython Tutorial.\u003c/span\u003e\u003c/p\u003e\n\u003cp\u003eIn this tutorial we will go through some of the basic features of Zeppelin\u0026rsquo;s built-in matplotlib integration. To be noticed, this tutorial is only for Vanilla Python Interpreter (\u003ccode\u003e%python\u003c/code\u003e or \u003ccode\u003e%spark.pyspark\u003c/code\u003e). You can refer another tutorial (IPython Visualization Tutorial) for using Matplotlib in IPython Interpreter.\u003c/p\u003e\n\u003ch3\u003ePrerequisites\u003c/h3\u003e\n\u003cp\u003e\u003ccode\u003ematplotlib\u003c/code\u003e must be installed to your local python installation. (use \u003ccode\u003epip install matplotlib\u003c/code\u003e or \u003ccode\u003econda install matplotlib\u003c/code\u003e if you have \u003ccode\u003econda\u003c/code\u003e). Additionally, you will need Zeppelin\u0026rsquo;s matplotlib backend files which are usually found in \u003ccode\u003e$ZEPPELIN_HOME/lib/python\u003c/code\u003e. Although Zeppelin should automatically find this directory, it might be a good idea to add it to your \u003ccode\u003ePYTHONPATH\u003c/code\u003e just in case.\u003c/p\u003e\n\u003ch3\u003eInterpreters\u003c/h3\u003e\n\u003cp\u003eMost of the examples shown in this tutorial can be used interchangeably with either the \u003ccode\u003epython\u003c/code\u003e or \u003ccode\u003epyspark\u003c/code\u003e interpreters. Iterative plotting using the Angular Display System is currently only available for \u003ccode\u003epyspark\u003c/code\u003e, but this functionality will eventually be added to the base \u003ccode\u003epython\u003c/code\u003e interpreter.\u003c/p\u003e\n\u003ch3\u003emacOS\u003c/h3\u003e\n\u003cp\u003eMake sure locale is set, to avoid \u003ccode\u003eValueError: unknown locale: UTF-8\u003c/code\u003e\u003c/p\u003e\n\u003ch3\u003evirtualenv\u003c/h3\u003e\n\u003cp\u003eIn case you want to use virtualenv or conda env:\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003econfigure python interpreter property -\u0026gt; \u003ccode\u003eabsolute/path/to/venv/bin/python\u003c/code\u003e\u003c/li\u003e\n\u003cli\u003esee \u003cem\u003eWorking with Matplotlib in Virtual environments\u003c/em\u003e in the \u003ca href\u003d\"http://matplotlib.org/faq/virtualenv_faq.html\"\u003eMatplotlib FAQ\u003c/a\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003eA simple example\u003c/h3\u003e\n\u003cp\u003eLet\u0026rsquo;s start by making a very simple line plot:\u003c/p\u003e\n\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627954_-1473548609",
+      "id": "20160614-174657_1772993700",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "dateStarted": "2021-07-26 03:47:56.578",
+      "dateFinished": "2021-07-26 03:47:56.591",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%python\nimport matplotlib.pyplot as plt\nplt.plot([1, 2, 3])",
+      "user": "anonymous",
+      "dateUpdated": "2021-07-26 03:47:29.783",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ],
+        "fontSize": 9.0,
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true
+        }
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627958_-1475087605",
+      "id": "20161101-192232_289486976",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "dateStarted": "2021-07-26 03:47:29.787",
+      "dateFinished": "2021-07-26 03:47:31.206",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%md\nNotice how an explicit call to `show()` is not necessary. This is accomplished via a post-execute hook which tells Zeppelin to plot all currently open matplotlib figures after executing the rest of the paragraph.\n### Plotting multiple figures\nWe can easily plot multiple figures at once too:",
+      "user": "anonymous",
+      "dateUpdated": "2021-07-26 03:47:59.300",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ],
+        "fontSize": 9.0,
+        "editorSetting": {}
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003cp\u003eNotice how an explicit call to \u003ccode\u003eshow()\u003c/code\u003e is not necessary. This is accomplished via a post-execute hook which tells Zeppelin to plot all currently open matplotlib figures after executing the rest of the paragraph.\u003c/p\u003e\n\u003ch3\u003ePlotting multiple figures\u003c/h3\u003e\n\u003cp\u003eWe can easily plot multiple figures at once too:\u003c/p\u003e\n\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627958_-1475087605",
+      "id": "20160617-002131_1552178409",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "dateStarted": "2021-07-26 03:47:59.303",
+      "dateFinished": "2021-07-26 03:47:59.308",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%python\n# Figure 1\nplt.plot([1, 2, 3])\n\n# Figure 2\nplt.figure()\nplt.plot([3, 2, 1])",
+      "user": "anonymous",
+      "dateUpdated": "2021-07-26 03:47:31.392",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ],
+        "fontSize": 9.0,
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true
+        }
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627959_-1475472354",
+      "id": "20161101-193533_2096366908",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "dateStarted": "2021-07-26 03:47:31.395",
+      "dateFinished": "2021-07-26 03:47:31.452",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%md\n### Changing the default inline plotting behavior\nBoth the `python` and `pyspark` include a built-in function for changing some default inline plotting behavior. For example, we can change the default size of each figure in pixels to 400x300 in svg format using: ",
+      "user": "anonymous",
+      "dateUpdated": "2021-07-26 03:48:01.436",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ],
+        "fontSize": 9.0,
+        "editorSetting": {}
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch3\u003eChanging the default inline plotting behavior\u003c/h3\u003e\n\u003cp\u003eBoth the \u003ccode\u003epython\u003c/code\u003e and \u003ccode\u003epyspark\u003c/code\u003e include a built-in function for changing some default inline plotting behavior. For example, we can change the default size of each figure in pixels to 400x300 in svg format using:\u003c/p\u003e\n\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627959_-1475472354",
+      "id": "20160614-174421_274483707",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "dateStarted": "2021-07-26 03:48:01.441",
+      "dateFinished": "2021-07-26 03:48:01.449",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%python\nz.configure_mpl(width\u003d400, height\u003d300, fmt\u003d\u0027svg\u0027)\nplt.plot([1, 2, 3])",
+      "user": "anonymous",
+      "dateUpdated": "2021-07-26 03:47:31.598",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ],
+        "fontSize": 9.0,
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true
+        }
+      },
+      "settings": {
+        "params": {
+          "f1": "defaultValue"
+        },
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627959_-1475472354",
+      "id": "20160616-234947_579056637",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "dateStarted": "2021-07-26 03:47:31.603",
+      "dateFinished": "2021-07-26 03:47:31.661",
+      "status": "ERROR"
+    },
+    {
+      "text": "%md\n### Iteratively updating a plot\n#### (a) Using multiple plots\nNow let\u0027s show an example where we update each element of the plot in a separate paragraph. However, you may have noticed that each matplotlib figure instance gets closed immediately after its shown. To fix this, we set the `close` property to `False` in our configuration:",
+      "user": "anonymous",
+      "dateUpdated": "2021-07-26 03:48:03.271",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 394.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ],
+        "fontSize": 9.0,
+        "editorSetting": {}
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch3\u003eIteratively updating a plot\u003c/h3\u003e\n\u003ch4\u003e(a) Using multiple plots\u003c/h4\u003e\n\u003cp\u003eNow let\u0026rsquo;s show an example where we update each element of the plot in a separate paragraph. However, you may have noticed that each matplotlib figure instance gets closed immediately after its shown. To fix this, we set the \u003ccode\u003eclose\u003c/code\u003e property to \u003ccode\u003eFalse\u003c/code\u003e in our configuration:\u003c/p\u003e\n\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627960_-1477396098",
+      "id": "20160617-140439_1111727405",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "dateStarted": "2021-07-26 03:48:03.273",
+      "dateFinished": "2021-07-26 03:48:03.283",
+      "status": "FINISHED"
+    },
+    {
+      "title": "First line",
+      "text": "%python\nplt.close() # Added here to reset the first plot when rerunning the paragraph\nz.configure_mpl(width\u003d600, height\u003d400, fmt\u003d\u0027png\u0027, close\u003dFalse)\nplt.plot([1, 2, 3], label\u003dr\u0027$y\u003dx$\u0027)",
+      "user": "anonymous",
+      "dateUpdated": "2016-11-02 14:53:47.000",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "title": true,
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 389.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ]
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627960_-1477396098",
+      "id": "20161101-195657_1336292109",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "status": "READY",
+      "errorMessage": ""
+    },
+    {
+      "title": "Second line",
+      "text": "%python\nplt.plot([3, 2, 1], label\u003dr\u0027$y\u003d3-x$\u0027)",
+      "user": "anonymous",
+      "dateUpdated": "2016-11-02 14:53:47.000",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "title": true,
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 289.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ]
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627961_-1477780847",
+      "id": "20161101-195937_907325325",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "status": "READY",
+      "errorMessage": ""
+    },
+    {
+      "title": "Label axes",
+      "text": "%python\nplt.xlabel(r\u0027$x$\u0027, fontsize\u003d20)\nplt.ylabel(r\u0027$y$\u0027, fontsize\u003d20)",
+      "user": "anonymous",
+      "dateUpdated": "2016-11-02 14:53:47.000",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "title": true,
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ]
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627962_-1476626600",
+      "id": "20161101-200014_2113468597",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "status": "READY",
+      "errorMessage": ""
+    },
+    {
+      "title": "Add legend",
+      "text": "%python\nplt.legend(loc\u003d\u0027upper center\u0027, fontsize\u003d20)",
+      "user": "anonymous",
+      "dateUpdated": "2016-11-02 14:53:47.000",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "title": true,
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 86.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ]
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627962_-1476626600",
+      "id": "20161101-200141_1493024813",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "status": "READY",
+      "errorMessage": ""
+    },
+    {
+      "title": "Add title",
+      "text": "%python\nplt.title(\u0027Inline plotting example\u0027, fontsize\u003d20)",
+      "user": "anonymous",
+      "dateUpdated": "2016-11-02 14:53:47.000",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/python",
+        "title": true,
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ]
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627963_-1477011349",
+      "id": "20161101-200445_78775142",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "status": "READY",
+      "errorMessage": ""
+    },
+    {
+      "text": "%md\n####(b) Using a single plot\nTo iteratively update a single plot, we can leverage Zeppelin\u0027s built-in Angular Display System. Currently this feature is only available for the `pyspark` interpreter for raster (png and jpg) formats. To enable this, we must set a special `angular` flag to `True` in our configuration:",
+      "user": "anonymous",
+      "dateUpdated": "2021-07-26 03:48:06.311",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ],
+        "fontSize": 9.0,
+        "editorSetting": {}
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003cp\u003e####(b) Using a single plot\u003cbr /\u003e\nTo iteratively update a single plot, we can leverage Zeppelin\u0026rsquo;s built-in Angular Display System. Currently this feature is only available for the \u003ccode\u003epyspark\u003c/code\u003e interpreter for raster (png and jpg) formats. To enable this, we must set a special \u003ccode\u003eangular\u003c/code\u003e flag to \u003ccode\u003eTrue\u003c/code\u003e in our configuration:\u003c/p\u003e\n\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627963_-1477011349",
+      "id": "20161101-200541_1283841564",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "dateStarted": "2021-07-26 03:48:06.313",
+      "dateFinished": "2021-07-26 03:48:06.319",
+      "status": "FINISHED"
+    },
+    {
+      "title": "First line (figure will be displayed here)",
+      "text": "%pyspark\nimport matplotlib.pyplot as plt\nplt.close() # Added here to reset the plot when rerunning the paragraph\nz.configure_mpl(angular\u003dTrue, close\u003dFalse)\nplt.plot([1, 2, 3], label\u003dr\u0027$y\u003dx$\u0027)",
+      "user": "anonymous",
+      "dateUpdated": "2016-11-02 14:55:37.000",
+      "progress": 0,
+      "config": {
+        "colWidth": 7.0,
+        "editorMode": "ace/mode/python",
+        "title": true,
+        "enabled": true,
+        "results": [
+          {
+            "graph": {
+              "mode": "table",
+              "height": 389.0,
+              "optionOpen": false,
+              "keys": [],
+              "values": [],
+              "groups": [],
+              "scatter": {}
+            }
+          }
+        ]
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627963_-1477011349",
+      "id": "20161101-200754_739212093",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "dateStarted": "2016-11-02 14:54:53.000",
+      "dateFinished": "2016-11-02 14:55:04.000",
+      "status": "FINISHED"
+    },
+    {
+      "title": "Second line",
+      "text": "%pyspark\nplt.plot([3, 2, 1], label\u003dr\u0027$y\u003d3-x$\u0027)",
+      "user": "anonymous",
+      "dateUpdated": "2016-11-02 14:53:47.000",
+      "progress": 0,
+      "config": {
+        "colWidth": 5.0,
+        "title": true,
+        "enabled": true,
+        "results": []
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627964_-1478935094",
+      "id": "20161101-200854_1676504884",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "status": "READY",
+      "errorMessage": ""
+    },
+    {
+      "title": "Label axes",
+      "text": "%pyspark\nplt.xlabel(r\u0027$x$\u0027, fontsize\u003d20)\nplt.ylabel(r\u0027$y$\u0027, fontsize\u003d20)",
+      "user": "anonymous",
+      "dateUpdated": "2016-11-02 14:53:47.000",
+      "progress": 0,
+      "config": {
+        "colWidth": 5.0,
+        "title": true,
+        "enabled": true,
+        "results": []
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627964_-1478935094",
+      "id": "20161101-200851_314384892",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "status": "READY",
+      "errorMessage": ""
+    },
+    {
+      "title": "Add legend",
+      "text": "%pyspark\nplt.legend(loc\u003d\u0027upper center\u0027, fontsize\u003d20)",
+      "user": "anonymous",
+      "dateUpdated": "2016-11-02 14:53:47.000",
+      "progress": 0,
+      "config": {
+        "colWidth": 5.0,
+        "editorMode": "ace/mode/python",
+        "title": true,
+        "enabled": true,
+        "results": []
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627964_-1478935094",
+      "id": "20161101-201552_651686132",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "status": "READY",
+      "errorMessage": ""
+    },
+    {
+      "title": "Add title",
+      "text": "%pyspark\nplt.title(\u0027Inline plotting example\u0027, fontsize\u003d20)",
+      "user": "anonymous",
+      "dateUpdated": "2016-11-02 14:53:47.000",
+      "progress": 0,
+      "config": {
+        "colWidth": 5.0,
+        "editorMode": "ace/mode/python",
+        "title": true,
+        "enabled": true,
+        "results": []
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627965_-1479319843",
+      "id": "20161101-202024_1645454710",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "status": "READY",
+      "errorMessage": ""
+    },
+    {
+      "text": "",
+      "user": "anonymous",
+      "dateUpdated": "2016-11-02 14:53:47.000",
+      "progress": 0,
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1478123627965_-1479319843",
+      "id": "20161102-124716_1703649609",
+      "dateCreated": "2016-11-02 14:53:47.000",
+      "status": "READY",
+      "errorMessage": ""
+    }
+  ],
+  "name": "4. Matplotlib (Python, PySpark)",
+  "id": "2C2AUG798",
+  "defaultInterpreterGroup": "spark",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {
+    "2C6WUGPNH:shared_process": [],
+    "2C4A8RJNB:shared_process": [],
+    "2C4DTK2ZT:shared_process": [],
+    "2C6XKJWBR:shared_process": [],
+    "2C6AHZPMK:shared_process": [],
+    "2C5SU66WQ:shared_process": [],
+    "2C6AMJ98Q:shared_process": [],
+    "2C4AJZK72:shared_process": [],
+    "2C3STPSD7:shared_process": [],
+    "2C4FJN9CK:shared_process": [],
+    "2C3CW6JBY:shared_process": [],
+    "2C5UPQX6Q:shared_process": [],
+    "2C5873KN4:shared_process": [],
+    "2C5719XN4:shared_process": [],
+    "2C52DE5G3:shared_process": [],
+    "2C4G28E63:shared_process": [],
+    "2C6CU96BC:shared_process": [],
+    "2C49A6WY3:shared_process": [],
+    "2C3NE73HG:shared_process": []
+  },
+  "config": {
+    "isZeppelinNotebookCronEnable": false
+  },
+  "info": {
+    "isRunning": false
+  }
+}

@@ -1,0 +1,1 @@
+- https://github.com/bitnami/containers/issues/53407: [bitnami/mongodb] /opt/bitnami/scripts/libos.sh: line 346: 42 Illegal instruction "$@" > /dev/null 2>&

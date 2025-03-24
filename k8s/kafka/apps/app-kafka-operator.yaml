@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kafka-operator
+  namespace: argo-cd
+  annotations:
+    # Wait app-kafka-kustomize.yaml
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: kafka
+  sources:
+    - repoURL: https://github.com/strimzi/strimzi-kafka-operator.git
+      path: helm-charts/helm3/strimzi-kafka-operator
+      targetRevision: "0.46.0"
+      helm:
+        valueFiles:
+          - $values/k8s/kafka/operator/values.yaml
+    - repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+      targetRevision: master
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kafka
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

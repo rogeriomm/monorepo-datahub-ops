@@ -1,0 +1,42 @@
+name: Build Jupyter Docker Stack
+
+on:
+  workflow_dispatch:
+  #push:
+  #  branches: [ "master" ]
+  #  paths:
+  #    - 'jupyter/docker-stacks/**'
+  #    - '.github/workflows/jupyter-stacks.yaml'
+
+jobs:
+  build:
+    name: Make Jupyter Stack
+
+    strategy:
+      matrix:
+        runner: [world1l]
+
+    runs-on: ${{ matrix.runner }}
+
+    defaults:
+      run:
+        working-directory: jupyter/docker-stacks
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Extract Git metadata.
+        id: git_info
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "branch=$(echo ${GITHUB_REF#refs/heads/} | sed 's/\//-/g')" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run Make
+        run: make build-all DOCKER_BUILD_ARGS="--build-arg spark_version=3.5.6" \
+               TAG=${{ steps.git_info.outputs.sha_short }}

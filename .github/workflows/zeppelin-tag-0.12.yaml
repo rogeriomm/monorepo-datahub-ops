@@ -1,0 +1,90 @@
+#
+# https://zeppelin.apache.org/docs/0.12.0/quickstart/kubernetes.html
+#
+
+name: zeppelin-tag-0.12
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-zeppelin-image:
+    runs-on: ${{ matrix.runner }}
+    environment: ${{ matrix.environment  }}
+    strategy:
+      matrix:
+        include:
+          - runner: pvel-vm
+            environment: pvel
+          #- runner: world1l-vm
+          #- environment: world1l
+
+    #env:
+    #  CACHE_DIR: ${HOME}/.buildx-cache/${{ github.repository }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      #mkdir -p ${{ env.CACHE_DIR }}
+      - run: |
+         echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+
+      - name: Clone Zeppelin repository tag "v0.12.0"
+        uses: actions/checkout@v5
+        with:
+          repository: apache/zeppelin.git
+          path: zeppelin-distro
+          ref: v0.12.0
+
+      - name: Login to Harbor Registry
+        uses: docker/login-action@v3
+        with:
+          registry: harbor.ing.vm.pvel.worldl.xpt
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker
+          #driver: docker-container
+
+      - run: cp zeppelin/tag-v0.12.0/Dockerfile zeppelin-distro/Dockerfile
+
+      - name: Build zeppelin-distribution image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./zeppelin-distro
+          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-distribution:0.12.0
+          push: true
+          #cache-from: type=local,src=${{ env.CACHE_DIR }}
+          #cache-to: type=local,dest=${{ env.CACHE_DIR }},mode=max
+
+      - name: Build zeppelin-server image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./zeppelin/tag-v0.12.0/scripts/zeppelin-server
+          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-server:0.12.0
+          push: true
+          #cache-from: type=local,src=${{ env.CACHE_DIR }}
+          #cache-to: type=local,dest=${{ env.CACHE_DIR }},mode=max
+          build-args: |
+            ZEPPELIN_DISTRIBUTION_IMAGE=harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-distribution:0.12.0
+
+      - name: Build zeppelin-interpreter image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./zeppelin/tag-v0.12.0/scripts/zeppelin-interpreter
+          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-interpreter:0.12.0
+          push: true
+          #cache-from: type=local,src=${{ env.CACHE_DIR }}
+          #cache-to: type=local,dest=${{ env.CACHE_DIR }},mode=max
+          build-args: |
+            ZEPPELIN_DISTRIBUTION_IMAGE=harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-distribution:0.12.0
+
+      - name: Build zeppelin-spark image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./zeppelin/tag-v0.12.0/scripts/zeppelin-spark
+          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-interpreter-spark:0.12.0
+          push: true

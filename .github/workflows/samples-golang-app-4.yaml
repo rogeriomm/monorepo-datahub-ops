@@ -1,0 +1,96 @@
+name: samples-golang-app-4
+
+on:
+  workflow_dispatch:
+  push:
+    tags: [ 'sample-golang-app-4@*' ]
+    paths:
+    - '../../lang-samples/golang/app-4/**'
+    - '.github/workflows/samples-golang-app-4.yaml'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.runner }}
+    environment: ${{ matrix.environment  }}
+    strategy:
+      matrix:
+        include:
+          - runner: pvel-vm
+            environment: pvel
+          - runner: world1l-vm
+            environment: world1l
+    defaults:
+      run:
+        working-directory: lang-samples/golang/app-4
+
+    env:
+      APP_NAME: "sample-go-app-4"
+
+    steps:
+    - run: echo "CONTAINER=harbor.ing.vm.pvel.worldl.xpt/main/${APP_NAME}" >> $GITHUB_ENV
+
+    - uses: actions/checkout@v5
+
+    - run: echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+
+    - name: Extract Git metadata.
+      id: git_info
+      run: |
+        echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        echo "branch=$(echo ${GITHUB_REF#refs/heads/} | sed 's/\//-/g')" >> $GITHUB_OUTPUT
+        echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        echo "version=${GITHUB_REF#refs/tags/${APP_NAME}@*}" >> $GITHUB_OUTPUT
+        cat $GITHUB_OUTPUT
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version: '1.24.2'
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: 🧪 Run tests
+      run: go test -v ./...
+
+    - name: 🔍 Static Analysis with golangci-lint (disabled)
+      if: false
+      uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
+      with:
+        version: v2.0.1
+        args: --verbose
+
+    - name: 🛠️ Download dependencies
+      run: go mod tidy
+
+    - name: 📦 Build binary.
+      run: go build -o $APP_NAME .
+
+    - name: Login to Harbor Registry
+      uses: docker/login-action@v3
+      with:
+        registry: harbor.ing.vm.pvel.worldl.xpt
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        buildkitd-config-inline: |
+          [registry."harbor.ing.vm.pvel.worldl.xpt"]
+            ca = ["/usr/local/share/ca-certificates/harbor.crt"]
+
+    - name: 🐳 Build and push Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: ./lang-samples/golang/app-4
+        file: ./lang-samples/golang/app-4/Dockerfile
+        push: true
+        tags: ${{env.CONTAINER}}:${{ steps.git_info.outputs.version }}

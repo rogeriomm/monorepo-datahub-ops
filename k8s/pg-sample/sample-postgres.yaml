@@ -1,0 +1,71 @@
+# https://cloudnative-pg.io/documentation/current/samples/[
+# https://cloudnative-pg.io/documentation/1.27/cloudnative-pg.v1/#postgresql-cnpg-io-v1-Database
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cluster-sample
+  namespace: pg-sample
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18-minimal-trixie
+  # Example of rolling update strategy:
+  # - unsupervised: automated update of the primary once all
+  #                 replicas have been upgraded (default)
+  # - supervised: requires manual supervision to perform
+  #               the switchover of the primary
+  primaryUpdateStrategy: unsupervised
+
+  # Persistent storage configuration
+  storage:
+    size: 1Gi
+    pvcTemplate:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: local-path 
+      volumeMode: Filesystem
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "1"
+    limits:
+      memory: "1Gi"
+      cpu: "2"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-cluster-external
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    cnpg.io/cluster: cluster-sample
+    role: primary
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: database1
+  namespace: pg-sample
+spec:
+  cluster:
+    name: cluster-sample
+  name: database1
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: database2
+  namespace: pg-sample
+spec:
+  cluster:
+    name: cluster-sample
+  name: database2
+
+

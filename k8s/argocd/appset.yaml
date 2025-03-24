@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapp-multi-cluster
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchExpressions:
+            - key: env
+              operator: In
+              values:
+                - dev
+                - prod
+  template:
+    metadata:
+      name: '{{name}}-myapp'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/rogeriomm/monorepo-datahub-ops.git'
+        targetRevision: '{{if eq labels.env "prod"}}main{{else}}develop{{end}}'
+        path: apps/myapp
+      destination:
+        server: '{{server}}'
+        namespace: airflow 
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

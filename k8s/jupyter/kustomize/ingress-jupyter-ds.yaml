@@ -1,0 +1,69 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jupyter-ds
+  annotations:
+    cert-manager.io/cluster-issuer: spnw-intermediate-ca1-issuer
+    cert-manager.io/common-name: "jupyter-ds.world1l.worldl.xpt"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: jupyter-ds.vm.world1l.worldl.xpt
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jupyter-ds
+                port:
+                  number: 8888
+    - host: worldl-jupyter-ds.worldb.site
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jupyter-ds
+                port:
+                  number: 8888
+  tls:
+    - hosts:
+        - jupyter-ds.vm.world1l.worldl.xpt
+      secretName: jupyter-ds-cert-secret
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jupyter-all-spark
+  annotations:
+    cert-manager.io/cluster-issuer: spnw-intermediate-ca1-issuer
+    cert-manager.io/common-name: "jupyter-all-spark.vm.world1l.worldl.xpt"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: jupyter-all-spark.vm.world1l.worldl.xpt
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jupyter-all-spark
+                port:
+                  number: 8888
+    - host: worldl-jupyter-all-spark.worldb.site
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jupyter-all-spark
+                port:
+                  number: 8888
+  tls:
+    - hosts:
+        - jupyter-all-spark.vm.world1l.worldl.xpt
+      secretName: jupyter-all-spark-cert-secret

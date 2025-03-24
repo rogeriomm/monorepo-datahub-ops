@@ -1,0 +1,29 @@
+#resources:
+#  requests:
+#    cpu: 1
+#    memory: 1Gi
+#  limits:
+#    cpu: 4
+#    memory: 2Gi
+
+parameters:
+  - name: service.type
+    value: ClusterIP
+  - name: startServices
+    value: "s3,lambda"
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: spnw-intermediate-ca1-issuer
+    cert-manager.io/common-name: "localstack.ing.vm.pvel.worldl.xpt"
+  ingressClassName: "nginx"
+  hosts:
+    - host: localstack.ing.vm.pvel.worldl.xpt
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - localstack.ing.vm.pvel.worldl.xpt
+      secretName: localstack-cert-secret

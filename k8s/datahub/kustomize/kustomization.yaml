@@ -1,0 +1,4 @@
+namespace: datahub
+resources:
+  - service-fix.yaml
+  - ingress.yaml

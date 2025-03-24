@@ -1,0 +1,67 @@
+resources:
+  requests:
+    cpu: 4
+    memory: 4Gi
+  limits:
+    cpu: 4
+    memory: 8Gi
+
+parameters:
+  - name: service.type
+    value: ClusterIP
+  - name: startServices
+    value: "s3,lambda,cloudformation,emr"
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: spnw-intermediate-ca1-issuer
+    cert-manager.io/common-name: "localstack.ing.vm.world1l.worldl.xpt"
+  ingressClassName: "nginx"
+  hosts:
+    - host: localstack.ing.vm.world1l.worldl.xpt
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - localstack.ing.vm.world1l.worldl.xpt
+      secretName: localstack-cert-secret
+
+service:
+  type: LoadBalancer
+  annotations: {}
+  ipFamilies: []
+  ipFamilyPolicy: ""
+  externalTrafficPolicy: ""
+  edgeService:
+    name: edge
+    targetPort: 4566
+    nodePort: 31566
+  externalServicePorts:
+    start: 4510
+    end: 4560
+    ## @param service.externalServicePorts.nodePortStart specifies the starting node ports the serviceports are mapped to
+    ##   has to be in the node port range configured. See https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+    # nodePortStart: 31510
+  ## @param service.dnsService Enables or disables the exposure of the LocalStack DNS
+  ##
+  dnsService: true
+  ## @param service.clusterIP sets a static clusterIP. This is useful alongside the LocalStack DNS setup
+  ##   see https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/#configuration-of-stub-domain-and-upstream-nameserver-using-coredns for an example of DNS delegation in Coredns
+  ##
+  clusterIP: ""
+
+
+extraEnvVars:
+  - name: "LOCALSTACK_AUTH_TOKEN"
+    valueFrom:
+      secretKeyRef:
+        name: "localstack-auth"
+        key: "token"
+  - name: "ENFORCE_IAM"
+    value: "1"
+  - name: "DEBUG"
+    value: "1"
+  - name: "LOCALSTACK_HOST"
+    value: "localstack.ing.vm.world1l.worldl.xpt"

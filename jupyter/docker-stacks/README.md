@@ -1,0 +1,1 @@
+This is a customized Jupyter stack based on the official Jupyter Docker Stacks project (https://jupyter-docker-stacks.readthedocs.io/en/latest/).

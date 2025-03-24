@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mariadb-stack
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    targetRevision: HEAD
+    path: k8s/mariadb-operator/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argo-cd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

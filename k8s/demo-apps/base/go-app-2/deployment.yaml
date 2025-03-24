@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-go-app-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample-go-app-2
+  template:
+    metadata:
+      labels:
+        app: sample-go-app-2
+    spec:
+      containers:
+        - name: sample-go-2
+          image: harbor.ing.vm.pvel.worldl.xpt/main/sample-go-app-2:0.44
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080

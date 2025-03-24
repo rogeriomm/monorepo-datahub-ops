@@ -1,0 +1,5 @@
+namespace: kube-system
+resources:
+  - pv-nfs-csi.yaml
+  - pv-nfs-git.yaml
+  - pv-debug.yaml

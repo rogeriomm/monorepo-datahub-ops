@@ -1,0 +1,49 @@
+name: zeppelin-fix
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-go-dnsmasq:
+    runs-on: ${{ matrix.runner }}
+    environment: ${{ matrix.environment  }}
+    strategy:
+      matrix:
+        include:
+          - runner: pvel-vm
+            environment: pvel
+
+    env:
+      CACHE_DIR: /home/rogermm/.buildx-cache/${{ github.repository }}
+
+    steps:
+      - name: Clone go-dnsmasq repo
+        uses: actions/checkout@v5
+        with:
+          repository: janeczku/go-dnsmasq
+          path: go-dnsmasq
+
+      - name: Login to Harbor Registry
+        uses: docker/login-action@v3
+        with:
+          registry: harbor.ing.vm.pvel.worldl.xpt
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - run: |
+          echo "$HOME/.local/share/mise/shims " >> $GITHUB_PATH
+          mkdir -p ${{ env.CACHE_DIR }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker
+
+      - name: Build go-dnsmasq with cache
+        uses: docker/build-push-action@v6
+        with:
+          context: ./go-dnsmasq
+          tags: harbor.ing.vm.pvel.worldl.xpt/main/go-dnsmasq:release-1.0.5
+          push: true
+          #cache-from: type=local,src=${{ env.CACHE_DIR }}
+          #cache-to: type=local,dest=${{ env.CACHE_DIR }},mode=max

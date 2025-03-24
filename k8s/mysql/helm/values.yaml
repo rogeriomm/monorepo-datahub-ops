@@ -1,0 +1,14 @@
+primary:
+  resources:
+     requests:
+       memory: 1024Mi
+     limits:
+       memory: 2048Mi
+
+secondary:
+  resources:
+    requests:
+      memory: 1024Mi
+    limits:
+      memory: 2048Mi
+

@@ -1,0 +1,59 @@
+# https://github.com/localstack/helm-charts/blob/main/charts/localstack/values.yaml
+
+## @param updateStrategy.type deployment strategy type
+## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+## NOTE: Set it to `Recreate` if you use a PV that cannot be mounted on multiple pods
+##
+updateStrategy:
+  type: RollingUpdate
+
+debug: true
+
+image:
+  repository: localstack/localstack-pro
+  tag: "4.9.2-bigdata"
+  pullPolicy: Always
+
+persistence:
+  ## @param persistence.enabled Enable persistence using Persistent Volume Claims
+  ##
+  enabled: true
+  ## @param persistence.storageClass Persistent Volume storage class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
+  ##
+  storageClass: "local-path"
+  ## @param persistence.accessModes [array] Persistent Volume access modes
+  ##
+  accessModes:
+    - ReadWriteOnce
+  ## @param persistence.size Persistent Volume size
+  ##
+  size: 8Gi
+  ## @param persistence.dataSource Custom PVC data source
+  ##
+  dataSource: {}
+  ## @param persistence.existingClaim The name of an existing PVC to use for persistence
+  ##
+  existingClaim: ""
+  ## @param persistence.subPath The name of a volume's sub path to mount for persistence
+  ##
+  subPath: ""
+  ## @param persistence.annotations Annotations to be added to PVC
+  ##
+  annotations: {}
+
+lambda:
+  # The lambda runtime executor.
+  # Depending on the value, LocalStack will execute lambdas either in docker containers or in kubernetes pods
+  # The value "kubernetes" depends on the service account and pod role being activated
+  executor: "kubernetes"
+
+# This will enable the Docker daemon binding and allow
+# Localstack to provide Lambdas and other AWS services
+# who got container runtime dependencies
+mountDind:
+  enabled: true
+  forceTLS: true
+  image: "docker:28.5.1-dind"
