@@ -1,0 +1,33 @@
+global:
+  kafka:
+    bootstrap:
+      server: "datahub-prerequisites-kafka:9092"
+    zookeeper:
+      server: "datahub-prerequisites-zookeeper:2181"
+
+  elasticsearch:
+    host: "elasticsearch-master"
+
+  sql:
+    datasource:
+      host: "datahub-prerequisites-mysql:3306"
+      hostForMysqlClient: "datahub-prerequisites-mysql"
+
+  neo4j:
+    host: "datahub-prerequisites-neo4j:7474"
+
+mysql:
+  hostname: "datahub-prerequisites-mysql"
+
+
+
+datahub-frontend:
+  resources:
+    limits:
+      memory: 1400Mi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  # Set up ingress to expose react front-end
+  ingress:
+    enabled: true

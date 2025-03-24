@@ -1,0 +1,44 @@
+[tools]
+argocd = "latest"
+aws = "latest"
+bat = "latest"
+cloudflared = "latest"
+eza = "latest"
+fastfetch = "latest"
+fzf = "latest"
+gh = "latest"
+gum = "latest"
+helm = "latest"
+kubectx = "latest"
+kubie = "latest"
+neovim = "latest"
+python = "latest"
+slsa-verifier = "latest"
+terraform = "latest"
+zoxide = "latest"
+
+
+[env]
+SOME_VAR = "foo"
+
+
+[tasks.plan]
+description = "Run terraform plan with configured workspace"
+run = """
+terraform init
+terraform workspace select $TF_WORKSPACE
+terraform plan
+"""
+
+[tasks.validate]
+description = "Validate AWS credentials and terraform config"
+run = """
+aws sts get-caller-identity
+terraform validate
+"""
+
+[tasks.deploy]
+description = "Deploy infrastructure after validation"
+depends = ["validate", "plan"]
+run = "terraform apply -auto-approve"
+

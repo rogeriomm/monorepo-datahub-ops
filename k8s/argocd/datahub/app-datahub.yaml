@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: datahub-all
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    path: k8s/datahub/apps
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argo-cd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

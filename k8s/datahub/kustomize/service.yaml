@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prerequisites-mysql
+spec:
+  selector:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: datahub-prerequisites
+    app.kubernetes.io/name: mysql
+  ports:
+    - name: mysql
+      protocol: TCP
+      port: 3306
+      targetPort: mysql
+  type: ClusterIP

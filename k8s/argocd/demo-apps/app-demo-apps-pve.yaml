@@ -1,0 +1,170 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-demo-apps-go-app-1
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    targetRevision: HEAD
+    path: k8s/demo-apps/overlays/pve/go-app-1
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: simple-web
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-demo-apps-go-app-2
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    targetRevision: HEAD
+    path: k8s/demo-apps/overlays/pve/go-app-2
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: simple-web
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-demo-apps-go-app-3
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    targetRevision: HEAD
+    path: k8s/demo-apps/overlays/pve/go-app-3
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: simple-web
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-demo-apps-go-app-4
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    targetRevision: HEAD
+    path: k8s/demo-apps/overlays/pve/go-app-4
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: simple-web
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-demo-apps-go-rust-1
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    targetRevision: HEAD
+    path: k8s/demo-apps/overlays/pve/rust-app-1
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: simple-web
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-demo-apps-rust-app-2
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    targetRevision: HEAD
+    path: k8s/demo-apps/overlays/pve/rust-app-2
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: simple-web
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-demo-apps-rust-app-3
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    targetRevision: HEAD
+    path: k8s/demo-apps/overlays/pve/rust-app-3
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: simple-web
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-demo-apps-rust-app-4
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    targetRevision: HEAD
+    path: k8s/demo-apps/overlays/pve/rust-app-4
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: simple-web
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+

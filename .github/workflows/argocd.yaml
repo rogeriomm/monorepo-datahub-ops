@@ -1,0 +1,72 @@
+#
+# kubectl config set-context argo-cd \
+#  --cluster=default \
+#  --user=default \
+#  --namespace=argo-cd
+#
+#
+name: argocd
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'k8s/argocd/**'
+      - '.github/workflows/argocd.yaml'
+
+jobs:
+  argocd_cli:
+    runs-on: ${{ matrix.runner }}
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        include:
+          - runner: pvel-vm
+            environment: pvel
+          - runner: world1l
+            environment: world1l
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      #- uses: actions-hub/kubectl@master
+      #  env:
+      #    KUBE_CONFIG: ${{ vars.KUBECONFIG }}
+      #  with:
+      #    args: get pods
+
+      - name: Write KUBECONFIG to file
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yaml
+          chmod 600 kubeconfig.yaml
+
+      - name: Set K8S context for ArgoCD core mode
+        run: |
+          kubectl config use-context argo-cd
+        env:
+          KUBECONFIG: kubeconfig.yaml
+
+      - name: ArgoCD CLI - Version
+        uses: clowdhaus/argo-cd-action@main
+        with:
+          version: 2.6.7
+          command: version
+          options: --client
+        env:
+          KUBECONFIG: kubeconfig.yaml
+
+      - name: ArgoCD Login (Core Mode)
+        uses: clowdhaus/argo-cd-action@main
+        with:
+          command: login
+          options: --core
+        env:
+          KUBECONFIG: kubeconfig.yaml
+
+      - name: List ArgoCD Applications
+        uses: clowdhaus/argo-cd-action@main
+        with:
+          command: app list
+        env:
+          KUBECONFIG: kubeconfig.yaml

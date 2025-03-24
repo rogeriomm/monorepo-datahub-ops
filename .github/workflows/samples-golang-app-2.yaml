@@ -1,0 +1,72 @@
+name: samples-golang-app-2
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+    - 'src-samples/golang/app-2/**'
+    - 'samples-golang-app-1.yaml'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        runner: [pvel-vm, world1l]
+    defaults:
+      run:
+        # run every go command in the right folder.
+        working-directory: src-samples/golang/app-2
+
+    runs-on: ${{ matrix.runner }}
+    env:
+      APP_NAME: "app-2"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Show runner resources
+      run: fastfetch --pipe false -c all.jsonc
+
+    - name: Extract short SHA
+      id: vars
+      run: echo "SHORT_SHA=$(git rev-parse --short=7 HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24.2'
+
+    - name: 🧪 Run tests
+      run: go test -v ./...
+
+    - name: 🔍 Static Analysis with golangci-lint (disabled)
+      if: false
+      uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
+      with:
+        version: v2.0.1
+        args: --verbose
+
+    - name: 🛠️ Download dependencies
+      run: go mod tidy
+
+    - name: 📦 Build binary.
+      run: go build -o sample-go-$APP_NAME .
+
+    - name: 🐳 Build Docker image
+      run: docker build --tag local/sample-go-$APP_NAME:${{ steps.vars.outputs.SHORT_SHA }} --file Dockerfile .
+
+    - name: 🚚 Import built Go image into k3s
+      run: |
+        docker save local/sample-go-$APP_NAME:${{ steps.vars.outputs.SHORT_SHA }} \
+          | sudo k3s ctr image import -
+
+    - name: Cache Go modules
+      if: false
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-

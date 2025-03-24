@@ -1,0 +1,27 @@
+name: homepage
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'k8s/helm/**'
+      - 'homepage.yml'
+
+env:
+  CI: true
+
+permissions:
+  contents: read #  to fetch code (actions/checkout)
+
+jobs:
+  install_helm:
+    runs-on: [self-hosted, world1l]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: helm install
+        run: |
+          cd k8s/helm/homepage
+          helm upgrade my-release jameswynn/homepage -f values.yaml --namespace homepage
+          echo "CI: $CI"

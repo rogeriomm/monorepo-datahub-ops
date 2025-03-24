@@ -1,0 +1,41 @@
+# -- Main environment variables. Template enabled.
+# Syntax options:
+# A) TZ: UTC
+# B) PASSWD: '{{ .Release.Name }}'
+# C) PASSWD:
+#      configMapKeyRef:
+#        name: config-map-name
+#        key: key-name
+# D) PASSWD:
+#      valueFrom:
+#        secretKeyRef:
+#          name: secret-name
+#          key: key-name
+#      ...
+# E) - name: TZ
+#      value: UTC
+# F) - name: TZ
+#      value: '{{ .Release.Name }}'
+env:
+  - name: HOMEPAGE_ALLOWED_HOSTS
+    # This value must be set
+    # ref: https://gethomepage.dev/installation/#homepage_allowed_hosts
+    value: homepage.vm.pvel.worldl.xpt,pvel-homepage.worldb.site
+
+ingress:
+  main:
+    enabled: true
+    ingressClassName: "nginx"
+    hosts:
+      - host: homepage.vm.pvel.worldl.xpt
+        paths:
+          - path: /
+            pathType: Prefix
+      - host: pvel-homepage.worldb.site
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - homepage.vm.pvel.worldl.xpt
+        secretName: homepage-cert-secret

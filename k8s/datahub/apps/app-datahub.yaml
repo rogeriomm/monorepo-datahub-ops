@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: datahub
+  namespace: argo-cd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: default
+  sources:
+    - repoURL: https://helm.datahubproject.io
+      targetRevision: "0.6.1"
+      chart: datahub
+      helm:
+        valueFiles:
+          - $values/k8s/datahub/helm/datahub-values.yaml
+    - repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+      targetRevision: master
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: datahub
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

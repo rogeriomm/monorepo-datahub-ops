@@ -1,0 +1,1 @@
+sudo ip link set dev vmbr0 type bridge priority 0 # Force STP root

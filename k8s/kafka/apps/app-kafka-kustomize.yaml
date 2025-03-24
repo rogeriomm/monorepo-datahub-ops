@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kafka-kustomize
+  namespace: argo-cd
+  annotations:
+    # Wait app-kafka-bootstrap.yaml. Wait until the project exists
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: kafka
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    targetRevision: HEAD
+    path: k8s/kafka/kustomize
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kafka
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

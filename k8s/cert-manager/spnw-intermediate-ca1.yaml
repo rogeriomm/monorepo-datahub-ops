@@ -1,0 +1,27 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: spnw-intermediate-ca1
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: spnw-intermediate-ca1
+  secretName: spnw-intermediate-ca1-secret
+  duration: 43800h # 5y
+  renewBefore: 35040h # 4y
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: spnw-root-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: spnw-intermediate-ca1-issuer
+spec:
+  ca:
+    secretName: spnw-intermediate-ca1-secret
+

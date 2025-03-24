@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: kafka
+spec:
+  description: Project limited to kafka namespace and specific repo
+
+  sourceRepos:
+    - https://github.com/rogeriomm/monorepo-datahub-ops
+    - https://github.com/strimzi/strimzi-kafka-operator.git
+    - https://provectus.github.io/kafka-ui-charts
+    - https://charts.redpanda.com
+
+  destinations:
+    - namespace: kafka
+      server: https://kubernetes.default.svc
+    - namespace: kafka-ui
+      server: https://kubernetes.default.svc
+
+
+  # Allow all actions (create, sync, delete, etc.)
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+
+  roles:
+    - name: admin
+      description: Full access within this project
+      policies:
+        - p, proj:kafka-project:admin, applications, *, kafka/*, allow
+      groups:
+        - '*'

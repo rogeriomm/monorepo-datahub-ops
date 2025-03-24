@@ -1,0 +1,12 @@
+[package]
+name = "my-actix-app"
+#version = "0.6.3"
+edition = "2024"
+rust-version = "1.85.0"
+
+[dependencies]
+prometheus-client = "0.23.1"
+actix-web = { version = "4", features = ["macros", "cookies"] }
+
+[dev-dependencies]
+actix-rt = "2"     # runtime if you want to write async tests

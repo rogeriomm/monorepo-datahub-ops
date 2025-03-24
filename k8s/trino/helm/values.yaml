@@ -1,0 +1,4 @@
+coordinator:
+  replicaCount: 1
+  worker:
+    replicaCount: 2

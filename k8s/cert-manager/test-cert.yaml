@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-test
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: test-server
+  namespace: cert-test
+spec:
+  secretName: test-server-secret
+  isCA: false
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+  - "test-server.cert-test.svc.cluster.local"
+  - "test-server"
+  issuerRef:
+    name:  spnw-intermediate-ca1-issuer
+    kind: ClusterIssuer
+

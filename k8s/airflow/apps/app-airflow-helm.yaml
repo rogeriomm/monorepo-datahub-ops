@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: airflow-helm
+  namespace: argo-cd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  sources:
+    - repoURL: https://airflow-helm.github.io/charts
+      chart: airflow
+      targetRevision: 8.9.0
+      helm:
+        valueFiles:
+          - $values/k8s/airflow/helm/values.yaml
+    - repoURL: https://github.com/rogeriomm/monorepo-datahub-ops.git
+      targetRevision: master
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: airflow
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

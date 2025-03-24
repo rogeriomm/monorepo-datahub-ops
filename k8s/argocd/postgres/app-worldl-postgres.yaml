@@ -1,0 +1,29 @@
+# https://artifacthub.io/packages/helm/bitnami/postgresql
+# https://argo-cd.readthedocs.io/en/stable/user-guide/helm/#declarative
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres
+  namespace: argo-cd
+spec:
+  project: default
+  sources:
+    - repoURL: registry-1.docker.io/bitnamicharts
+      chart: postgresql
+      targetRevision: 16.6.6
+      helm:
+        valueFiles:
+          - $values/k8s/postgres/values.yaml
+          - $values/k8s/postgres/values-worldl.yaml
+    - repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+      targetRevision: master
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: postgres
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

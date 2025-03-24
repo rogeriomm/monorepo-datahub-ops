@@ -1,0 +1,97 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cloudflared-allow-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: cloudflared
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+              app.kubernetes.io/component: controller
+      ports:
+        - protocol: TCP
+          port: 443
+
+    # https://pvel.worldl.xpt:8006
+    - to:
+      - ipBlock:
+          cidr: 192.168.15.8/32
+      ports:
+        - protocol: TCP
+          port: 8006
+
+    # https://firewall.worldl.xpt:8006
+    - to:
+        - ipBlock:
+            cidr: 192.168.15.7/32
+      ports:
+        - protocol: TCP
+          port: 8006
+
+
+    # https://pve.worldl.xpt:8006
+    - to:
+        - ipBlock:
+            cidr: 192.168.15.9/32
+      ports:
+        - protocol: TCP
+          port: 8006
+
+    # Ingress vm.worldl1.worldl.xpt
+    - to:
+        - ipBlock:
+            cidr: 192.168.15.251/32
+      ports:
+        - protocol: TCP
+          port: 443
+
+    # Ingress vm.pve.worldl.xpt
+    - to:
+        - ipBlock:
+            cidr: 192.168.15.10/32
+      ports:
+        - protocol: TCP
+          port: 443
+
+    # NAS
+    - to:
+        - ipBlock:
+            cidr: 192.168.15.11/32
+      ports:
+        - protocol: TCP
+          port: 443 # TrueNAS
+        - protocol: TCP
+          port: 30013 # Jellyfin
+        - protocol: TCP
+          port: 30096 # Transmission
+
+    # Allow DNS queries to kube-dns
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+      - protocol: UDP
+        port: 53
+      - protocol: TCP
+        port: 53
+
+    # Allow UDP 7844 to CF Edge or pods in cloudflare
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+      - protocol: UDP
+        port: 7844

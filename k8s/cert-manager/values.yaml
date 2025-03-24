@@ -1,0 +1,15 @@
+# Install CRDs (CustomResourceDefinitions)
+crds:
+  enabled: true
+
+# Set replica count for HA
+replicaCount: 2
+
+# Webhook settings
+webhook:
+  timeoutSeconds: 4
+
+# Pod Disruption Budget configuration
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
