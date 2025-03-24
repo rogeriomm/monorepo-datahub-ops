@@ -1,0 +1,43 @@
+name: argocd
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'k8s/argocd/**'
+      - '.github/workflows/argocd.yaml'
+
+jobs:
+  argocd_cli:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: [pvel-vm, world1l]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set K8S context for ArgoCD core mode
+        run: |
+          kubectl config set-context --current --namespace=argo-cd
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+
+
+      - name: ArgoCD CLI - Version
+        uses: clowdhaus/argo-cd-action@main
+        with:
+          command: version
+          options: --client
+
+      - name: ArgoCD Login (Core Mode)
+        uses: clowdhaus/argo-cd-action@main
+        with:
+          command: login
+          options: --core
+
+      - name: List ArgoCD Applications
+        uses: clowdhaus/argo-cd-action@main
+        with:
+          command: app list

@@ -1,0 +1,95 @@
+name: samples-rust-app-1
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+    - 'src-samples/rust/app-3/**'
+    - 'samples-rust-app-1.yaml'
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
+  #rust_nightly: nightly-2025-04-07
+
+  RUN_MSERV_CHECK: false
+
+defaults:
+  run:
+    working-directory: src-samples/rust/app-1
+
+jobs:
+
+  build:
+    strategy:
+      matrix:
+        runner: [pvel-vm, world1l]
+    defaults:
+      run:
+        # run every go command in the right folder
+        working-directory: src-samples/rust/app-1
+    env:
+      APP_NAME: "app-1"
+
+    runs-on: ${{ matrix.runner }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Show runner resources
+      run: fastfetch --pipe false -c all.jsonc
+
+    - name: Extract short SHA
+      id: vars
+      run: echo "SHORT_SHA=$(git rev-parse --short=7 HEAD)" >> $GITHUB_OUTPUT
+
+    - uses: dtolnay/rust-toolchain@1.86.0
+      with:
+        components: rustfmt, clippy
+
+    - run: cargo --version
+
+    - name: 🧪 Run Rust tests.
+      run: cargo test --all
+
+    #- uses: Swatinem/rust-cache@v2
+    #  with:
+    #    cache-all-crates: "true"
+
+    - name: 📦 Compile (release)
+      run: cargo build --release
+
+    - name: 🐳 Build Docker Image.
+      run: |
+        docker build -t local/sample-rust-$APP_NAME:${{ steps.vars.outputs.SHORT_SHA }} .
+
+    - name: 🚚 Import built Go image into k3s
+      run: |
+        docker save local/sample-rust-$APP_NAME:${{ steps.vars.outputs.SHORT_SHA }} \
+          | sudo k3s ctr image import -
+
+
+  # https://github.com/DioxusLabs/dioxus/blob/main/.github/workflows/main.yml
+  check-msrv:
+    if: false
+    name: 🧪 MSRV Compatibility Check
+    strategy:
+      matrix:
+        runner: [world1l]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.86.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-all-crates: "true"
+      # https://github.com/foresterre/cargo-msrv/blob/4345edfe3f4fc91cc8ae6c7d6804c0748fae92ae/.github/workflows/msrv.yml
+      - name: install_cargo_msrv
+        run: cargo install cargo-msrv --all-features --version 0.16.3 --locked
+      - name: version_of_cargo_msrv
+        run: cargo msrv --version
+      - name: run_cargo_msrv
+        run: cargo msrv --output-format json verify -- cargo check
+      - name: run_cargo_msrv_on_verify_failure
+        if: ${{ failure() }}
+        run: cargo msrv --output-format json -- cargo check

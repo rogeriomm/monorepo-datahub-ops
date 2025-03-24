@@ -1,0 +1,4 @@
+namespace: simple-web
+resources:
+  - ../../../base/go-app-4
+  - ingress.yaml

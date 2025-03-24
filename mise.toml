@@ -1,0 +1,7 @@
+[tools]
+argocd = "latest"
+cloudflared = "latest"
+gh = "latest"
+neovim = "0.11.0"
+python = "latest"
+slsa-verifier = "latest"

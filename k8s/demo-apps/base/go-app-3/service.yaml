@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-go-app-3
+  labels:
+    app.kubernetes.io/name: sample-go-app-3
+spec:
+  selector:
+    app: sample-go-app-3
+  ports:
+    - name: web
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+    - name: metrics
+      protocol: TCP
+      port: 9100
+      targetPort: 9100
+  type: ClusterIP

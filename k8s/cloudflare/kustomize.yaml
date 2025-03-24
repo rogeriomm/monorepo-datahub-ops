@@ -1,0 +1,4 @@
+namespace: cloudflare
+resources:
+  - deployment.yaml
+  - network-policy.yaml
