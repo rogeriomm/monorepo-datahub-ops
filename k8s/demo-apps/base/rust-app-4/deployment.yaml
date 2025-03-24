@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-rust-app-4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample-rust-app-4
+  template:
+    metadata:
+      labels:
+        app: sample-rust-app-4
+    spec:
+      containers:
+        - name: sample-go-1
+          image: local/sample-rust-app-1:4830709
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080

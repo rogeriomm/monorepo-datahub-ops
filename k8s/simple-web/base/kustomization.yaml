@@ -1,0 +1,4 @@
+namespace: simple-web
+resources:
+  - service.yaml
+  - deployment.yaml

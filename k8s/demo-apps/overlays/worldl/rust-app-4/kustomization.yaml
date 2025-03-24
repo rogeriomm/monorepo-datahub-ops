@@ -1,0 +1,4 @@
+namespace: simple-web
+resources:
+  - ../../../base/rust-app-4
+  - ingress.yaml

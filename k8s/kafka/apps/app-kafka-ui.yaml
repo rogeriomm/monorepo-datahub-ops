@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kafka-ui
+  namespace: argo-cd
+  annotations:
+    # Wait app-kafka-operator.yaml
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: kafka
+  sources:
+    - repoURL: https://provectus.github.io/kafka-ui-charts
+      chart: kafka-ui
+      targetRevision: 0.7.6
+      helm:
+        valueFiles:
+          - $values/k8s/kafka/kafka-ui/values.yaml
+    - repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+      targetRevision: master
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kafka-ui
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+

@@ -1,0 +1,35 @@
+# https://argo-cd.readthedocs.io/en/latest/user-guide/helm/
+# Argo CD supports deploying Helm charts with custom values from a separate Git repository.
+#  To achieve this, you can define an Argo CD Application that references the Helm chart from its repository
+#  and the custom values-pvel.yaml from your Git repository. This approach leverages Argo CD's multiple sources feature,
+#  allowing you to combine resources from different repositories.
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: homepage
+  namespace: argo-cd
+spec:
+  project: default
+  sources:
+    - repoURL: https://jameswynn.github.io/helm-charts
+      chart: homepage
+      targetRevision: 2.0.2
+      helm:
+        valueFiles:
+          - $values/k8s/homepage/helm/values.yaml
+          - $values/k8s/homepage/helm/values-pve.yaml
+    - repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+      targetRevision: master
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: homepage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+

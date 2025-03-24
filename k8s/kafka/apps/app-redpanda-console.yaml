@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redpanda-console
+  namespace: argo-cd
+  annotations:
+    # Wait app-kafka-operator.yaml
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: kafka
+  sources:
+    - repoURL: https://charts.redpanda.com
+      chart: console
+      targetRevision: 3.0.0
+      helm:
+        valueFiles:
+          - $values/k8s/redpanda/values.yaml
+    - repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+      targetRevision: master
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kafka-ui
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

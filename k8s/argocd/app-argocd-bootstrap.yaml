@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-bootstrap
+  namespace: argo-cd
+spec:
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    repoURL:
+    targetRevision: HEAD
+    path: k8s/argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
