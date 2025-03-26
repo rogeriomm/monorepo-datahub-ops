@@ -1,0 +1,5 @@
+namespace: simple-web
+resources:
+  - ingress.yaml
+  - service.yaml
+  - simple.yaml

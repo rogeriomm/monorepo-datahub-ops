@@ -1,0 +1,4 @@
+namespace: zeppelin
+resources:
+  - ingress.yaml
+  - zeppelin-server.yaml

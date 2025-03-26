@@ -1,0 +1,22 @@
+name: cloudflare
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'k8s/cloudflare/**'
+      - '.github/workflows/cloudflare.yml'
+
+jobs:
+    deploy:
+      runs-on: [ self-hosted ]
+      environment:
+        name: 'cloudflare-world1l'
+
+      steps:
+        - name: Create Kubernetes secret
+          run: |
+            kubectl create secret generic cloudflared-token \
+              --from-literal=TOKEN=${{ secrets.TOKEN }} \
+              -n cloudflare \
+              --dry-run=client -o yaml | kubectl apply -f -

@@ -1,0 +1,64 @@
+name: labtools-k3s
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+    - 'tools/labtools-k3s/src/**'
+    - '.github/workflows/labtools-k3s.yml'
+    
+jobs:
+
+  build:
+    runs-on: [self-hosted, world1l]
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24.2'
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
+      with:
+        version: v2.0.1
+        args: --verbose
+        working-directory:  tools/labtools-k3s/src/
+
+    - name: Tidy modules
+      working-directory: ./tools/labtools-k3s/src/
+      run: go mod tidy
+
+    - name: Build
+      working-directory: ./tools/labtools-k3s/src/
+      run: go build -o labtools-k3s
+
+    - name: Show machine
+      run: fastfetch
+
+    - name: Run tests
+      run: |
+        echo "Run tests"
+        export homepage=$(ls -la)
+        echo homepage=$homepage >> $GITHUB_ENV
+
+    - name: Output the results
+      if: always()
+      run: echo "Test summary" >> $GITHUB_STEP_SUMMARY
+
+    #- name: Upload binary artifact
+    #  uses: actions/upload-artifact@v4
+    #  with:
+    #    name: labtools-k3s
+    #    path: ./tools/labtools-k3s/src
+
+  deploy:
+    runs-on: [self-hosted, world1l]
+    needs: build
+    environment:
+      name: 'staging'
+    steps:
+      - name: test
+        run: echo "deploy stage "
+
