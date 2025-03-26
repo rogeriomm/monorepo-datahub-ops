@@ -1,0 +1,4 @@
+[tools]
+argocd = "latest"
+gh = "latest"
+neovim = "0.11.0"

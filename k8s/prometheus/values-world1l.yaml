@@ -1,0 +1,80 @@
+ingress:
+  enabled: true
+
+  # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
+  # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
+  # ingressClassName: nginx
+
+  annotations: {}
+
+  labels: {}
+
+  ## Override ingress to a different defined port on the service
+  # servicePort: 8081
+  ## Override ingress to a different service then the default, this is useful if you need to
+  ## point to a specific instance of the alertmanager (eg kube-prometheus-stack-alertmanager-0)
+  # serviceName: kube-prometheus-stack-alertmanager-0
+
+  ## Hosts must be provided if Ingress is enabled.
+  ##
+  hosts: []
+  # - alertmanager.domain.com
+
+  ## Paths to use for ingress rules - one path should match the alertmanagerSpec.routePrefix
+  ##
+  paths: []
+  # - /
+
+  ## For Kubernetes >= 1.18 you should specify the pathType (determines how Ingress paths should be matched)
+  ## See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#better-path-matching-with-path-types
+  # pathType: ImplementationSpecific
+
+  ## TLS configuration for Alertmanager Ingress
+  ## Secret must be manually created in the namespace
+  ##
+  tls: []
+  # - secretName: alertmanager-general-tls
+  #   hosts:
+  #   - alertmanager.example.com
+
+# -- BETA: Configure the gateway routes for the chart here.
+# More routes can be added by adding a dictionary key like the 'main' route.
+# Be aware that this is an early beta of this feature,
+# kube-prometheus-stack does not guarantee this works and is subject to change.
+# Being BETA this can/will change in the future without notice, do not use unless you want to take that risk
+# [[ref]](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io%2fv1alpha2)
+route:
+  main:
+    # -- Enables or disables the route
+    enabled: true
+
+    # -- Set the route apiVersion, e.g. gateway.networking.k8s.io/v1 or gateway.networking.k8s.io/v1alpha2
+    apiVersion: gateway.networking.k8s.io/v1
+    # -- Set the route kind
+    # Valid options are GRPCRoute, HTTPRoute, TCPRoute, TLSRoute, UDPRoute
+    kind: HTTPRoute
+
+    annotations: {}
+    labels: {}
+
+    hostnames:
+      - prometheus.world1l.worldl.xpt
+      - world1l-prometheus.worldb.site
+    parentRefs: []
+    # - name: acme-gw
+
+    # -- create http route for redirect (https://gateway-api.sigs.k8s.io/guides/http-redirect-rewrite/#http-to-https-redirects)
+    ## Take care that you only enable this on the http listener of the gateway to avoid an infinite redirect.
+    ## matches, filters and additionalRules will be ignored if this is set to true. Be are
+    httpsRedirect: false
+
+    matches:
+      - path:
+          type: PathPrefix
+          value: /
+
+    ## Filters define the filters that are applied to requests that match this rule.
+    filters: []
+
+    ## Additional custom rules that can be added to the route
+    additionalRules: []

@@ -1,0 +1,42 @@
+name: argocd
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'k8s/argocd/**'
+      - '.github/workflows/argocd.yml'
+
+jobs:
+  argocd_cli:
+    strategy:
+      matrix:
+        runner: [pvel-vm, world1l]
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Install argocd cli.
+        run: |
+          echo "Install"
+      - uses: clowdhaus/argo-cd-action/@main
+        env:
+          # Only required for first step in job where API is called
+          # All subsequent setups in a job will not re-download the CLI
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          command: version
+          options: --client -o json
+      - uses: clowdhaus/argo-cd-action/@main
+        # CLI has already been downloaded in prior step, no call to GitHub API
+        with:
+          command: version
+          options: --client
+
+      - uses: clowdhaus/argo-cd-action/@main
+        with:
+          command: login
+          options: --core
+
+      - uses: clowdhaus/argo-cd-action/@main
+        with:
+          command: app list

@@ -1,0 +1,34 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: spnw-root-ca-issuer-selfsigned
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: spnw-root-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: spnw-root-ca
+  secretName: spnw-root-ca-secret
+  duration: 87600h # 10y
+  renewBefore: 78840h # 9y
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: spnw-root-ca-issuer-selfsigned
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: spnw-root-ca-issuer
+spec:
+  ca:
+    secretName: spnw-root-ca-secret
+

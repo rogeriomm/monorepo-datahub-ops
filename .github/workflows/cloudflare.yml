@@ -1,0 +1,32 @@
+name: cloudflare
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'k8s/cloudflare/**'
+      - '.github/workflows/cloudflare.yml'
+
+jobs:
+    deploy:
+      runs-on: ${{ matrix.runner }}
+      environment: ${{ matrix.environment }}
+      strategy:
+        matrix:
+          include:
+            - runner: world1l
+              environment: cloudflare-world1l
+            - runner: pvel-vm
+              environment: cloudflare-pvel
+
+      steps:
+        - name: Create/update Kubernetes secret
+          run: |
+            kubectl create secret generic cloudflared-token \
+              --from-literal=TOKEN=${{ secrets.TOKEN }} \
+              -n cloudflare \
+              --dry-run=client -o yaml | kubectl apply -f -
+
+        - name: Confirm secret applied
+          run: |
+            kubectl get secret cloudflared-token -n cloudflare -o yaml | grep creationTimestamp

@@ -1,0 +1,32 @@
+name: zeppelin
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'tools/zeppelin/**'
+      - '.github/workflows/zeppelin.yml'
+
+jobs:
+  build-go-dnsmasq:
+    strategy:
+      matrix:
+        runner: [pvel-vm, world1l]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Clone go-dnsmasq repo
+        run: |
+         git clone https://github.com/janeczku/go-dnsmasq.git
+
+      - name: Build go-dnsmasq
+        run: |
+         cd go-dnsmasq
+         docker build . -t janeczku/go-dnsmasq:release-1.0.5
+
+      - name: Import container into k3s
+        run: |
+         docker save -o go-dnsmasq.tar janeczku/go-dnsmasq:release-1.0.5 
+         sudo k3s ctr image import ./go-dnsmasq.tar
