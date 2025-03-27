@@ -6,7 +6,8 @@ import (
 )
 
 func main() {
-	// Generate a new UUID (version 4)
+	fmt.Println("labtools-k3s v0.1.0")
+
 	id := uuid.New()
 	fmt.Println("Generated UUID:", id)
 }
