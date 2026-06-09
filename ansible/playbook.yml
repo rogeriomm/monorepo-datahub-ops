@@ -1,0 +1,91 @@
+---
+- name: Update Fedora Atomic
+  hosts: desktop
+  become: true
+
+  vars:
+    mise_user: rogermm
+
+  tasks:
+    - name: Check if mise is installed for {{ mise_user }}
+      ansible.builtin.shell: |
+        test -x "$HOME/.local/bin/mise"
+      become: true
+      become_user: "{{ mise_user }}"
+      register: mise_check
+      changed_when: false
+      failed_when: false
+
+    - name: Upgrade mise for {{ mise_user }}
+      ansible.builtin.shell: |
+        eval "$($HOME/.local/bin/mise activate zsh)"
+        mise self-update --yes
+        mise upgrade --yes
+      args:
+        executable: /bin/zsh
+      become: true
+      become_user: "{{ mise_user }}"
+      when: mise_check.rc == 0
+
+    - name: Fedora rpm-ostree upgrade
+      ansible.posix.rpm_ostree_upgrade:
+      register: fedora_update
+
+    - name: Show Fedora rpm-ostree result
+      ansible.builtin.debug:
+        var: fedora_update
+
+- name: Update and dist-upgrade Debian/Ubuntu hosts
+  hosts: servers
+  become: true
+
+  vars:
+    mise_user: rogermm
+
+  tasks:
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Run apt dist-upgrade
+      ansible.builtin.apt:
+        upgrade: dist
+
+    - name: Remove unused packages
+      ansible.builtin.apt:
+        autoremove: true
+
+    - name: Clean apt cache
+      ansible.builtin.apt:
+        autoclean: true
+
+    - name: Check if mise is installed for {{ mise_user }}
+      ansible.builtin.shell: |
+        test -x "$HOME/.local/bin/mise"
+      become: true
+      become_user: "{{ mise_user }}"
+      register: mise_check
+      changed_when: false
+      failed_when: false
+
+    - name: Upgrade mise for {{ mise_user }}
+      ansible.builtin.shell: |
+        eval "$($HOME/.local/bin/mise activate zsh)"
+        mise self-update --yes
+        mise upgrade --yes
+      args:
+        executable: /bin/zsh
+      become: true
+      become_user: "{{ mise_user }}"
+      when: mise_check.rc == 0
+
+    - name: Check if reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+
+    - name: Show reboot required message
+      ansible.builtin.debug:
+        msg: "Reboot is required on {{ inventory_hostname }}"
+      when: reboot_required.stat.exists
