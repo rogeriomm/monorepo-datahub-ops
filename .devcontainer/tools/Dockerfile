@@ -53,7 +53,7 @@ SHELL ["/usr/bin/zsh", "-lc"]
 RUN echo "HOME: $HOME"
 
 RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
-    && mise use \
+    && mise use --global \
            neovim \
            bat yq jq zoxide fzf \
            aws-cli aws-sam  aws \
@@ -61,7 +61,7 @@ RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
            terragrunt terraform'
 
 RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
-    && mise use \
+    && mise use --global \
            argocd k9s kubecolor kubectl \
            cloudflared \
            databricks-cli \
@@ -69,7 +69,7 @@ RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
            github-cli'
 
 RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
-    && mise use \
+    && mise use --global \
            go \
            gum \
            helm  \
@@ -77,11 +77,11 @@ RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
            python poetry pipx'
 
 RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
-    && mise use \
+    && mise use --global \
            java@17'
 
 RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
-    && mise use gcloud \
+    && mise use --global gcloud \
     && gcloud components install -q cbt bigtable'
     #cloud-run-proxy cloud-sql-proxy app-engine-python app-engine-python-extras  gke-gcloud-auth-plugin \
 
