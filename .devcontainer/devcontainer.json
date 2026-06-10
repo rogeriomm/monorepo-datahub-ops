@@ -1,0 +1,22 @@
+{
+  "name": "monorepo-devcontainer",
+  "dockerComposeFile": "docker-compose.yaml",
+  "service": "tool",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "shutdownAction": "stopCompose",
+  "remoteUser": "dev",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.debugpy",
+        "charliermarsh.ruff",
+        "ms-python.black-formatter",
+        "astral-sh.ty",
+        "tombi-toml.tombi",
+        "redhat.vscode-yaml",
+        "myriad-dreamin.tinymist"
+      ]
+    }
+  }
+}
