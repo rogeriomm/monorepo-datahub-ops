@@ -6,11 +6,14 @@ ARG DOCKER_GIT
 
 ARG GITHUB_TOKEN
 ENV GITHUB_TOKEN=${GITHUB_TOKEN}
+RUN if [ -n "$GITHUB_TOKEN" ]; then echo "GITHUB_TOKEN is set (${#GITHUB_TOKEN} characters)"; else echo "GITHUB_TOKEN is not set"; fi
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV HOME="/home/dev"
-ENV PATH="/home/dev/.local/share/mise/shims:/home/dev/.local/bin:${PATH}"
+ENV HOME="/home/ubuntu"
+ENV PATH="/home/ubuntu/.local/share/mise/shims:/home/ubuntu/.local/bin:${PATH}"
+
+USER root
 
 RUN apt-get update && apt-get install -y \
     openssh-server \
@@ -27,97 +30,7 @@ RUN apt-get update && apt-get install -y \
     net-tools htop btop \
     nmap netcat-openbsd socat ethtool wget tinyproxy \
     apt-file \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN apt-file update
-
-# Create a non-root user with Zsh as the login shell
-RUN  groupadd -o -g "${GID}" dev \
-  && useradd -o -u ${UID} -g ${GID} -d /home/dev -ms /bin/zsh dev \
-  && echo "dev:dev" | chpasswd \
-  && adduser dev sudo
-
-# Prepare SSH
-RUN mkdir -p /var/run/sshd && ssh-keygen -A
-
-
-USER dev
-
-WORKDIR /home/dev
-
-# Install mise: https://mise.jdx.dev/getting-started.html
-RUN curl https://mise.run | sh
-
-SHELL ["/usr/bin/zsh", "-lc"]
-
-RUN echo "HOME: $HOME"
-
-RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
-    && mise use --global \
-           neovim \
-           bat yq jq zoxide fzf \
-           aws-cli aws-sam  aws \
-           gcloud \
-           terragrunt terraform'
-
-RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
-    && mise use --global \
-           argocd k9s kubecolor kubectl \
-           cloudflared \
-           databricks-cli \
-           gh \
-           github-cli'
-
-RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
-    && mise use --global \
-           go \
-           gum \
-           helm  \
-           java \
-           python poetry pipx'
-
-RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
-    && mise use --global \
-           java@17'
-
-RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
-    && mise use --global gcloud \
-    && gcloud components install -q cbt bigtable'
-    #cloud-run-proxy cloud-sql-proxy app-engine-python app-engine-python-extras  gke-gcloud-auth-plugin \
-
-RUN echo "" 
-
-# Install oh-my-zsh: https://ohmyz.sh/
-RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-
-# Install AstroNvim: https://astronvim.com/
-RUN git clone --depth 1 https://github.com/AstroNvim/template ~/.config/nvim \
-    && rm -rf ~/.config/nvim/.git \
-    && nvim --headless "+Lazy! sync" +qa
-
-# Install https://github.com/tmux-plugins/tpm
-RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-
-# Install https://github.com/catppuccin/tmux
-RUN mkdir -p ~/.config/tmux/plugins/catppuccin \
-    &&  git clone -b v2.1.3 https://github.com/catppuccin/tmux.git ~/.config/tmux/plugins/catppuccin/tmux
-
-
-# Copy external .zshrc from project directory
-COPY fs/home/dev/ /home/dev/
-
-# Fix ownership
-#RUN chown dev:dev /home/dev/bin
-
-
-USER root
-
-RUN yes | sudo unminimize
-
-# Install Starship cross-shell prompt: https://github.com/starship/starship
-RUN curl -sS https://starship.rs/install.sh | sh -s -- --yes
-
-RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y \
+    libatomic1 \
     docker.io \
     rsync \
     zip unzip \
@@ -125,7 +38,23 @@ RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y \
     fontconfig \
     && rm -rf /var/lib/apt/lists/*
 
-RUN usermod -aG systemd-network dev
+RUN apt-file update
+
+RUN echo "ubuntu:ubuntu" | chpasswd \
+  && adduser ubuntu sudo
+
+# Prepare SSH
+RUN mkdir -p /var/run/sshd && ssh-keygen -A
+
+# Copy external .zshrc from project directory
+COPY fs/home/ubuntu/ /home/ubuntu/
+
+# Fix ownership
+RUN chown -R ubuntu:ubuntu /home/ubuntu
+
+RUN yes | sudo unminimize
+
+RUN usermod -aG systemd-network ubuntu
 
 # Install Nerd Fonts
 RUN    mkdir -p /usr/share/fonts/nerd-fonts \
@@ -135,6 +64,49 @@ RUN    mkdir -p /usr/share/fonts/nerd-fonts \
     && unzip -o /tmp/JetBrainsMono.zip \
     && unzip -o /tmp/Meslo.zip \
     && fc-cache -fv
+
+USER ubuntu
+
+WORKDIR /home/ubuntu
+
+# Install mise: https://mise.jdx.dev/getting-started.html
+RUN curl https://mise.run | sh
+
+SHELL ["/usr/bin/zsh", "-lc"]
+
+RUN echo "HOME: $HOME"
+
+RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
+    && mise install'
+
+#RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
+#    && mise use --global gcloud \
+#    && gcloud components install -q cbt bigtable'
+#    #cloud-run-proxy cloud-sql-proxy app-engine-python app-engine-python-extras  gke-gcloud-auth-plugin \
+
+RUN echo "" 
+
+# Install oh-my-zsh: https://ohmyz.sh/
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+# Install AstroNvim: https://astronvim.com/
+RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)"' \
+    && git clone --depth 1 https://github.com/AstroNvim/template ~/.config/nvim \
+    && rm -rf ~/.config/nvim/.git \
+    && nvim --headless "+Lazy! sync" +qa
+
+# Install https://github.com/tmux-plugins/tpm
+#RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+
+# Install https://github.com/catppuccin/tmux
+#RUN mkdir -p ~/.config/tmux/plugins/catppuccin \
+#    &&  git clone -b v2.1.3 https://github.com/catppuccin/tmux.git ~/.config/tmux/plugins/catppuccin/tmux
+
+USER root
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+USER ubuntu
 
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D", "-e"]

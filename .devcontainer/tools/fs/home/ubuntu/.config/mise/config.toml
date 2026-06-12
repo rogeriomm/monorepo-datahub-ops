@@ -1,0 +1,31 @@
+[tools]
+
+neovim = "latest"
+aws-cli = "latest"
+aws-sam  = "latest"
+aws = "latest"
+terragrunt = "latest"
+terraform = "latest"
+
+argocd = "latest"
+k9s  = "latest"
+kubecolor  = "latest"
+kubectl  = "latest"
+cloudflared  = "latest"
+databricks-cli  = "latest"
+gh  = "latest"
+github-cli = "latest"
+
+go  = "latest"
+rust = "1.96.0"
+gum = "latest"
+helm  = "latest"
+node = "latest"
+python = "latest"
+poetry = "latest"
+pipx = "latest"
+
+java = "17"
+
+gcloud = "latest"
+

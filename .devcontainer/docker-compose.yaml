@@ -7,6 +7,11 @@ services:
         UID: "${UID:-1000}"
         GID: "${GID:-1000}"
         DOCKER_GID: 998
+        GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+      secrets:
+        - GITHUB_TOKEN
+    environment:
+      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
     container_name: tool
     restart: unless-stopped
     security_opt:
@@ -28,3 +33,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/home/rogermm/.config/JetBrains/PyCharm2026.1/agent.jar:/opt/jetbrains/agent.jar:ro
 
+secrets:
+  GITHUB_TOKEN:
+    environment: GITHUB_TOKEN

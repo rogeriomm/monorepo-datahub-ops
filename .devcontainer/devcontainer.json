@@ -4,7 +4,7 @@
   "service": "tool",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "shutdownAction": "stopCompose",
-  "remoteUser": "dev",
+  "remoteUser": "ubuntu",
   "customizations": {
     "vscode": {
       "extensions": [
