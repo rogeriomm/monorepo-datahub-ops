@@ -1,8 +1,19 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
-if [[ -n "$1" ]]; then
-  ansible-playbook playbook.yml -K "$1"
-else
-  ansible-playbook playbook.yml -K
+set -euo pipefail
+
+playbook="./playbooks/upgrade.yml"
+
+cmd=(
+  ansible-playbook
+  "$playbook"
+  -K
+  -e "github_token=${GITHUB_TOKEN:-}"
+)
+
+if (( $# > 0 )); then
+  cmd+=("$@")
 fi
+
+"${cmd[@]}"
 

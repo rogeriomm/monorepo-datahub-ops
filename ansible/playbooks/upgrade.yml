@@ -1,10 +1,52 @@
 ---
+- name: Fetch GitHub token file from world1l
+  hosts: world1l
+  gather_facts: false
+
+  vars:
+    token_file: /var/home/rogermm/.config/secrets/github.zsh
+
+  tasks:
+    - name: Fetch github.zsh from world1l
+      ansible.builtin.fetch:
+        src: "{{ token_file }}"
+        dest: /tmp/github.zsh
+        flat: true
+
+- name: Copy GitHub token file to all hosts
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    mise_user: rogermm
+    target_dir: /home/rogermm/.config/secrets
+    target_file: /home/rogermm/.config/secrets/github.zsh
+
+  tasks:
+    - name: Create secrets directory
+      ansible.builtin.file:
+        path: "{{ target_dir }}"
+        state: directory
+        owner: "{{ mise_user }}"
+        group: "{{ mise_user }}"
+        mode: "0700"
+
+    - name: Copy github.zsh to host
+      ansible.builtin.copy:
+        src: /tmp/github.zsh
+        dest: "{{ target_file }}"
+        owner: "{{ mise_user }}"
+        group: "{{ mise_user }}"
+        mode: "0600"
+
 - name: Update Fedora Atomic
   hosts: desktop
   become: true
 
   vars:
     mise_user: rogermm
+    github_token_file: /home/rogermm/.conf/secrets/github.zsh
 
   tasks:
     - name: Check if mise is installed for {{ mise_user }}
@@ -18,6 +60,7 @@
 
     - name: Upgrade mise for {{ mise_user }}
       ansible.builtin.shell: |
+        source "{{ github_token_file }}"
         eval "$($HOME/.local/bin/mise activate zsh)"
         mise self-update --yes
         mise upgrade --yes
@@ -41,6 +84,7 @@
 
   vars:
     mise_user: rogermm
+    github_token_file: /home/rogermm/.conf/secrets/github.zsh
 
   tasks:
     - name: Update apt package cache
@@ -71,6 +115,7 @@
 
     - name: Upgrade mise for {{ mise_user }}
       ansible.builtin.shell: |
+        source "{{ github_token_file }}"
         eval "$($HOME/.local/bin/mise activate zsh)"
         mise self-update --yes
         mise upgrade --yes
