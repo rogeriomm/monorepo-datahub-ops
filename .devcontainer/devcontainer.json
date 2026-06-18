@@ -1,21 +1,51 @@
 {
   "name": "monorepo-devcontainer",
   "dockerComposeFile": "docker-compose.yaml",
-  "service": "tool",
+  "service": "tools",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "shutdownAction": "stopCompose",
   "remoteUser": "ubuntu",
   "customizations": {
     "vscode": {
+      "settings": {
+        "editor.tabSize": 4,
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          },
+          "fish": {
+            "path": "fish"
+          },
+          "tmux": {
+            "path": "tmux",
+            "icon": "terminal-tmux"
+          },
+          "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
+          }
+        }
+      },
+      // code --list-extensions | jq -R . | jq -s .
       "extensions": [
-        "ms-python.python",
+        "mhutchie.git-graph",
+        "hashicorp.terraform",
+        "ms-azuretools.vscode-containers",
+        "ms-azuretools.vscode-docker",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
         "ms-python.debugpy",
-        "charliermarsh.ruff",
-        "ms-python.black-formatter",
-        "astral-sh.ty",
-        "tombi-toml.tombi",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.vscode-python-envs",
+        "oracle.oracle-java",
+        "redhat.ansible",
         "redhat.vscode-yaml",
-        "myriad-dreamin.tinymist"
+        "rust-lang.rust-analyzer"
       ]
     }
   }

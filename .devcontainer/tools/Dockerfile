@@ -1,8 +1,7 @@
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 ARG UID=1000
 ARG GID=1000
-ARG DOCKER_GIT
 
 ARG GITHUB_TOKEN
 ENV GITHUB_TOKEN=${GITHUB_TOKEN}
@@ -36,6 +35,7 @@ RUN apt-get update && apt-get install -y \
     zip unzip \
     file \
     fontconfig \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-file update
@@ -52,7 +52,7 @@ COPY fs/home/ubuntu/ /home/ubuntu/
 # Fix ownership
 RUN chown -R ubuntu:ubuntu /home/ubuntu
 
-RUN yes | sudo unminimize
+##RUN yes | sudo unminimize
 
 RUN usermod -aG systemd-network ubuntu
 
@@ -103,10 +103,10 @@ RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)"' \
 #    &&  git clone -b v2.1.3 https://github.com/catppuccin/tmux.git ~/.config/tmux/plugins/catppuccin/tmux
 
 USER root
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-USER ubuntu
+
+COPY fs/home/ubuntu/.zshrc /home/ubuntu/.zshrc
+# Fix ownership
+RUN chown -R ubuntu:ubuntu /home/ubuntu/.zshrc
 
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D", "-e"]
