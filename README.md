@@ -14,10 +14,19 @@ docker run -it -p 6660:8888 -v "${PWD}/notebooks/jupyter":/home/jovyan jupyter/p
 
   * http://localhost:6660
 
+# Development Containers
+- https://devpod.sh/
+  - <img src="images/devpod-feature.png" alt="drawing" width="200"/>
 
+```shell
+devpod up . --ide none
+```
+
+<img src="images/devpods-sample-1.png" alt="drawing" width="500"/>
 
 # Links
 - https://pvel-homepage.worldb.site/
+
 <img src="images/Homepage.png" alt="drawing" width="1000"/>
 
 
