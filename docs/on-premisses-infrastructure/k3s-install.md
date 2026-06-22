@@ -2,21 +2,22 @@
 ### Install K3S
   - world1l
 ```shell
-curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--flannel-backend=none --cluster-cidr=10.250.0.0/16 --disable-network-policy --disable=traefik" sh -
+curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--flannel-backend=none --cluster-cidr=10.250.0.0/16 --disable-network-policy" sh -
 ```  
   - vm.pvel
 ```shell
-curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--flannel-backend=none --cluster-cidr=10.251.0.0/16 --disable-network-policy --disable=traefik" sh -
+curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--flannel-backend=none --cluster-cidr=10.251.0.0/16 --disable-network-policy" sh -
 ```
 
 - vm.pve
 ```shell  
-curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--flannel-backend=none --cluster-cidr=10.252.0.0/16 --disable-network-policy --disable=traefik" sh -
+curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--flannel-backend=none --cluster-cidr=10.252.0.0/16 --disable-network-policy" sh -
 ```
 
 
 ### Configure
 ```shell
+mkdir -p ~/.kube
 sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config.yaml
 sudo chown $USER:$USER ~/.kube/config.yaml
 ```
@@ -128,7 +129,7 @@ sudo sysctl --system
 
 - Reboot machine
 ```shell
-sudo reboot
+sudo systemctl reboot
 ```
 
 - Check limits
@@ -155,10 +156,14 @@ kubectl get installations default -o yaml | yq
 ```
 
 
-### Calico operator
+### Calico
 ```shell
-kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.0/manifests/operator-crds.yaml
-kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.0/manifests/tigera-operator.yaml
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.32.0/manifests/v1_crd_projectcalico_org.yaml
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.32.0/manifests/tigera-operator.yaml
+```
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.32.0/manifests/calico.yaml
 ```
 
 ```shell
@@ -176,19 +181,13 @@ kubectl apply -f ./k3s/custom-resources-world1l.yaml
 kubectl get -n calico-apiserver networkpolicies/allow-apiserver -o yaml | yq
 ```
 
-# Install NGINX Ingress
-   - https://github.com/kubernetes/ingress-nginx
-      - https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table
-
-   - Check the kubernetes version     
 ```shell
-kubectl version
+kubectl get nodes -o wide
 ```
 
-   - Using https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table set the NGINX ingress version
-```shell
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.2/deploy/static/provider/cloud/deploy.yaml
-```
+# Install Ingress
+ - https://gateway-api.sigs.k8s.io/docs/introduction/
+ - https://docs.k3s.io/networking/networking-services#gateway-api
 
 
 # Install load balancer MetalLb

@@ -1,32 +1,19 @@
 > 🚧 **Work in Progress**  
 > This project is currently under active development.  
-> Features, structure, and documentation may change frequently.  
+> Features, structure, and documentation may change frequently.
+
+# Sections
+ - [`Development containers`](docs/devcontainers/README.md)
+ - [`On-Premisse Infrasture`](docs/on-premisses-infrastructure/README.md)
+ - [`Databricks Cloud Infrastructure`](docs/cloud-databricks-infrastructure/aws/README.md)  
+ - [`Databricks/AWS Cloud & On-Premise integration`](docs/cloud-integration/README.md)
+ - [`AWS Cloud Infrastructure`](docs/cloud-infrastructure/README.md)
 
 
-# 🏗️ Home-Lab Architecture
-<img src="images/LabArchiteture.png" alt="drawing" width="1000"/>
-
-# Jupyter/Zeppelin notebooks
-To view the Jupyter notebooks, use the [Jetbrains Big Data Tools](https://www.jetbrains.com/help/idea/jupyter-notebook-support.html),  [GitHub viewer](notebooks/jupyter/quick-start/ScalaHelloWorld.ipynb), or run the container:
-```shell
-docker run -it -p 6660:8888 -v "${PWD}/notebooks/jupyter":/home/jovyan jupyter/pyspark-notebook start.sh jupyter notebook --NotebookApp.token=''
-```
-
-  * http://localhost:6660
-
-# Development Containers
-- https://devpod.sh/
-  - <img src="images/devpod-feature.png" alt="drawing" width="200"/>
-
-```shell
-devpod up . --ide none
-```
-
-<img src="images/devpods-sample-1.png" alt="drawing" width="500"/>
+# 🏗️ Homelab On-Premise Architecture
+<img src="images/lab-on-premisses-architecture.png" alt="drawing" width="1000"/>
 
 # Links
 - https://pvel-homepage.worldb.site/
 
-<img src="images/Homepage.png" alt="drawing" width="1000"/>
-
-
+<img src="images/homepage-screenshot.png" alt="drawing" width="1000"/>

@@ -1,3 +1,5 @@
+<img src="../../images/lab-on-premisses-architecture.png" alt="drawing" width="1000"/>
+
    * https://github.com/rogeriomm/monorepo-datahub-ops
 
 

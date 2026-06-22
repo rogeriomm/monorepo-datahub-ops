@@ -1,3 +1,7 @@
+```shell
+kubectl get -A databases.postgresql.cnpg.io
+```
+
 # Links
  - https://github.com/cloudnative-pg/cloudnative-pg
    - https://github.com/cloudnative-pg/cloudnative-pg/blob/main/ADOPTERS.md
