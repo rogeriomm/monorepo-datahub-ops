@@ -79,6 +79,9 @@ RUN echo "HOME: $HOME"
 RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
     && mise install'
 
+RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
+        && mise install uv'
+
 #RUN zsh -lc 'eval "$($HOME/.local/bin/mise activate zsh)" \
 #    && mise use --global gcloud \
 #    && gcloud components install -q cbt bigtable'

@@ -1,0 +1,27 @@
+services:
+  tool:
+    build:
+      context: ./tools
+      dockerfile: Dockerfile
+      args:
+        UID: "${UID}"
+        GID: "${GID}"
+        DOCKER_GID: 998
+    container_name: tool
+    restart: unless-stopped
+    ports:
+       - "9998:22"
+    # mount a local directory
+    volumes:
+      - $HOME/data:/data:z
+      # SSH configuration
+      - $HOME/.ssh/id_rsa:/home/dev/.ssh/id_rsa:z
+      - $HOME/.ssh/authorized_keys:/home/dev/.ssh/authorized_keys:z
+      - $HOME/data/home/dev/.ssh:/home/dev/.ssh:z 
+      - $HOME/data/home/dev/.tmux.conf:/home/dev/.tmux.conf:z 
+      - $HOME/data/home/dev/.tmux:/home/dev/.tmux:z 
+      - $HOME/data/home/dev/.zsh_history:/home/dev/.zsh_history:z 
+      - $HOME/data/home/dev/.config:/home/dev/.config:z 
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
+

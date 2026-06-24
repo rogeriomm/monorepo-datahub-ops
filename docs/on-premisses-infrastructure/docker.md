@@ -1,4 +1,0 @@
-```shell
-docker builder prune
-
-```

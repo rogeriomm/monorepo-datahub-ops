@@ -1,0 +1,3 @@
+[tools]
+gum = "latest"
+java = "temurin-17.0.19+10"

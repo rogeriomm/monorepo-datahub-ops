@@ -1,0 +1,27 @@
+# https://github.com/mysql/mysql-operator/tree/trunk/helm/mysql-operator
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mysql-stack
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
+    targetRevision: HEAD
+    path: k8s/mysql-operator/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argo-cd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  ignoreDifferences:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: innodbclusters.mysql.oracle.com
+      jqPathExpressions:
+        - .spec.versions[].schema.openAPIV3Schema.properties.endpoints.description

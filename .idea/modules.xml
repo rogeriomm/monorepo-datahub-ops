@@ -2,7 +2,17 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/monorepo-datahub-ops.iml" filepath="$PROJECT_DIR$/.idea/monorepo-datahub-ops.iml" />
+      <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/golang/app-1/golang-app-1.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/golang/app-1/golang-app-1.iml" />
+      <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/golang/app-2/golang-app-2.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/golang/app-2/golang-app-2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/golang/app-3/golang-app-3.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/golang/app-3/golang-app-3.iml" />
+      <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/golang/app-4/golang-app-4.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/golang/app-4/golang-app-4.iml" />
+      <module fileurl="file://$PROJECT_DIR$/notebooks/jupyter/jupyter-notebooks.iml" filepath="$PROJECT_DIR$/notebooks/jupyter/jupyter-notebooks.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/monorepo-datahub-ops-private.iml" filepath="$PROJECT_DIR$/.idea/monorepo-datahub-ops-private.iml" />
+      <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/rust/app-1/rust-app-1.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/rust/app-1/rust-app-1.iml" />
+      <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/rust/app-2/rust-app-2.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/rust/app-2/rust-app-2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/rust/app-3/rust-app-3.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/rust/app-3/rust-app-3.iml" />
+      <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/rust/app-4/rust-app-4.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/rust/app-4/rust-app-4.iml" />
+      <module fileurl="file://$PROJECT_DIR$/notebooks/zeppelin/zeppelin-notebooks.iml" filepath="$PROJECT_DIR$/notebooks/zeppelin/zeppelin-notebooks.iml" />
     </modules>
   </component>
 </project>

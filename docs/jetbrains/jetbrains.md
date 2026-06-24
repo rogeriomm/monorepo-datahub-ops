@@ -1,0 +1,2 @@
+- [Jetbrains - Custom resource definitions support﻿](https://www.jetbrains.com/help/go/2025.1/kubernetes.html?Kubernetes.crdSpecs&keymap=KDE&utm_source=product&utm_medium=link&utm_campaign=GO&utm_content=2025.1#crd)
+   - https://github.com/argoproj/argo-cd/tree/master/manifests/crds

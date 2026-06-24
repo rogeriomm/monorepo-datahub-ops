@@ -6,3 +6,25 @@
 poetry.lock
 .nfs*
 *.tar
+uv.lock
+
+
+# Obsidian trash
+.trash
+
+# Obsidian workspace/local state
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Obsidian cache / plugins data that may be personal or machine-specific
+.obsidian/cache
+.obsidian/plugins/*/data.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+

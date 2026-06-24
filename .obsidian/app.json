@@ -1,0 +1,12 @@
+{
+  "showLineNumber": false,
+  "showInlineTitle": false,
+  "userIgnoreFilters": [
+    "on-premises/",
+    "de-samples/",
+    "aws/",
+    "databricks/"
+  ],
+  "attachmentFolderPath": "./attachments",
+  "alwaysUpdateLinks": true
+}

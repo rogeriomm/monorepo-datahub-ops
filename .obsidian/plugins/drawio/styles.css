@@ -1,0 +1,200 @@
+.drawio-editor-view {
+    width: 100%;
+    height: 100%;
+}
+
+.drawio-editor-item-file-view {
+    width: 100%;
+    height: 100%;
+}
+
+.drawio-centering-diagrams {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.drawio-centering-diagrams--editmode {
+    width: 100% !important;
+    display: block !important;
+}
+
+.drawio-diagram-wrapper {
+    display: flex !important;
+    justify-content: center !important;
+}
+
+.drawio-external-link-tooltip {
+    position: absolute;
+    border: var(--border-width) solid var(--background-modifier-border);
+    box-shadow: var(--shadow-l);
+    background-color: var(--background-primary);
+    padding: 10px;
+    z-index: 9999;
+}
+
+.drawio-external-link-tooltip a {
+    color: var(--text-normal);
+    text-decoration: none;
+}
+
+.drawio-external-link-tooltip--hidden {
+    display: none;
+    z-index: 9999;
+}
+
+.drawio-external-link-tooltip--show {
+    display: block;
+}
+
+.drawio-external-link-tooltip--position {
+    --drawio-external-link-tooltip-offset-x: 15px;
+    --drawio-external-link-tooltip-offset-y: 15px;
+}
+
+.drawio-diagram {}
+
+.drawio-diagrams--darkTheme {
+    color-scheme: dark !important;
+}
+
+.drawio-diagrams--lightTheme {
+    color-scheme: light !important;
+}
+
+.drawio-diagram--editmode {}
+
+.drawio-diagram--editmode--darkTheme {
+    color-scheme: dark !important;
+}
+
+.drawio-diagram--editmode--lightTheme {
+    color-scheme: light !important;
+}
+
+.drawio-interactive-diagram {}
+
+.canvas-node-container-drawio--backgroundTransparent {
+    background-color: transparent;
+}
+
+.canvas-node-container-drawio--hiddenBorder {
+    border: none !important;
+}
+
+.canvas-node-label-drawio--hidden {
+    display: none !important;
+}
+
+.canvas-node-drawio--focusedBorderHidden {
+    --shadow-border-accent: none !important;
+}
+
+.drawio-diagram-Canvas {
+    width: auto;
+    height: auto;
+    min-width: 100%;
+    min-height: 100%;
+}
+
+.drawio-diagram--canvasMode--lightTheme {
+    color-scheme: light !important;
+}
+
+.drawio-diagram--canvasMode--darkTheme {
+    color-scheme: dark !important;
+}
+
+.drawioModalEditor {
+    width: 100%;
+    height: 100%;
+}
+
+.drawioModalEditorIframe {
+    width: 100%;
+    height: 100%;
+}
+
+.drawioMarkdownTooltip {
+    position: fixed;
+    z-index: 100;
+    padding: 15px;
+    max-width: var(--popover-width);
+    max-height: var(--popover-height);
+    background-color: var(--background-primary);
+    border: var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    user-select: text;
+    overflow: auto;
+}
+
+.drawio-hover-position {
+    right: auto !important;
+    top: var(--drawio-hover-position-top) !important;
+    left: var(--drawio-hover-position-left) !important;
+    height: var(--drawio-hover-position-hight) !important;
+}
+
+@media print {
+    .drawio-interactive-diagram {
+        color-scheme: light !important;
+    }
+
+    .drawio-diagram {
+        color-scheme: light !important;
+    }
+}
+
+.Drawio-set-file-name-error {
+    color: var(--text-error);
+    margin-top: -10px;
+    margin-bottom: 10px;
+    display: none;
+}
+
+.drawio-canvas-diagram {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.drawio-embed-resized {
+    width: var(--drawio-popup-width) !important;
+}
+
+.hover-popover.drawio-popover-container {
+    max-width: var(--drawio-popup-width, 800px) !important;
+    width: max-content !important;
+}
+
+.hover-popover.drawio-popover-container .drawio-embed-resized {
+    width: var(--drawio-popup-width, 100%) !important;
+    max-width: none !important;
+}
+
+.hover-popover.drawio-popover-container svg.drawio-embed-resized {
+    width: var(--drawio-popup-width, 100%) !important;
+    height: auto !important;
+}
+
+.drawio-update-status {
+    margin-left: 10px;
+    font-weight: bold;
+    color: var(--text-accent);
+}
+
+.drawio-update-status--success {
+    color: var(--text-success);
+}
+
+.drawio-update-status--error {
+    color: var(--text-error);
+}
+
+.modal-setfilename-errorValidateText--visible {
+    display: block;
+}
+
+.modal-setfilename-errorValidateText--invisible {
+    display: none;
+}

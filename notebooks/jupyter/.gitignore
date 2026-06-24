@@ -1,1 +1,8 @@
 *checkpoint*
+
+.ipython
+.bash_history
+.python_history
+.npm
+.jupyter
+.local

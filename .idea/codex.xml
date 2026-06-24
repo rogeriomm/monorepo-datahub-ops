@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CodexSettings">
+    <option name="codexBinaryPath" value="/usr/local/bin/codex" />
+  </component>
+</project>

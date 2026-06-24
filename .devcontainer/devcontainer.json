@@ -33,6 +33,7 @@
       },
       // code --list-extensions | jq -R . | jq -s .
       "extensions": [
+        "ltvan.markdown-wiki-links",
         "mhutchie.git-graph",
         "hashicorp.terraform",
         "ms-azuretools.vscode-containers",

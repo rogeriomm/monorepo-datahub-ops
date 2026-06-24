@@ -34,7 +34,7 @@ jobs:
         with:
           repository: apache/zeppelin.git
           path: zeppelin-distro
-          ref: v0.12.0
+          ref: branch-0.12
 
       - name: Login to Harbor Registry
         uses: docker/login-action@v3
@@ -55,7 +55,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./zeppelin-distro
-          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-distribution:0.12.0
+          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-distribution:0.12.1
           push: true
           #cache-from: type=local,src=${{ env.CACHE_DIR }}
           #cache-to: type=local,dest=${{ env.CACHE_DIR }},mode=max
@@ -64,27 +64,27 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./zeppelin/tag-v0.12.0/scripts/zeppelin-server
-          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-server:0.12.0
+          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-server:0.12.1
           push: true
           #cache-from: type=local,src=${{ env.CACHE_DIR }}
           #cache-to: type=local,dest=${{ env.CACHE_DIR }},mode=max
           build-args: |
-            ZEPPELIN_DISTRIBUTION_IMAGE=harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-distribution:0.12.0
+            ZEPPELIN_DISTRIBUTION_IMAGE=harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-distribution:0.12.1
 
       - name: Build zeppelin-interpreter image
         uses: docker/build-push-action@v6
         with:
           context: ./zeppelin/tag-v0.12.0/scripts/zeppelin-interpreter
-          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-interpreter:0.12.0
+          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-interpreter:0.12.1
           push: true
           #cache-from: type=local,src=${{ env.CACHE_DIR }}
           #cache-to: type=local,dest=${{ env.CACHE_DIR }},mode=max
           build-args: |
-            ZEPPELIN_DISTRIBUTION_IMAGE=harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-distribution:0.12.0
+            ZEPPELIN_DISTRIBUTION_IMAGE=harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-distribution:0.12.1
 
       - name: Build zeppelin-spark image
         uses: docker/build-push-action@v6
         with:
           context: ./zeppelin/tag-v0.12.0/scripts/zeppelin-spark
-          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-interpreter-spark:0.12.0
+          tags: harbor.ing.vm.pvel.worldl.xpt/main/zeppelin-interpreter-spark:0.12.1
           push: true

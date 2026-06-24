@@ -2,18 +2,29 @@
 > This project is currently under active development.  
 > Features, structure, and documentation may change frequently.
 
+
+> **Documentation**  
+> This repository documentation is written using [Obsidian](https://obsidian.md/). Some files may contain Obsidian-specific Markdown syntax.
+
+
+## Documentation
+	
+
 # Sections
- - [`Development containers`](docs/devcontainers/README.md)
- - [`On-Premisse Infrasture`](docs/on-premisses-infrastructure/README.md)
- - [`Databricks Cloud Infrastructure`](docs/cloud-databricks-infrastructure/aws/README.md)  
- - [`Databricks/AWS Cloud & On-Premise integration`](docs/cloud-integration/README.md)
- - [`AWS Cloud Infrastructure`](docs/cloud-infrastructure/README.md)
+ - [`Development containers`](docs/devcontainers/devcontainers.md)
+ - [`On-Premise Infrastructure`](docs/on-premises-infrastructure/on-premises-infrastructure.md)
+ - [`Databricks Cloud Infrastructure Premium - Paid`](docs/cloud-databricks-infrastructure/aws/cloud-databricks-infrastructure-aws.md)
+ - [`Databricks Cloud Infrastructure Free Edition`](docs/cloud-databricks-infrastructure/free/cloud-databricks-infrastructure-free.md) 
+ - [`Databricks/AWS Cloud & On-Premise integration`](docs/cloud-integration/cloud-integration.md)
+ - [`AWS Cloud Infrastructure`](docs/cloud-infrastructure/cloud-infrastructure.md)
+ - [`Notebooks`](docs/notebooks/notebooks.md)
+ - [`Jetbrains`](docs/jetbrains/jetbrains.md)
+ - [`Documents and notes conventions`](docs/doc-conventions.md)
 
-
-# 🏗️ Homelab On-Premise Architecture
-<img src="images/lab-on-premisses-architecture.png" alt="drawing" width="1000"/>
+# 🏗️ Home lab On-Premise Architecture
+<img src="docs/on-premises-infrastructure/attachments/lab-on-premises-architecture.png" alt="drawing" width="1000"/>
 
 # Links
 - https://pvel-homepage.worldb.site/
 
-<img src="images/homepage-screenshot.png" alt="drawing" width="1000"/>
+<img src="docs/attachments/homepage-screenshot.png" alt="drawing" width="1000"/>

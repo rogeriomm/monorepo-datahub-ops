@@ -18,13 +18,22 @@ services:
     security_opt:
       - label=disable
     ports:
-       - "9998:22"
+      # Java debug port
+      - "5005:5005"
+      #  JupyterLab
+      - "9001:8001"
+      # Apache Zeppelin
+      - "9002:8002"
+      # SSH server
+      - "9022:22"
     # mount a local directory
     volumes:
       - ../..:/workspaces:cached
       - $HOME/data:/data:z
       # SSH configuration
       - $HOME/.ssh:/home/ubuntu/.ssh:z
+      # Maven cache, Spark build
+      - $HOME/.m2:/home/ubuntu/.m2:z
       # TMUX configuration
       - $HOME/.tmux.conf:/home/ubuntu/.tmux.conf:z
       - $HOME/.tmux:/home/ubuntu/.tmux:z
@@ -34,6 +43,18 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # Jetbrains crack
       - /opt/jetbrains/agent.jar:/opt/jetbrains/agent.jar:ro
+
+  jupyter:
+    image: jupyter/pyspark-notebook
+    container_name: jupyter
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    ports:
+      - "6660:8888"
+    command: start.sh jupyter notebook --NotebookApp.token=''
+    volumes:
+      - ../notebooks/jupyter:/home/jovyan:cached
 
 secrets:
   GITHUB_TOKEN:

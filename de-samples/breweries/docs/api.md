@@ -1,3 +1,0 @@
-# Links
-- https://www.openbrewerydb.org/
-   - https://github.com/jrbourbeau/openbrewerydb-python 
