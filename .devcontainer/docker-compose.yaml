@@ -2,7 +2,7 @@
 services:
   tools:
     build:
-      context: ./tools
+      context: swiss-knife-tools
       dockerfile: Dockerfile
       args:
         UID: "${UID:-1000}"
@@ -34,6 +34,8 @@ services:
       - $HOME/.ssh:/home/ubuntu/.ssh:z
       # Maven cache, Spark build
       - $HOME/.m2:/home/ubuntu/.m2:z
+      # mise cache
+      - $HOME/.local/share/mise:/home/ubuntu/.local/share/mise:z
       # TMUX configuration
       - $HOME/.tmux.conf:/home/ubuntu/.tmux.conf:z
       - $HOME/.tmux:/home/ubuntu/.tmux:z
@@ -41,20 +43,86 @@ services:
       - $HOME/.config:/home/ubuntu/.config:z
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
-      # Jetbrains crack
+      # JetBrains crack
       - /opt/jetbrains/agent.jar:/opt/jetbrains/agent.jar:ro
 
-  jupyter:
-    image: jupyter/pyspark-notebook
-    container_name: jupyter
+  jupyter-spark-3.5:
+    build:
+      context: jupyter_spark_3_5
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+    environment:
+      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+    container_name: jupyter_spark_3_5
+    profiles:
+      - jupyter_spark_3_5
     restart: unless-stopped
     security_opt:
       - label=disable
     ports:
-      - "6660:8888"
+      - "${JUPYTER_SPARK_3_5_PORT:-6660}:8888"
     command: start.sh jupyter notebook --NotebookApp.token=''
     volumes:
-      - ../notebooks/jupyter:/home/jovyan:cached
+      - ../notebooks/jupyter:/home/jovyan
+
+  jupyter-spark-4.1:
+    build:
+      context: jupyter_spark_4_1
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+    environment:
+      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+    container_name: jupyter_spark_4_1
+    profiles:
+      - jupyter_spark_4_1
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    ports:
+      - "${JUPYTER_SPARK_4_1_PORT:-6660}:8888"
+    command: start.sh jupyter notebook --NotebookApp.token=''
+    volumes:
+      - ../notebooks/jupyter:/home/jovyan
+      - ../notebooks/jupyter:/home/jovyan/.
+
+  jupyter-glue-5:
+    build:
+      context: jupyter_spark_glue_5
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+    environment:
+      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+    container_name: jupyter_spark_glue_5
+    profiles:
+      - jupyter_spark_glue_5
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    ports:
+      - "${JUPYTER_GLUE_5_PORT:-6663}:8888"
+
+  # https://zeppelin.apache.org/docs/0.12.1/quickstart/docker.html
+  zeppelin:
+    build:
+      context: ./zeppelin
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+    environment:
+      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+    container_name: zeppelin
+    profiles:
+      - zeppelin
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    ports:
+      - "${ZEPPELIN_PORT:-6661}:8080"
+    volumes:
+      - ../notebooks/zeppelin:/notebooks
 
 secrets:
   GITHUB_TOKEN:

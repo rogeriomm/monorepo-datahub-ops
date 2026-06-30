@@ -36,12 +36,17 @@ RUN apt-get update && apt-get install -y \
     file \
     fontconfig \
     build-essential \
+    # Jetbrains IDE \
+    xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-file update
 
 RUN echo "ubuntu:ubuntu" | chpasswd \
   && adduser ubuntu sudo
+
+RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu \
+  && chmod 0440 /etc/sudoers.d/ubuntu
 
 # Prepare SSH
 RUN mkdir -p /var/run/sshd && ssh-keygen -A
