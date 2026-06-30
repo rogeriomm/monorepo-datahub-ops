@@ -16,5 +16,5 @@ README.md symbolic link to the filename so GitHub can show the page. Example: [`
 
 
 ```shell
-ln -s on-premises-infrastructure.md READM.md
+ln -s on-premises-infrastructure.md README.md
 ```
