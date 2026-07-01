@@ -3,6 +3,7 @@
     - https://dbricks.co/AWSQuickStartHelp
 
 AWS CloudFormation
+Databricks managed VPC
 
 <img src="attachments/databricks-create-workspace-aws-cloudformation.png" alt="drawing" width="1200"/>
 
@@ -13,6 +14,11 @@ Finish the setup on the AWS
 Workspace created
 
 <img src="attachments/databricks-first-workspace.png" alt="drawing" width="1200"/>
+
+Databricks managed VPC
+
+<img src="attachments/databricks-setup-change-network-configuration.png" alt="drawing"/>
+
 
 - [Manage your subscription and billing](https://docs.databricks.com/aws/en/admin/account-settings/account)
 
@@ -41,8 +47,16 @@ databricks clusters list
 databricks ssh setup --name low-cost --cluster 0626-121515-spu2v7yo  --auto-start-cluster=false
 ```
 
-# Configure a customer-manage VPC
- - [Customer managed VPC](https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc)
-	 - [Security groups](https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc#security-groups)
+# Initial FinOps
+<img src="attachments/databricks-aws-finops-initial.png" alt="drawing"/>
+
+# Change the Databricks managed VPC to a customer-manage VPC
+ - [Customer managed VPC](https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc) &longrightarrow; [Sample VPC](https://github.com/rogeriomm/databricks-platform-infra/blob/a5a32e73dd2df790c2d762ad7f70caa61048cab2/vpc.tf#L1)
+	 - [Security groups](https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc#security-groups) &longrightarrow; [Sample Security Group](https://github.com/rogeriomm/databricks-platform-infra/blob/a5a32e73dd2df790c2d762ad7f70caa61048cab2/vpc.tf#L109)
 
 <img src="attachments/databricks-setup-change-network-configuration.png" alt="drawing"/>
+
+
+# Links
+- https://github.com/leorickli/databricks-platform-infra
+	- https://github.com/leorickli/databricks-platform-data
