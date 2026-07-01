@@ -5,6 +5,7 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.obsidian" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/notebooks/jupyter/.venv" />
     </content>
     <orderEntry type="jdk" jdkName="uv (monorepo-datahub-ops-private)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
