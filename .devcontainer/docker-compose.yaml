@@ -12,7 +12,11 @@ services:
       secrets:
         - GITHUB_TOKEN
     environment:
-      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      - AWS_REGION=${AWS_REGION:-}
     container_name: tool
     restart: unless-stopped
     security_opt:
@@ -45,6 +49,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # JetBrains crack
       - /opt/jetbrains/agent.jar:/opt/jetbrains/agent.jar:ro
+    networks:
+      - frontend
+      - backend
 
   jupyter-spark-3.5:
     build:
@@ -53,7 +60,11 @@ services:
       args:
         GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
     environment:
-      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      - AWS_REGION=${AWS_REGION:-}
     container_name: jupyter_spark_3_5
     profiles:
       - jupyter_spark_3_5
@@ -65,6 +76,8 @@ services:
     command: start.sh jupyter notebook --NotebookApp.token=''
     volumes:
       - ../notebooks/jupyter:/home/jovyan
+    networks:
+      - frontend
 
   jupyter-spark-4.1:
     build:
@@ -73,7 +86,11 @@ services:
       args:
         GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
     environment:
-      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      - AWS_REGION=${AWS_REGION:-}
     container_name: jupyter_spark_4_1
     profiles:
       - jupyter_spark_4_1
@@ -86,6 +103,8 @@ services:
     volumes:
       - ../notebooks/jupyter:/home/jovyan
       - ../notebooks/jupyter:/home/jovyan/.
+    networks:
+      - frontend
 
   jupyter-glue-5:
     build:
@@ -94,8 +113,11 @@ services:
       args:
         GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
     environment:
-      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
-    container_name: jupyter_spark_glue_5
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      - AWS_REGION=${AWS_REGION:-}
     profiles:
       - jupyter_spark_glue_5
     restart: unless-stopped
@@ -103,6 +125,8 @@ services:
       - label=disable
     ports:
       - "${JUPYTER_GLUE_5_PORT:-6663}:8888"
+    networks:
+      - frontend
 
   # https://zeppelin.apache.org/docs/0.12.1/quickstart/docker.html
   zeppelin:
@@ -123,7 +147,41 @@ services:
       - "${ZEPPELIN_PORT:-6661}:8080"
     volumes:
       - ../notebooks/zeppelin:/notebooks
+    networks:
+      - frontend
+
+  # https://docs.localstack.cloud/aws/getting-started/installation/
+  localstack:
+    container_name: '${LOCALSTACK_DOCKER_NAME:-localstack-main}'
+    profiles:
+      - localstack
+    image: localstack/localstack-pro # required for Pro
+    #ports:
+      #- '127.0.0.1:4566:4566' # LocalStack Gateway
+      #- '127.0.0.1:4510-4559:4510-4559' # external services port range
+      #- '127.0.0.1:443:443' # LocalStack HTTPS Gateway (Pro)
+    environment:
+      # Activate LocalStack for AWS: https://docs.localstack.cloud/getting-started/auth-token/
+      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN:?} # required for Pro
+      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
+      - DEBUG=${DEBUG:-0}
+      - PERSISTENCE=${PERSISTENCE:-0}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+    volumes:
+      - '${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    networks:
+      - frontend
 
 secrets:
   GITHUB_TOKEN:
     environment: GITHUB_TOKEN
+
+# https://docs.docker.com/compose/how-tos/networking/
+networks:
+  frontend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
+  backend:
+    internal: true   # No external connectivity
