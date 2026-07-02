@@ -1,5 +1,36 @@
 # https://containers.dev/guide/dockerfile
 services:
+  traefik:
+    image: traefik:v3.7.6
+    container_name: traefik
+    profiles:
+      - jupyter_spark_3_5
+      - jupyter_spark_4_1
+      - jupyter_spark_glue_5
+      - zeppelin_0_12_1
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command:
+      - --entrypoints.web.address=:80
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --api.dashboard=true
+    ports:
+      - "${TRAEFIK_HTTP_PORT:-8080}:80"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)
+      - traefik.http.routers.traefik-dashboard.entrypoints=web
+      - traefik.http.routers.traefik-dashboard.service=api@internal
+      - traefik.http.routers.traefik-dashboard-localhost.rule=Host(`localhost`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+      - traefik.http.routers.traefik-dashboard-localhost.entrypoints=web
+      - traefik.http.routers.traefik-dashboard-localhost.service=api@internal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - frontend
+
   tools:
     build:
       context: swiss-knife-tools
@@ -71,8 +102,13 @@ services:
     restart: unless-stopped
     security_opt:
       - label=disable
-    ports:
-      - "${JUPYTER_SPARK_3_5_PORT:-6660}:8888"
+    #ports:
+    #  - "${JUPYTER_SPARK_3_5_PORT:-6660}:8888"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.jupyter-spark-3-5.rule=Host(`jupyter-spark-3-5.localhost`)
+      - traefik.http.routers.jupyter-spark-3-5.entrypoints=web
+      - traefik.http.services.jupyter-spark-3-5.loadbalancer.server.port=8888
     command: start.sh jupyter notebook --NotebookApp.token=''
     volumes:
       - ../notebooks/jupyter:/home/jovyan
@@ -97,8 +133,13 @@ services:
     restart: unless-stopped
     security_opt:
       - label=disable
-    ports:
-      - "${JUPYTER_SPARK_4_1_PORT:-6660}:8888"
+    #ports:
+    #  - "${JUPYTER_SPARK_4_1_PORT:-6660}:8888"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.jupyter-spark-4-1.rule=Host(`jupyter-spark-4-1.localhost`)
+      - traefik.http.routers.jupyter-spark-4-1.entrypoints=web
+      - traefik.http.services.jupyter-spark-4-1.loadbalancer.server.port=8888
     command: start.sh jupyter notebook --NotebookApp.token=''
     volumes:
       - ../notebooks/jupyter:/home/jovyan
@@ -123,13 +164,18 @@ services:
     restart: unless-stopped
     security_opt:
       - label=disable
-    ports:
-      - "${JUPYTER_GLUE_5_PORT:-6663}:8888"
+    #ports:
+    #  - "${JUPYTER_GLUE_5_PORT:-6663}:8888"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.jupyter-glue-5.rule=Host(`jupyter-glue-5.localhost`)
+      - traefik.http.routers.jupyter-glue-5.entrypoints=web
+      - traefik.http.services.jupyter-glue-5.loadbalancer.server.port=8888
     networks:
       - frontend
 
   # https://zeppelin.apache.org/docs/0.12.1/quickstart/docker.html
-  zeppelin:
+  zeppelin-0.12.1:
     build:
       context: ./zeppelin
       dockerfile: Dockerfile
@@ -137,14 +183,19 @@ services:
         GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
     environment:
       GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
-    container_name: zeppelin
+    container_name: zeppelin_0_12_1
     profiles:
-      - zeppelin
+      - zeppelin_0_12_1
     restart: unless-stopped
     security_opt:
       - label=disable
-    ports:
-      - "${ZEPPELIN_PORT:-6661}:8080"
+    #ports:
+    #  - "${ZEPPELIN_PORT:-6661}:8080"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.zeppelin.rule=Host(`zeppelin.localhost`)
+      - traefik.http.routers.zeppelin.entrypoints=web
+      - traefik.http.services.zeppelin.loadbalancer.server.port=8080
     volumes:
       - ../notebooks/zeppelin:/notebooks
     networks:
