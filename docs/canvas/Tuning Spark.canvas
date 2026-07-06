@@ -1,0 +1,15 @@
+{
+	"nodes":[
+		{"id":"9044c1e170f8e5ee","type":"text","text":"Tuning Spark","x":-710,"y":-690,"width":250,"height":60},
+		{"id":"2cbd5b9b15fefaf5","type":"file","file":"docs/devcontainers/Development Containers.md","x":-320,"y":-1200,"width":610,"height":510},
+		{"id":"b4ddd80af3ab2bb5","x":440,"y":-1182,"width":400,"height":400,"type":"file","file":"docs/Apache Jupyter.md"},
+		{"id":"98e9830803b4e51e","type":"file","file":"docs/canvas/attachments/High Performance - Spark Book.png","x":340,"y":-420,"width":410,"height":540},
+		{"id":"ccdd72699ab2237f","type":"file","file":"docs/canvas/attachments/Learning Spark - Book.png","x":-300,"y":-420,"width":400,"height":526}
+	],
+	"edges":[
+		{"id":"7d6f1c34eb80083a","fromNode":"9044c1e170f8e5ee","fromSide":"right","toNode":"2cbd5b9b15fefaf5","toSide":"left"},
+		{"id":"52e08bf1088d9934","fromNode":"9044c1e170f8e5ee","fromSide":"right","toNode":"ccdd72699ab2237f","toSide":"left"},
+		{"id":"deca43b292f90c0b","fromNode":"2cbd5b9b15fefaf5","fromSide":"right","toNode":"b4ddd80af3ab2bb5","toSide":"left"},
+		{"id":"f5273eb88da50e32","fromNode":"ccdd72699ab2237f","fromSide":"right","toNode":"98e9830803b4e51e","toSide":"left"}
+	]
+}

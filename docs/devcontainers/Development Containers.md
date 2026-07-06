@@ -13,13 +13,19 @@ devpod up . --ide none
 - http://traefik.localhost:8080/dashboard/ Traefik admin interface 
 <img src="attachments/reverse-proxy-admin-1.png" alt="drawing" width="800"/>
 
+# Jupyter Notebooks
+
+# Zeppelin Notebooks
 
 # Local links
 - Reverse proxy
-	- http://traefik.localhost:8080/dashboard/ Traefik admin interface 
-	- http://jupyter-spark-3-5.localhost:8080/lab
-	- http://jupyter-spark-4.1.localhost:8080/lab
-	- http://zeppelin-0.12.1.localhost:8080/
+	- http://traefik.localhost:8080/dashboard/ Traefik admin interface
+	- Jupyter
+		- http://jupyter-spark-3-5.localhost:8080/lab
+		- http://jupyter-spark-4.1.localhost:8080/lab
+		- http://jupyter-glue-5.localhost:8080/lab
+	- Zeppelin
+		- http://zeppelin-0.12.1.localhost:8080/
 
 
 # Links

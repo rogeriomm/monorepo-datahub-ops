@@ -7,4 +7,4 @@ docker run -it -p 6660:8888 -v "${PWD}/notebooks/jupyter":/home/jovyan jupyter/p
 Open the JupyterLab: http://localhost:6660/lab
 
 
-Alternatively you can run the [[devcontainers]] and open the same http://localhost:6660/lab
+Alternatively you can run the [[Development Containers]] and open the same http://localhost:6660/lab
