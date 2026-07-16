@@ -1,0 +1,16 @@
+{
+	"nodes":[
+		{"id":"42592da68f4ee2e2","type":"group","x":-760,"y":-840,"width":900,"height":740,"label":"Databricks"},
+		{"id":"77e2a6fff7693ed5","type":"group","x":-1000,"y":-20,"width":660,"height":480,"label":"On premises"},
+		{"id":"8c55e8c5ff2da83a","type":"group","x":360,"y":-20,"width":400,"height":360,"label":"AWS"},
+		{"id":"6b712af435041f42","type":"text","text":"test\n","x":300,"y":-811,"width":250,"height":71},
+		{"id":"4d91c1ab3094a644","type":"file","file":"docs/cloud-databricks-infrastructure/aws/cloud-databricks-infrastructure-aws.md","x":-700,"y":-740,"width":400,"height":400},
+		{"id":"dbefdd21dadfb8ec","type":"link","url":"https://youtu.be/HFK3D7zeyTA?t=442","x":-300,"y":560,"width":740,"height":400}
+	],
+	"edges":[
+		{"id":"1367cfa48f1ff847","fromNode":"42592da68f4ee2e2","fromSide":"right","toNode":"8c55e8c5ff2da83a","toSide":"top","label":"AWS Direct connect"},
+		{"id":"c4cff8c78d665a28","fromNode":"4d91c1ab3094a644","fromSide":"right","toNode":"6b712af435041f42","toSide":"left","label":"test connection"},
+		{"id":"6ebafd92ffac85f9","fromNode":"dbefdd21dadfb8ec","fromSide":"top","toNode":"77e2a6fff7693ed5","toSide":"right"},
+		{"id":"13f4a644ceaf9ee2","fromNode":"dbefdd21dadfb8ec","fromSide":"top","toNode":"77e2a6fff7693ed5","toSide":"right"}
+	]
+}

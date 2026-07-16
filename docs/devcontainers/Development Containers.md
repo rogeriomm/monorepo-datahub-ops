@@ -17,16 +17,34 @@ devpod up . --ide none
 
 # Zeppelin Notebooks
 
+# S3 object store
+- AWS CLI
+```shell
+AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret \
+aws --endpoint-url http://localhost:8333 s3 ls
+```
+
+ - Via Traefik
+```shell
+AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret \
+aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
+```
 # Local links
 - Reverse proxy
 	- http://traefik.localhost:8080/dashboard/ Traefik admin interface
 	- Jupyter
 		- http://jupyter-spark-3-5.localhost:8080/lab
 		- http://jupyter-spark-4.1.localhost:8080/lab
+	- AWS GLUE
 		- http://jupyter-glue-5.localhost:8080/lab
 	- Zeppelin
-		- http://zeppelin-0.12.1.localhost:8080/
-
+		- http://zeppelin-0.12.1.localhost:8080
+	- Kafka
+		- http://kafka-ui.localhost:8080
+	- S3 object storage
+		- http://seaweedfs-master.localhost:8080
+		- http://seaweedfs-filer.localhost:8080
+		- http://seaweedfs-s3.localhost:8080		- 
 
 # Links
  - [VSCode devcontainer with zsh, oh-my-zsh and agnoster theme](https://medium.com/@jamiekt/vscode-devcontainer-with-zsh-oh-my-zsh-and-agnoster-theme-8adf884ad9f6)

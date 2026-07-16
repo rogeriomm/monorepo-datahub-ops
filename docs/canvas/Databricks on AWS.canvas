@@ -1,1 +1,6 @@
-{}
+{
+	"nodes":[
+		{"id":"403e83517412bbe7","x":20,"y":-460,"width":720,"height":580,"type":"file","file":"docs/cloud-databricks-infrastructure/aws/cloud-databricks-infrastructure-aws.md"}
+	],
+	"edges":[]
+}
