@@ -19,7 +19,8 @@ RUN curl --fail --location \
     && rm -f /tmp/cs
 
 RUN pip install --no-cache-dir \
-    pandas parquet-tools kagglehub contexttimer rich findspark
+    pandas parquet-tools kagglehub contexttimer rich findspark \
+    humanize ipython-autotime
 
 RUN echo "jovyan ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/jovyan \
   && chmod 0440 /etc/sudoers.d/jovyan

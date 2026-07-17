@@ -113,6 +113,7 @@ services:
 
     environment:
       - JUPYTER_ENABLE_LAB="yes"
+      - JUPYTER_SERVICE_NAME=jupyter-spark-3.5
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
@@ -162,6 +163,8 @@ services:
 
     environment:
       - JUPYTER_ENABLE_LAB=yes
+      - IPYTHONDIR=/home/jovyan/work/.ipython
+      - JUPYTER_SERVICE_NAME=jupyter-spark-4.1
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
@@ -195,8 +198,10 @@ services:
       context: jupyter_spark_glue_5
       dockerfile: Dockerfile
       args:
+        SCALA_VERSION: "2.12.18"
         GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
     environment:
+      - JUPYTER_SERVICE_NAME=jupyter-glue-5
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
