@@ -4,6 +4,7 @@ services:
     image: traefik:v3.7.6
     container_name: traefik
     profiles:
+      - airflow
       - jupyter_spark_3_5
       - jupyter_spark_4_1
       - jupyter_spark_glue_5
@@ -81,6 +82,78 @@ services:
     networks:
       - frontend
       - backend
+
+  # https://airflow.apache.org/docs/apache-airflow/stable/start.html
+  airflow-3.3:
+    image: local/airflow:3.3.0
+    build:
+      context: airflow-3.3
+      dockerfile: Dockerfile
+    container_name: airflow-3.3
+    profiles:
+      - airflow
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command: standalone
+    environment:
+      AIRFLOW__API__BASE_URL: "http://airflow-3-3.localhost:${TRAEFIK_HTTP_PORT:-8080}"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - airflow-data:/opt/airflow
+      - ./airflow:/opt/airflow/dags:ro
+      - ../notebooks/jupyter:/opt/airflow/notebooks:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.airflow-3-3.rule=Host(`airflow-3-3.localhost`)
+      - traefik.http.routers.airflow-3-3.entrypoints=web
+      - traefik.http.services.airflow-3-3.loadbalancer.server.port=8080
+    networks:
+      - frontend
+
+  airflow-2.11:
+    image: local/airflow:2.11.2
+    build:
+      context: airflow-2.11
+      dockerfile: Dockerfile
+    container_name: airflow-2.11
+    profiles:
+      - airflow
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command:
+      - bash
+      - -c
+      - |
+        rm -f /opt/airflow/airflow-webserver.pid
+        exec airflow standalone
+    environment:
+      AIRFLOW__WEBSERVER__BASE_URL: "http://airflow-2-11.localhost:${TRAEFIK_HTTP_PORT:-8080}"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - airflow-2-11-data:/opt/airflow
+      - ./airflow:/opt/airflow/dags:ro
+      - ../notebooks/jupyter:/opt/airflow/notebooks:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.airflow-2-11.rule=Host(`airflow-2-11.localhost`)
+      - traefik.http.routers.airflow-2-11.entrypoints=web
+      - traefik.http.services.airflow-2-11.loadbalancer.server.port=8080
+    networks:
+      - frontend
 
 
   pyspark-base-3.5:
@@ -165,6 +238,7 @@ services:
       - JUPYTER_ENABLE_LAB=yes
       - IPYTHONDIR=/home/jovyan/work/.ipython
       - JUPYTER_SERVICE_NAME=jupyter-spark-4.1
+      - TRAEFIK_HTTP_PORT=${TRAEFIK_HTTP_PORT:-8080}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
@@ -183,7 +257,37 @@ services:
       - traefik.enable=true
       - traefik.http.routers.jupyter-spark-4-1.rule=Host(`jupyter-spark-4-1.localhost`)
       - traefik.http.routers.jupyter-spark-4-1.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-1.priority=100
+      - traefik.http.routers.jupyter-spark-4-1.service=jupyter-spark-4-1
       - traefik.http.services.jupyter-spark-4-1.loadbalancer.server.port=8888
+      - traefik.http.routers.jupyter-spark-4-1-spark-ui.rule=Host(`jupyter-spark-4-1.localhost`) && PathPrefix(`/webui`)
+      - traefik.http.routers.jupyter-spark-4-1-spark-ui.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-1-spark-ui.priority=300
+      - traefik.http.routers.jupyter-spark-4-1-spark-ui.service=jupyter-spark-4-1-spark-ui
+      - traefik.http.routers.jupyter-spark-4-1-spark-ui.middlewares=jupyter-spark-4-1-spark-ui-strip-prefix
+      - traefik.http.routers.jupyter-spark-4-1-spark-pages.rule=Host(`jupyter-spark-4-1.localhost`) && (PathPrefix(`/jobs`) || PathPrefix(`/stages`) || PathPrefix(`/storage`) || PathPrefix(`/environment`) || PathPrefix(`/executors`) || PathPrefix(`/SQL`) || PathPrefix(`/api/v1`))
+      - traefik.http.routers.jupyter-spark-4-1-spark-pages.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-1-spark-pages.priority=300
+      - traefik.http.routers.jupyter-spark-4-1-spark-pages.middlewares=jupyter-spark-4-1-spark-pages-redirect
+      - traefik.http.routers.jupyter-spark-4-1-spark-pages.service=noop@internal
+      - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.rule=Host(`jupyter-spark-4-1.localhost`) && PathRegexp(`^/webui/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
+      - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.priority=400
+      - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.service=jupyter-spark-4-1-spark-ui
+      - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.middlewares=jupyter-spark-4-1-spark-ui-strip-prefix
+      - traefik.http.routers.jupyter-spark-4-1-spark-static.rule=Host(`jupyter-spark-4-1.localhost`) && PathRegexp(`^/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
+      - traefik.http.routers.jupyter-spark-4-1-spark-static.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-1-spark-static.priority=300
+      - traefik.http.routers.jupyter-spark-4-1-spark-static.middlewares=jupyter-spark-4-1-spark-static-redirect
+      - traefik.http.routers.jupyter-spark-4-1-spark-static.service=noop@internal
+      - traefik.http.services.jupyter-spark-4-1-spark-ui.loadbalancer.server.port=4042
+      - traefik.http.middlewares.jupyter-spark-4-1-spark-pages-redirect.redirectregex.regex=^http://([^/]+)/(jobs|stages|storage|environment|executors|SQL|api/v1)(.*)
+      - traefik.http.middlewares.jupyter-spark-4-1-spark-pages-redirect.redirectregex.replacement=http://$${1}/webui/$${2}$${3}
+      - traefik.http.middlewares.jupyter-spark-4-1-spark-pages-redirect.redirectregex.permanent=false
+      - traefik.http.middlewares.jupyter-spark-4-1-spark-static-redirect.redirectregex.regex=^http://([^/]+)/static/(.*)
+      - traefik.http.middlewares.jupyter-spark-4-1-spark-static-redirect.redirectregex.replacement=http://$${1}/webui/static/$${2}
+      - traefik.http.middlewares.jupyter-spark-4-1-spark-static-redirect.redirectregex.permanent=false
+      - traefik.http.middlewares.jupyter-spark-4-1-spark-ui-strip-prefix.stripprefix.prefixes=/webui
 
     command: start-notebook.py --ServerApp.token=''
 
@@ -282,9 +386,12 @@ services:
     networks:
       - frontend
 
-  kafka:
-    image: apache/kafka:4.1.0
-    container_name: kafka
+  kafka-4:
+    image: local/kafka:4.1.0
+    build:
+      context: kafka-4
+      dockerfile: Dockerfile
+    container_name: kafka-4
     profiles:
       - kafka
     restart: unless-stopped
@@ -295,9 +402,9 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-4:29093
       KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092,CONTROLLER://:29093
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:${KAFKA_PORT:-9092}
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-4:29092,EXTERNAL://localhost:${KAFKA_PORT:-9092}
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
@@ -320,11 +427,11 @@ services:
     security_opt:
       - label=disable
     depends_on:
-      - kafka
+      - kafka-4
     environment:
       DYNAMIC_CONFIG_ENABLED: "true"
       KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-4:29092
     labels:
       - traefik.enable=true
       - traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.localhost`)
@@ -372,6 +479,8 @@ secrets:
     environment: GITHUB_TOKEN
 
 volumes:
+  airflow-2-11-data:
+  airflow-data:
   kafka-data:
   seaweedfs-data:
 

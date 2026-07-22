@@ -9,6 +9,9 @@ RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         curl \
         gzip \
+        build-essential \
+        libpq-dev \
+        python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl --fail --location \
