@@ -1,6 +1,9 @@
 {
 	"nodes":[
-		{"id":"44ca884f382faafe","type":"link","url":"https://youtu.be/ZEE-jNAthB0?t=14009","x":-860,"y":-880,"width":640,"height":376,"color":"1"}
+		{"id":"6029ebf5eb469fca","type":"link","url":"https://www.youtube.com/watch?v=ZEE-jNAthB0","x":-1340,"y":-1700,"width":640,"height":360},
+		{"id":"860936af6a57f5be","type":"text","text":" - https://github.com/anshlambagit/Walmart_Airflow_DBT_Project","x":-660,"y":-1549,"width":671,"height":58},
+		{"id":"d80930d663afb936","type":"file","file":"docs/canvas/Databricks Unity Catalog.canvas","x":-1340,"y":-2300,"width":482,"height":474},
+		{"id":"5b028736b8318808","x":-700,"y":-2300,"width":400,"height":400,"type":"file","file":"docs/canvas/Databricks Architecture Basic.canvas"}
 	],
 	"edges":[]
 }

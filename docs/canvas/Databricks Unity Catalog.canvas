@@ -1,0 +1,36 @@
+{
+	"nodes":[
+		{"id":"814574f3d4b7d549","type":"text","text":"Cloud Region","x":-141,"y":-40,"width":179,"height":59},
+		{"id":"c475d431ef31a978","type":"text","text":"AWS Organization","x":-537,"y":285,"width":250,"height":60},
+		{"id":"03a3e6966a9c8992","type":"text","text":"AWS Organizational Unit","x":-23,"y":281,"width":283,"height":64},
+		{"id":"dccd019a5d5304c7","type":"text","text":"AWS Account","x":380,"y":19,"width":250,"height":60},
+		{"id":"ce73cf1e4ebb5c45","type":"file","file":"docs/canvas/attachments/Mapping Between Databricks and AWS Account Constructs.png","x":-592,"y":460,"width":812,"height":449},
+		{"id":"3a93612d860b31d8","type":"text","text":"Schema","x":-87,"y":-443,"width":250,"height":60},
+		{"id":"63089efd1a7ac9b0","type":"text","text":"- [[Data Governance with Unity Catalog on Databricks.pdf#page=101|Databricks Constructs]]\n- [[Data Governance with Unity Catalog on Databricks.pdf#page=102|Databricks on AWS]]","x":380,"y":460,"width":360,"height":160,"color":"4"},
+		{"id":"b956c0c79b2b88f3","type":"text","text":"Unity Catalog Metastore","x":-52,"y":-251,"width":272,"height":50},
+		{"id":"16677bb8a7e45122","type":"text","text":"Databricks Workspace","x":380,"y":-256,"width":250,"height":60},
+		{"id":"3e0a35d16df8beca","type":"text","text":"Databricks Account","x":-520,"y":-256,"width":250,"height":60},
+		{"id":"2bd6a818ae8c1f49","type":"text","text":"Databricks IAM","x":-940,"y":-480,"width":250,"height":60},
+		{"id":"baf4c547ff9a7225","type":"text","text":"Databricks Catalog","x":-493,"y":-443,"width":250,"height":60},
+		{"id":"a7daeb73198d16be","type":"text","text":"Table","x":330,"y":-443,"width":250,"height":60},
+		{"id":"85c544828a228f6d","type":"text","text":"Spark Connect","x":-1010,"y":-231,"width":250,"height":60},
+		{"id":"74c77a77c3910dad","type":"text","text":"Unity Catalog Lakeguard","x":-479,"y":-583,"width":293,"height":50},
+		{"id":"a062b98af5537b2f","type":"text","text":"Databricks Volume","x":-50,"y":-578,"width":250,"height":60},
+		{"id":"a0947bb41641383f","type":"file","file":"docs/canvas/attachments/Data Governance with Unity Data Catalog on Databricks.png","x":95,"y":-1100,"width":331,"height":438},
+		{"id":"b5b696b9b7351846","type":"text","text":"# Books\n- [[Data Governance with Unity Catalog on Databricks.pdf#page=101|Data Governance with Unity Catalog on Databricks]]","x":-760,"y":-1020,"width":473,"height":160},
+		{"id":"79a1ca2f2304d3b5","type":"text","text":"[[Data Governance with Unity Catalog on Databricks.pdf#page=80|Metastore Admin]]\n\n![[Databricks Metastore Admin.png|142]]","x":88,"y":19,"width":212,"height":221}
+	],
+	"edges":[
+		{"id":"26c5615c1b38b468","fromNode":"b956c0c79b2b88f3","fromSide":"right","toNode":"16677bb8a7e45122","toSide":"left","label":"1-n"},
+		{"id":"bf03883ae4cffaa9","fromNode":"3e0a35d16df8beca","fromSide":"right","toNode":"b956c0c79b2b88f3","toSide":"left","label":"1-n"},
+		{"id":"61970421af44b621","fromNode":"814574f3d4b7d549","fromSide":"top","toNode":"b956c0c79b2b88f3","toSide":"bottom","label":"1-1"},
+		{"id":"481bf27d22aedf2c","fromNode":"3e0a35d16df8beca","fromSide":"bottom","toNode":"814574f3d4b7d549","toSide":"left","label":"1-n"},
+		{"id":"fdfdd53e5a58071d","fromNode":"c475d431ef31a978","fromSide":"right","toNode":"03a3e6966a9c8992","toSide":"left","label":"1-1"},
+		{"id":"e2aece037d54e32d","fromNode":"3e0a35d16df8beca","fromSide":"bottom","toNode":"c475d431ef31a978","toSide":"top","label":"1-n (normally 1)"},
+		{"id":"3c0f1c87076026f2","fromNode":"16677bb8a7e45122","fromSide":"bottom","toNode":"dccd019a5d5304c7","toSide":"top","label":"n-n"},
+		{"id":"c55eef2c5cf4a801","fromNode":"03a3e6966a9c8992","fromSide":"right","toNode":"dccd019a5d5304c7","toSide":"bottom","label":"1-n"},
+		{"id":"15fc7b5a062d49d5","fromNode":"baf4c547ff9a7225","fromSide":"right","toNode":"3a93612d860b31d8","toSide":"left"},
+		{"id":"8dc21a6fc968fcc9","fromNode":"3a93612d860b31d8","fromSide":"right","toNode":"a7daeb73198d16be","toSide":"left"},
+		{"id":"2345c13aa63cd264","fromNode":"79a1ca2f2304d3b5","fromSide":"top","toNode":"b956c0c79b2b88f3","toSide":"bottom","label":"0-1"}
+	]
+}

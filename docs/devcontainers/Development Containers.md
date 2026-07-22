@@ -17,6 +17,13 @@ devpod up . --ide none
 
 # Zeppelin Notebooks
 
+# Airflow
+- Get administrator password
+```shell
+docker compose -f .devcontainer/docker-compose.yaml exec airflow-3.3 \
+  cat /opt/airflow/simple_auth_manager_passwords.json.generated
+```
+
 # S3 object store
 - AWS CLI
 ```shell
@@ -44,7 +51,10 @@ aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
 	- S3 object storage
 		- http://seaweedfs-master.localhost:8080
 		- http://seaweedfs-filer.localhost:8080
-		- http://seaweedfs-s3.localhost:8080		- 
+		- http://seaweedfs-s3.localhost:8080		
+	- Airflow		
+		- http://airflow-3-3.localhost:8080/
+		- http://airflow-2-11.localhost:8080/
 
 # Links
  - [VSCode devcontainer with zsh, oh-my-zsh and agnoster theme](https://medium.com/@jamiekt/vscode-devcontainer-with-zsh-oh-my-zsh-and-agnoster-theme-8adf884ad9f6)

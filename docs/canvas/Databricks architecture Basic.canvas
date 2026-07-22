@@ -1,8 +1,0 @@
-{
-	"nodes":[
-		{"id":"2099c31af63772c1","type":"link","url":"https://www.youtube.com/watch?v=9yKecTXW2pY","x":-880,"y":-260,"width":540,"height":360},
-		{"id":"44d086e47422acaa","type":"link","url":"https://www.youtube.com/watch?v=dZ7meO55T5c","x":0,"y":-120,"width":640,"height":360},
-		{"id":"76329fd711a518e8","x":-940,"y":-1100,"width":1167,"height":767,"type":"link","url":"https://github.com/databricks/terraform-provider-databricks/blob/main/docs/guides/aws-workspace.md"}
-	],
-	"edges":[]
-}

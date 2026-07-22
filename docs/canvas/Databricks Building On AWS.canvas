@@ -1,0 +1,6 @@
+{
+	"nodes":[
+		{"id":"531570c1744d18d6","type":"link","url":"https://github.com/databricks/terraform-provider-databricks/blob/main/docs/guides/aws-workspace.md","x":-583,"y":-383,"width":1167,"height":767}
+	],
+	"edges":[]
+}
