@@ -13,6 +13,8 @@ from pathlib import Path
 
 import os
 import socket
+from html import escape
+from types import MethodType
 
 #
 # https://docs.delta.io/releases/
@@ -253,6 +255,45 @@ def _get_jupyter_service_name() -> str:
     return service_name.replace(" ", "-").lower()
 
 
+def _get_jupyter_service_host(service_name: str) -> str:
+    return service_name.replace(".", "-").replace(" ", "-").lower()
+
+
+def _get_traefik_http_port() -> str:
+    return os.environ.get("TRAEFIK_HTTP_PORT", "8080")
+
+
+def _get_spark_ui_proxy_url(service_name: str) -> str:
+    return (
+        f"http://{_get_jupyter_service_host(service_name)}.localhost:"
+        f"{_get_traefik_http_port()}/webui/"
+    )
+
+
+def _patch_spark_context_repr(spark_context: SparkContext, spark_ui_url: str) -> None:
+    def _repr_html_override(self: SparkContext) -> str:
+        return """
+<div>
+  <div style="font-weight: 600; margin-bottom: 0.5rem;">SparkContext</div>
+  <div style="margin-bottom: 0.75rem;">
+    <a href="{spark_ui_url}" target="_blank" rel="noopener noreferrer">Spark UI</a>
+  </div>
+  <table>
+    <tr><th align="left">Version</th><td>{version}</td></tr>
+    <tr><th align="left">Master</th><td>{master}</td></tr>
+    <tr><th align="left">AppName</th><td>{app_name}</td></tr>
+  </table>
+</div>
+""".format(
+            spark_ui_url=escape(spark_ui_url, quote=True),
+            version=escape(self.version),
+            master=escape(self.master),
+            app_name=escape(self.appName),
+        )
+
+    spark_context._repr_html_ = MethodType(_repr_html_override, spark_context)
+
+
 def _get_spark_base_dir(
     service_name: str,
     spark_version: str,
@@ -297,6 +338,8 @@ def get_spark(
     spark_packages = get_spark_packages(spark_version, data_format)
     spark_sql_extensions = get_spark_sql_extensions(spark_version, data_format)
     spark_catalog_configs = get_spark_catalog_configs(spark_version, data_format)
+    spark_ui_port = 4040 + port_offset
+    spark_ui_proxy_url = _get_spark_ui_proxy_url(service_name)
 
     print(f"Spark packages: {spark_packages}")
     print(f"Spark extensions: {spark_sql_extensions}")
@@ -315,7 +358,9 @@ def get_spark(
         .config("spark.driver.host", "127.0.0.1")
         .config("spark.driver.port", str(7077 + port_offset))
         .config("spark.blockManager.port", str(7078 + port_offset))
-        .config("spark.ui.port", str(4040 + port_offset))
+        .config("spark.ui.port", str(spark_ui_port))
+        .config("spark.ui.bindAddress", "0.0.0.0")
+        .config("spark.ui.proxyRedirectUri", spark_ui_proxy_url)
         .config("spark.port.maxRetries", "0")
         .config("spark.driver.memory", driver_memory)
         .config("spark.executor.memory", executor_memory)
@@ -362,5 +407,6 @@ def get_spark(
     spark_session: SparkSession = builder.getOrCreate()
 
     spark_context: SparkContext = spark_session.sparkContext
+    _patch_spark_context_repr(spark_context, spark_ui_proxy_url)
 
     return spark_context, spark_session
