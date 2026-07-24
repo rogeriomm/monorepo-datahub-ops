@@ -1,40 +1,50 @@
-- Databricks Git folder
+# Databricks Free Edition Infrastructure
 
-![[databricks-git-folder-repository-contents.png]]
-# GIT Web Terminal
+## Databricks Git Folder
 
- 
-	 - Uses [tmux](https://github.com/tmux/tmux/wiki)
-	 - vim, git, Databricks CLI
-	 - ARM processor
-	
-![[databricks-repos-ipynb-output-setting.png]]
-![[databricks-web-terminal-system-inspection.png]]
-![[databricks-web-terminal-git-pull.png]]
-![[databricks-cli-clusters-list.png]]
-![[databricks-terminated-spark-driver-error.png]]
+![Databricks Git folder repository contents](attachments/databricks-git-folder-repository-contents.png)
 
- ```shell
- tmux show-options -g prefix
- tmux list-keys | grep window
- ```
+## Git Web Terminal
 
- - Enable "Allow repos to export IPYNB output"
-![[databricks-repos-ipynb-output-setting.png]]
+- Uses [tmux](https://github.com/tmux/tmux/wiki).
+- Includes Vim, Git, and the Databricks CLI.
+- Runs on an ARM processor.
 
+![Databricks setting to export IPYNB output from repositories](attachments/databricks-repos-ipynb-output-setting.png)
 
+![Databricks web terminal system inspection](attachments/databricks-web-terminal-system-inspection.png)
 
-# Databricks free-edition internals
-## Serverless environment versions
-- https://docs.databricks.com/aws/en/release-notes/serverless/environment-version
-	- https://docs.databricks.com/aws/en/dev-tools/databricks-connect/
-	- https://spark.apache.org/docs/latest/spark-connect-overview.html
+![Git pull in the Databricks web terminal](attachments/databricks-web-terminal-git-pull.png)
 
-![[spark-connect-architecture.png]]
-# Running background process
+![Databricks CLI clusters list](attachments/databricks-cli-clusters-list.png)
 
-![[databricks-background-processes-not-supported.png]]
+![Terminated Spark driver error](attachments/databricks-terminated-spark-driver-error.png)
 
-# Network
-![[databricks-notebook-network-ssh-test.png]]![[databricks-cli-hello-world.ipynb]]
-[[databricks-cli-hello-world.ipynb|Databricks CLI sample notebook]]
+```shell
+tmux show-options -g prefix
+tmux list-keys | grep window
+```
+
+- Enable **Allow repos to export IPYNB output**.
+
+![Allow repos to export IPYNB output setting](attachments/databricks-repos-ipynb-output-setting.png)
+
+## Databricks Free Edition Internals
+
+### Serverless Environment Versions
+
+- [Serverless environment versions](https://docs.databricks.com/aws/en/release-notes/serverless/environment-version)
+- [Databricks Connect](https://docs.databricks.com/aws/en/dev-tools/databricks-connect/)
+- [Spark Connect overview](https://spark.apache.org/docs/latest/spark-connect-overview.html)
+
+![Spark Connect architecture](attachments/spark-connect-architecture.png)
+
+## Running Background Processes
+
+![Background processes are not supported](attachments/databricks-background-processes-not-supported.png)
+
+## Network
+
+![Databricks notebook network and SSH test](attachments/databricks-notebook-network-ssh-test.png)
+
+[Databricks CLI sample notebook](../../../notebooks/jupyter/databricks/free-edition/databricks-cli-hello-world.ipynb)
