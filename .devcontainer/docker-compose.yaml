@@ -230,7 +230,8 @@ services:
       args:
         BASE_IMAGE: local/jupyter-pyspark-base:4.1.2
         SCALA_VERSION: "2.13.17"
-        GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+      secrets:
+        - GITHUB_TOKEN
 
     container_name: jupyter_spark_4_1_2
 
@@ -244,6 +245,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
       - AWS_REGION=${AWS_REGION:-}
+      - DATABRICKS_AUTH_STORAGE=plaintext
 
     profiles:
       - jupyter_spark_4_1
@@ -289,10 +291,21 @@ services:
       - traefik.http.middlewares.jupyter-spark-4-1-spark-static-redirect.redirectregex.permanent=false
       - traefik.http.middlewares.jupyter-spark-4-1-spark-ui-strip-prefix.stripprefix.prefixes=/webui
 
-    command: start-notebook.py --ServerApp.token=''
+    command:
+      - bash
+      - -lc
+      - |
+        set -o errexit -o pipefail
+        if /home/jovyan/.local/bin/mise ls --missing --no-header | grep -q .; then
+          /home/jovyan/.local/bin/mise install
+        fi
+        eval "$(/home/jovyan/.local/bin/mise activate bash)"
+        exec start-notebook.py --ServerApp.token=''
 
     volumes:
       - ../notebooks/jupyter:/home/jovyan/work
+      - "${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw"
+      - "${HOME}/.databricks:/home/jovyan/.databricks:rw"
 
     networks:
       - frontend

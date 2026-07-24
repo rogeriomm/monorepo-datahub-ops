@@ -12,6 +12,7 @@ RUN apt-get update \
         build-essential \
         libpq-dev \
         python3-dev \
+        apt-file \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl --fail --location \
@@ -28,6 +29,12 @@ RUN pip install --no-cache-dir \
 RUN echo "jovyan ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/jovyan \
   && chmod 0440 /etc/sudoers.d/jovyan
 
+# Copy external .zshrc from project directory
+COPY fs/home/jovyan/ /home/jovyan/
+
+# Fix ownership
+RUN chown -R jovyan /home/jovyan
+
 USER ${NB_UID}
 
 RUN cs launch --use-bootstrap almond \
@@ -41,12 +48,26 @@ RUN jupyter labextension disable \
     "@jupyterlab/apputils-extension:announcements" \
     --level=sys_prefix
 
+# Install mise: https://mise.jdx.dev/getting-started.html
+RUN --mount=type=secret,id=GITHUB_TOKEN,env=GITHUB_TOKEN \
+    curl https://mise.run | sh
+
+RUN echo 'eval "$($HOME/.local/bin/mise activate bash)"' >> "$HOME/.bashrc"
+
+RUN --mount=type=secret,id=GITHUB_TOKEN,env=GITHUB_TOKEN \
+    bash -lc 'eval "$($HOME/.local/bin/mise activate bash)" \
+    && mise install'
+
 USER root
 
 COPY jupyterlab-overrides.json /opt/conda/share/jupyter/lab/settings/overrides.json
 
 ENV SPARK_HOME=/usr/local/spark
 ENV PATH="${SPARK_HOME}/bin:${PATH}"
+
+COPY fs/home/jovyan/.zshrc /home/jovyan/.zshrc
+# Fix ownership
+RUN chown -R jovyan /home/jovyan/.zshrc
 
 USER ${NB_UID}
 
