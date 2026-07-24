@@ -1,1 +1,1 @@
-jetbrains.md
+JetBrains.md

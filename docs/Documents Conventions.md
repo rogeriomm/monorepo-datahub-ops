@@ -12,9 +12,9 @@ Documentation file names should use **kebab-case**:
 - Do not use accents or special characters.
 - Keep names descriptive but not too long.
 
-README.md symbolic link to the filename so GitHub can show the page. Example: [`docs/on-premises-infrastructure/on-premises-infrastructure.md`](on-premises-architecture.md) and "docs/on-premises-infrastructure/README.md"
+README.md symbolic link to the filename so GitHub can show the page. Example: [`docs/on-premises-infrastructure/On Premises Infrastructure.md`](on-premises-infrastructure/On%20Premises%20Infrastructure.md) and "docs/on-premises-infrastructure/README.md"
 
 
 ```shell
-ln -s on-premises-infrastructure.md README.md
+ln -s "On Premises Infrastructure.md" README.md
 ```

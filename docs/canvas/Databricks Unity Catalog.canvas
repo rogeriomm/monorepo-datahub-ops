@@ -16,9 +16,10 @@
 		{"id":"85c544828a228f6d","type":"text","text":"Spark Connect","x":-1010,"y":-231,"width":250,"height":60},
 		{"id":"74c77a77c3910dad","type":"text","text":"Unity Catalog Lakeguard","x":-479,"y":-583,"width":293,"height":50},
 		{"id":"a062b98af5537b2f","type":"text","text":"Databricks Volume","x":-50,"y":-578,"width":250,"height":60},
-		{"id":"a0947bb41641383f","type":"file","file":"docs/canvas/attachments/Data Governance with Unity Data Catalog on Databricks.png","x":95,"y":-1100,"width":331,"height":438},
 		{"id":"b5b696b9b7351846","type":"text","text":"# Books\n- [[Data Governance with Unity Catalog on Databricks.pdf#page=101|Data Governance with Unity Catalog on Databricks]]","x":-760,"y":-1020,"width":473,"height":160},
-		{"id":"79a1ca2f2304d3b5","type":"text","text":"[[Data Governance with Unity Catalog on Databricks.pdf#page=80|Metastore Admin]]\n\n![[Databricks Metastore Admin.png|142]]","x":88,"y":19,"width":212,"height":221}
+		{"id":"79a1ca2f2304d3b5","type":"text","text":"[[Data Governance with Unity Catalog on Databricks.pdf#page=80|Metastore Admin]]\n\n![[Databricks Metastore Admin.png|142]]","x":88,"y":19,"width":212,"height":221},
+		{"id":"a0947bb41641383f","type":"file","file":"docs/canvas/attachments/Data Governance with Unity Data Catalog on Databricks.png","x":-60,"y":-1120,"width":331,"height":438},
+		{"id":"f8f568495b46b170","type":"file","file":"docs/cloud-databricks-infrastructure/Databricks Unity Data Model.md","x":400,"y":-1385,"width":1237,"height":837}
 	],
 	"edges":[
 		{"id":"26c5615c1b38b468","fromNode":"b956c0c79b2b88f3","fromSide":"right","toNode":"16677bb8a7e45122","toSide":"left","label":"1-n"},

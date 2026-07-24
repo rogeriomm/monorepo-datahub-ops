@@ -321,7 +321,7 @@ sudo k3s ctr images prune --all
 ```
 
 # Edit server certificates
-[Multicluster](multicluster.md)
+[Multicluster](Multicluster.md)
 
 # Links
 - https://docs.tigera.io/calico/latest/getting-started/kubernetes/k3s/quickstart
