@@ -4,50 +4,58 @@
 
 ```
 .
-├── .devcontainer/      # Development containers    
-├── .github/            # GitHub CI/CD
-├── .idea/              # Jetbrains
-├── .obsidian/          # Obsidian configuration
-├── .vscode/            # VScode configuration
-├── cloud-aws/          # Cloud AWS infrastruture
-├── cloud-databricks/   # Databricks Premium and Free comunity
-├── docs/               # Documents
-└── on-premises/        # Op-premises infrastructure
+├── .devcontainer/       # Development containers
+├── .github/             # GitHub CI/CD
+├── .idea/               # JetBrains configuration
+├── .obsidian/           # Obsidian configuration
+├── .vscode/             # VS Code configuration
+├── cloud-aws/           # AWS cloud infrastructure
+├── cloud-databricks/    # Databricks Premium and Free Community
+├── container-data/      # Docker container persistent data
+├── data-project/        # Data projects
+├── docs/                # Documentation
+├── docs/attachments/    # Documentation attachments
+├── docs/attachments/books/  # Books and PDFs
+├── notebooks
+├── notebooks/jupyter
+├── notebooks/jupyter/databricks # Databricks notebooks
+├── notebooks/zeppelin
+└── on-premises/         # On-premises infrastructure
 ```
 
 ## Documentation Conventions
 
-This repository uses **Obsidian** for writing and organizing documentation.
+This repository uses **Obsidian** to organize documentation.
+Documentation files live under `docs/`.
 
-Documentation files are stored in the `docs/` directory.
+## Document file names
 
-## Markdown file names
-
-Markdown file names must use **kebab-case**.
+All document files under `docs/`, including its subdirectories, must use
+spaces between words. The first letter of each filename must be uppercase.
 
 Rules:
 
-* Use lowercase letters.
-* Use `-` to separate words.
-* Do not use spaces.
-* Do not use `_` underscores.
+* Start every document filename with an uppercase letter.
+* Use spaces to separate words.
+* Do not use `-` hyphens or `_` underscores as word separators.
 * Do not use accents or special characters.
 * Use clear and descriptive names.
 
 Good examples:
 
 ```text
-documentation-conventions.md
-data-platform-overview.md
-aws-network-architecture.md
-databricks-workspace-setup.md
+Documentation Conventions.md
+AWS Network Architecture.md
+Databricks Workspace Setup.md
+Data Platform Overview.md
 ```
 
 Bad examples:
 
 ```text
-Documentation Conventions.md
+documentation-conventions.md
 documentation_conventions.md
+data platform overview.md
 databricks workspace setup.md
 documentação-convenções.md
 ```
@@ -59,8 +67,8 @@ Documentation may use Obsidian-style internal links.
 Examples:
 
 ```md
-[[data-platform-overview]]
-[[aws-network-architecture]]
+[[Data Platform Overview]]
+[[AWS Network Architecture]]
 ```
 
 Images and diagrams may also use Obsidian embed syntax.
@@ -89,3 +97,7 @@ databricks-workspace-flow.svg
 When editing documentation, keep Markdown as compatible with GitHub as possible.
 
 Avoid using Obsidian-only features when a standard Markdown alternative is simple and clear.
+
+# Notebook conventions
+
+Notebook file names should also use **kebab-case**.
