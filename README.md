@@ -11,16 +11,22 @@
 > [Obsidian](https://obsidian.md/). Some files may contain Obsidian-specific
 > Markdown syntax.
 
+### Documentation file names
+
+Document files under `docs/` use spaces between words and start with an
+uppercase letter. Image and diagram assets use kebab-case. See
+[Documentation conventions](docs/Documents%20Conventions.md) for details.
+
 ## Documentation Sections
 
 - [Development containers](docs/devcontainers/Development%20Containers.md)
-- [On-premises infrastructure](docs/on-premises-infrastructure/on-premises-infrastructure.md)
-- [Databricks Cloud Infrastructure Premium](docs/cloud-databricks-infrastructure/aws/cloud-databricks-infrastructure-aws.md)
-- [Databricks Cloud Infrastructure Free Edition](docs/cloud-databricks-infrastructure/free/cloud-databricks-infrastructure-free.md)
-- [Databricks, AWS, and on-premises integration](docs/cloud-integration/cloud-integration.md)
-- [AWS Cloud Infrastructure](docs/cloud-infrastructure/cloud-infrastructure.md)
-- [Notebooks](docs/notebooks/notebooks.md)
-- [JetBrains](docs/jetbrains/jetbrains.md)
+- [On-premises infrastructure](docs/on-premises-infrastructure/On%20Premises%20Infrastructure.md)
+- [Databricks Cloud Infrastructure Premium](docs/cloud-databricks-infrastructure/aws/Cloud%20Databricks%20Infrastructure%20AWS.md)
+- [Databricks Cloud Infrastructure Free Edition](docs/cloud-databricks-infrastructure/free/Cloud%20Databricks%20Infrastructure%20Free.md)
+- [Databricks, AWS, and on-premises integration](docs/cloud-integration/Cloud%20Integration.md)
+- [AWS Cloud Infrastructure](docs/cloud-infrastructure/Cloud%20Infrastructure.md)
+- [Notebooks](docs/notebooks/Notebooks.md)
+- [JetBrains](docs/jetbrains/JetBrains.md)
 - [Documentation conventions](docs/Documents%20Conventions.md)
 
 ## 🏗️ Home Lab On-Premises Architecture
