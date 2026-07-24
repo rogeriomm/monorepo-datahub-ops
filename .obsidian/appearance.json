@@ -1,4 +1,8 @@
 {
   "theme": "obsidian",
-  "cssTheme": ""
+  "cssTheme": "Catppuccin",
+  "interfaceFontFamily": "JetBrainsMono Nerd Font Mono",
+  "textFontFamily": "JetBrainsMonoNL Nerd Font",
+  "baseFontSize": 11,
+  "baseFontSizeAction": true
 }

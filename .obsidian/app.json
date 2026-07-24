@@ -5,7 +5,10 @@
     "on-premises/",
     "de-samples/",
     "aws/",
-    "databricks/"
+    "databricks/",
+    "notebooks/",
+    "cloud-aws/",
+    "cloud-databricks/"
   ],
   "attachmentFolderPath": "./attachments",
   "alwaysUpdateLinks": true

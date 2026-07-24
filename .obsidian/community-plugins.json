@@ -1,4 +1,6 @@
 [
   "obsidian-excalidraw-plugin",
-  "drawio"
+  "drawio",
+  "jupyter-viewer",
+  "folders2graph"
 ]
