@@ -1,0 +1,19 @@
+dbt_pyspark_demo:
+  target: dev
+
+  outputs:
+    dev:
+      type: spark
+      method: thrift
+
+      host: localhost
+      port: 10000
+
+      user: dbt
+      schema: analytics
+
+      auth: NONE
+      threads: 4
+
+      connect_retries: 3
+      connect_timeout: 30

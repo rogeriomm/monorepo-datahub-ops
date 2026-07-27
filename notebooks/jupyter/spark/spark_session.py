@@ -316,6 +316,15 @@ def _get_spark_warehouse_dir(
 ) -> Path:
     return _get_spark_base_dir(_get_jupyter_service_name(), spark_version, data_format) / "warehouse"
 
+
+def _configure_spark_java() -> None:
+    system_java = Path("/usr/bin/java").resolve()
+    if not system_java.is_file():
+        raise FileNotFoundError(f"System Java executable not found: {system_java}")
+
+    os.environ["JAVA_HOME"] = str(system_java.parent.parent)
+
+
 #
 # https://docs.delta.io/quick-start/
 #   bin/spark-sql --packages io.delta:delta-spark_2.13:4.0.0 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog"
@@ -326,6 +335,7 @@ def get_spark(
     executor_memory: str = "8g",
     data_format: str | None = None,
 ) -> Tuple[SparkContext, SparkSession]:
+    _configure_spark_java()
     spark_version = get_spark_major_minor_version()
     data_format = _normalize_data_format(data_format)
     service_name = _get_jupyter_service_name()

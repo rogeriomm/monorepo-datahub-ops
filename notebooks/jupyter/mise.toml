@@ -1,2 +1,4 @@
 [tools]
 databricks-cli = "latest"
+jq = "latest"
+kafkactl = "latest"
