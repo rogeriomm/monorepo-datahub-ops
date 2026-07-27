@@ -1,1 +1,9 @@
 plugins
+
+# Obsidian workspace/local state
+workspace.json
+workspace-mobile.json
+
+# Obsidian cache / plugins data that may be personal or machine-specific
+cache
+plugins/*/data.json

@@ -11,5 +11,6 @@
     "cloud-databricks/"
   ],
   "attachmentFolderPath": "./attachments",
-  "alwaysUpdateLinks": true
+  "alwaysUpdateLinks": true,
+  "readableLineLength": false
 }
