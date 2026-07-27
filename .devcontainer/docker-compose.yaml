@@ -264,12 +264,12 @@ services:
       - frontend
 
   pyspark-base-4.1:
-    image: local/jupyter-pyspark-base:4.1.2
+    image: local/jupyter-pyspark-base:4.1.3
 
     build:
       context: "https://github.com/jupyter/docker-stacks.git#main:images/pyspark-notebook"
       args:
-        spark_version: "4.1.2"
+        spark_version: "4.1.3"
         hadoop_version: "3"
         openjdk_version: "21"
 
@@ -277,18 +277,18 @@ services:
       - build_only
 
   jupyter-spark-4.1:
-    image: local/jupyter-pyspark:4.1.2
+    image: local/jupyter-pyspark:4.1.3
 
     build:
       context: jupyter_spark_4_1
       dockerfile: Dockerfile
       args:
-        BASE_IMAGE: local/jupyter-pyspark-base:4.1.2
+        BASE_IMAGE: local/jupyter-pyspark-base:4.1.3
         SCALA_VERSION: "2.13.17"
       secrets:
         - GITHUB_TOKEN
 
-    container_name: jupyter_spark_4_1_2
+    container_name: jupyter_spark_4_1
 
     environment:
       - JUPYTER_ENABLE_LAB=yes
