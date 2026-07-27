@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from typing import Mapping
 from pyspark.sql import DataFrame, SparkSession
 import warnings
+from itables import show
 
 from IPython.core.magic import register_line_magic, register_cell_magic
 
@@ -52,6 +53,25 @@ def _find_notebook(notebook_name: str, search_paths: Sequence[str | Path]) -> st
 
 
 def viewdf(
+    df: DataFrame,
+    limit: int = 1000,
+    page_length: int = 25
+) -> None:
+    """
+    Display a Spark DataFrame as an interactive Jupyter table.
+
+    Only `limit` rows are collected to the driver.
+    """
+    show(
+        df.limit(limit).toPandas(),
+        scrollX=True,
+        scrollY="500px",
+        scrollCollapse=True,
+        pageLength=page_length,
+        lengthMenu=[10, 25, 50, 100],
+    )
+
+def viewdf_pandas(
     df: SparkDataFrame,
     limit: int | None = None,
     max_columns: Optional[int] = None,
