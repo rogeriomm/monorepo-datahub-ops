@@ -13,6 +13,7 @@ RUN apt-get update \
         libpq-dev \
         python3-dev \
         apt-file \
+        netcat-openbsd  nmap net-tools inetutils-ping \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl --fail --location \
@@ -56,7 +57,8 @@ RUN echo 'eval "$($HOME/.local/bin/mise activate bash)"' >> "$HOME/.bashrc"
 
 RUN --mount=type=secret,id=GITHUB_TOKEN,env=GITHUB_TOKEN \
     bash -lc 'eval "$($HOME/.local/bin/mise activate bash)" \
-    && mise install'
+    && mise install \
+    && mise install java@jetbrains-11.0.16-b2043.64 java@17'
 
 USER root
 

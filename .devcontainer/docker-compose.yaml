@@ -157,12 +157,12 @@ services:
 
 
   pyspark-base-3.5:
-    image: local/jupyter-pyspark-base:3.5.3
+    image: local/jupyter-pyspark-base:3.5.9
 
     build:
       context: "https://github.com/jupyter/docker-stacks.git#main:images/pyspark-notebook"
       args:
-        spark_version: "3.5.3"
+        spark_version: "3.5.9"
         hadoop_version: "3"
         openjdk_version: "17"
 
@@ -170,43 +170,98 @@ services:
       - build_only
 
   jupyter-spark-3.5:
-    image: local/jupyter-pyspark:3.5.3
+    image: local/jupyter-pyspark:3.5.9
 
     build:
       context: jupyter_spark_3_5
       dockerfile: Dockerfile
       args:
-        BASE_IMAGE: local/jupyter-pyspark-base:3.5.3
+        BASE_IMAGE: local/jupyter-pyspark-base:3.5.9
         SCALA_VERSION: "2.12.20"
+      secrets:
+        - GITHUB_TOKEN
 
-    container_name: jupyter-spark-3.5
-
-    volumes:
-      - ../notebooks/jupyter:/home/jovyan/work
+    container_name: jupyter_spark_3_5_9
 
     environment:
-      - JUPYTER_ENABLE_LAB="yes"
+      - JUPYTER_ENABLE_LAB=yes
+      - IPYTHONDIR=/home/jovyan/work/.ipython
       - JUPYTER_SERVICE_NAME=jupyter-spark-3.5
+      - TRAEFIK_HTTP_PORT=${TRAEFIK_HTTP_PORT:-8080}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
       - AWS_REGION=${AWS_REGION:-}
+      - DATABRICKS_AUTH_STORAGE=plaintext
 
     profiles:
       - jupyter_spark_3_5
+
+    restart: unless-stopped
+
+    security_opt:
+      - label=disable
 
     labels:
       - traefik.enable=true
       - traefik.http.routers.jupyter-spark-3-5.rule=Host(`jupyter-spark-3-5.localhost`)
       - traefik.http.routers.jupyter-spark-3-5.entrypoints=web
+      - traefik.http.routers.jupyter-spark-3-5.priority=100
+      - traefik.http.routers.jupyter-spark-3-5.service=jupyter-spark-3-5
       - traefik.http.services.jupyter-spark-3-5.loadbalancer.server.port=8888
+      - traefik.http.routers.jupyter-spark-3-5-spark-ui.rule=Host(`jupyter-spark-3-5.localhost`) && PathPrefix(`/webui`)
+      - traefik.http.routers.jupyter-spark-3-5-spark-ui.entrypoints=web
+      - traefik.http.routers.jupyter-spark-3-5-spark-ui.priority=300
+      - traefik.http.routers.jupyter-spark-3-5-spark-ui.service=jupyter-spark-3-5-spark-ui
+      - traefik.http.routers.jupyter-spark-3-5-spark-ui.middlewares=jupyter-spark-3-5-spark-ui-strip-prefix
+      - traefik.http.routers.jupyter-spark-3-5-spark-pages.rule=Host(`jupyter-spark-3-5.localhost`) && (PathPrefix(`/jobs`) || PathPrefix(`/stages`) || PathPrefix(`/storage`) || PathPrefix(`/environment`) || PathPrefix(`/executors`) || PathPrefix(`/SQL`) || PathPrefix(`/api/v1`))
+      - traefik.http.routers.jupyter-spark-3-5-spark-pages.entrypoints=web
+      - traefik.http.routers.jupyter-spark-3-5-spark-pages.priority=300
+      - traefik.http.routers.jupyter-spark-3-5-spark-pages.middlewares=jupyter-spark-3-5-spark-pages-redirect
+      - traefik.http.routers.jupyter-spark-3-5-spark-pages.service=noop@internal
+      - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.rule=Host(`jupyter-spark-3-5.localhost`) && PathRegexp(`^/webui/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
+      - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.entrypoints=web
+      - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.priority=400
+      - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.service=jupyter-spark-3-5-spark-ui
+      - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.middlewares=jupyter-spark-3-5-spark-ui-strip-prefix
+      - traefik.http.routers.jupyter-spark-3-5-spark-static.rule=Host(`jupyter-spark-3-5.localhost`) && PathRegexp(`^/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
+      - traefik.http.routers.jupyter-spark-3-5-spark-static.entrypoints=web
+      - traefik.http.routers.jupyter-spark-3-5-spark-static.priority=300
+      - traefik.http.routers.jupyter-spark-3-5-spark-static.middlewares=jupyter-spark-3-5-spark-static-redirect
+      - traefik.http.routers.jupyter-spark-3-5-spark-static.service=noop@internal
+      - traefik.http.services.jupyter-spark-3-5-spark-ui.loadbalancer.server.port=4042
+      - traefik.http.middlewares.jupyter-spark-3-5-spark-pages-redirect.redirectregex.regex=^http://([^/]+)/(jobs|stages|storage|environment|executors|SQL|api/v1)(.*)
+      - traefik.http.middlewares.jupyter-spark-3-5-spark-pages-redirect.redirectregex.replacement=http://$${1}/webui/$${2}$${3}
+      - traefik.http.middlewares.jupyter-spark-3-5-spark-pages-redirect.redirectregex.permanent=false
+      - traefik.http.middlewares.jupyter-spark-3-5-spark-static-redirect.redirectregex.regex=^http://([^/]+)/static/(.*)
+      - traefik.http.middlewares.jupyter-spark-3-5-spark-static-redirect.redirectregex.replacement=http://$${1}/webui/static/$${2}
+      - traefik.http.middlewares.jupyter-spark-3-5-spark-static-redirect.redirectregex.permanent=false
+      - traefik.http.middlewares.jupyter-spark-3-5-spark-ui-strip-prefix.stripprefix.prefixes=/webui
+      - traefik.http.routers.spark-connect-3-5.rule=Host(`spark-connect-3-5.localhost`)
+      - traefik.http.routers.spark-connect-3-5.entrypoints=web
+      - traefik.http.routers.spark-connect-3-5.service=spark-connect-3-5
+      - traefik.http.services.spark-connect-3-5.loadbalancer.server.port=15002
+      - traefik.http.services.spark-connect-3-5.loadbalancer.server.scheme=h2c
+
+    command:
+      - bash
+      - -lc
+      - |
+        set -o errexit -o pipefail
+        if /home/jovyan/.local/bin/mise ls --missing --no-header | grep -q .; then
+          /home/jovyan/.local/bin/mise install
+        fi
+        eval "$(/home/jovyan/.local/bin/mise activate bash)"
+        exec start-notebook.py --ServerApp.token=''
+
+    volumes:
+      - ../notebooks/jupyter:/home/jovyan/work
+      - "${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw"
+      - "${HOME}/.databricks:/home/jovyan/.databricks:rw"
 
     networks:
       - frontend
-
-    restart: unless-stopped
-
 
   pyspark-base-4.1:
     image: local/jupyter-pyspark-base:4.1.2
@@ -290,6 +345,11 @@ services:
       - traefik.http.middlewares.jupyter-spark-4-1-spark-static-redirect.redirectregex.replacement=http://$${1}/webui/static/$${2}
       - traefik.http.middlewares.jupyter-spark-4-1-spark-static-redirect.redirectregex.permanent=false
       - traefik.http.middlewares.jupyter-spark-4-1-spark-ui-strip-prefix.stripprefix.prefixes=/webui
+      - traefik.http.routers.spark-connect-4-1.rule=Host(`spark-connect-4-1.localhost`)
+      - traefik.http.routers.spark-connect-4-1.entrypoints=web
+      - traefik.http.routers.spark-connect-4-1.service=spark-connect-4-1
+      - traefik.http.services.spark-connect-4-1.loadbalancer.server.port=15002
+      - traefik.http.services.spark-connect-4-1.loadbalancer.server.scheme=h2c
 
     command:
       - bash
@@ -306,6 +366,8 @@ services:
       - ../notebooks/jupyter:/home/jovyan/work
       - "${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw"
       - "${HOME}/.databricks:/home/jovyan/.databricks:rw"
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
 
     networks:
       - frontend
@@ -341,6 +403,8 @@ services:
       - --notebook-dir=/home/hadoop/work
     volumes:
       - ../notebooks/jupyter:/home/hadoop/work
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
     labels:
       - traefik.enable=true
       - traefik.http.routers.jupyter-glue-5.rule=Host(`jupyter-glue-5.localhost`)
@@ -373,6 +437,8 @@ services:
       - traefik.http.services.zeppelin.loadbalancer.server.port=8080
     volumes:
       - ../notebooks/zeppelin:/notebooks
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - frontend
 

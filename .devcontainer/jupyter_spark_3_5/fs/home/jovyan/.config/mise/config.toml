@@ -55,7 +55,5 @@ claude-squad = "latest"
 
 infracost = "latest"
 
-kafkactl = "latest"
-
 [env]
 DATABRICKS_AUTH_STORAGE = "plaintext"
