@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=local/jupyter-pyspark-base:4.1.2
+ARG BASE_IMAGE=local/jupyter-pyspark-base:4.1.3
 FROM ${BASE_IMAGE}
 
 ARG SCALA_VERSION=2.13.17
@@ -25,7 +25,7 @@ RUN curl --fail --location \
 
 RUN pip install --no-cache-dir \
     pandas parquet-tools kagglehub contexttimer rich findspark \
-    humanize ipython-autotime
+    humanize ipython-autotime sparkmonitor itables
 
 RUN echo "jovyan ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/jovyan \
   && chmod 0440 /etc/sudoers.d/jovyan
