@@ -1,8 +1,7 @@
 {
 	"nodes":[
-		{"id":"f24ffaad10b145cd","type":"file","file":"docs/canvas/Databricks Architecture Basic.canvas","x":-1280,"y":-1580,"width":400,"height":400},
-		{"id":"2099c31af63772c1","type":"link","url":"https://www.youtube.com/watch?v=9yKecTXW2pY","x":-1350,"y":-1020,"width":540,"height":360},
-		{"id":"44d086e47422acaa","type":"link","url":"https://www.youtube.com/watch?v=dZ7meO55T5c","x":-1280,"y":-540,"width":640,"height":360}
+		{"id":"2099c31af63772c1","type":"link","url":"https://www.youtube.com/watch?v=9yKecTXW2pY","x":-2780,"y":-2560,"width":540,"height":360},
+		{"id":"44d086e47422acaa","type":"link","url":"https://www.youtube.com/watch?v=dZ7meO55T5c","x":-2060,"y":-2560,"width":640,"height":360}
 	],
 	"edges":[]
 }

@@ -1,5 +1,6 @@
 {
 	"nodes":[
+		{"id":"d9bfdb98d2a175e8","type":"text","text":"","x":667,"y":-289,"width":250,"height":60},
 		{"id":"814574f3d4b7d549","type":"text","text":"Cloud Region","x":-141,"y":-40,"width":179,"height":59},
 		{"id":"c475d431ef31a978","type":"text","text":"AWS Organization","x":-537,"y":285,"width":250,"height":60},
 		{"id":"03a3e6966a9c8992","type":"text","text":"AWS Organizational Unit","x":-23,"y":281,"width":283,"height":64},
