@@ -1,4 +1,5 @@
 import findspark
+import sparkmonitor
 
 findspark.init()    
 
@@ -325,6 +326,36 @@ def _configure_spark_java() -> None:
     os.environ["JAVA_HOME"] = str(system_java.parent.parent)
 
 
+
+def iter_spark_jar_dirs() -> list[Path]:
+    candidates = []
+
+    spark_home = os.environ.get("SPARK_HOME")
+    if spark_home:
+        candidates.append(Path(spark_home) / "jars")
+
+    candidates.append(Path(pyspark.__file__).resolve().parent / "jars")
+    return [path for path in candidates if path.exists()]
+
+
+def resolve_listener_jar(sparkmonitor_dir: Path) -> Path:
+    for jars_dir in iter_spark_jar_dirs():
+        for jar in jars_dir.glob("spark-core_*.jar"):
+            # spark-core_2.13-3.5.8.jar => scala=2.13, spark_major=3
+            scala_ver, spark_ver = jar.name.split("_")[1].split("-")[:2]
+            spark_major = spark_ver.split(".")[0]
+            if spark_major == "3" and scala_ver == "2.12":
+                return sparkmonitor_dir / "listener_spark3_2.12.jar"
+            if spark_major == "3" and scala_ver == "2.13":
+                return sparkmonitor_dir / "listener_spark3_2.13.jar"
+            if spark_major == "4" and scala_ver == "2.13":
+                return sparkmonitor_dir / "listener_spark4_2.13.jar"
+
+    raise RuntimeError(
+        "Could not detect Spark/Scala version from SPARK_HOME or the pyspark installation"
+    )
+
+
 #
 # https://docs.delta.io/quick-start/
 #   bin/spark-sql --packages io.delta:delta-spark_2.13:4.0.0 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog"
@@ -359,6 +390,9 @@ def get_spark(
     warehouse_dir = base_dir / "warehouse"
     metastore_db = base_dir / "metastore" / "metastore_db"
     derby_home = base_dir / "metastore" / "derby"
+
+    sparkmonitor_dir = Path(sparkmonitor.__file__).resolve().parent
+    listener_jar = resolve_listener_jar(sparkmonitor_dir)
 
     builder = (
         SparkSession.builder
@@ -402,7 +436,13 @@ def get_spark(
         .config("spark.hadoop.fs.s3a.access.key",      os.environ["AWS_ACCESS_KEY_ID"])
         .config("spark.hadoop.fs.s3a.secret.key",      os.environ["AWS_SECRET_ACCESS_KEY"])
         .config("spark.hadoop.fs.s3a.session.token",   os.environ["AWS_SESSION_TOKEN"])        
-        .config("spark.hadoop.fs.s3a.endpoint.region", os.environ.get("AWS_REGION", "us-east-1"))            
+        .config("spark.hadoop.fs.s3a.endpoint.region", os.environ.get("AWS_REGION", "us-east-1"))
+        # https://github.com/swan-cern/sparkmonitor#example-with-a-manually-specified-listener-jar-path
+        .config(
+            "spark.extraListeners",
+            "sparkmonitor.listener.JupyterSparkMonitorListener",
+        )
+        .config("spark.driver.extraClassPath", str(listener_jar))
     )
 
     if spark_packages:
