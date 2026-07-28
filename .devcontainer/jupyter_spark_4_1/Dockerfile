@@ -13,7 +13,7 @@ RUN apt-get update \
         libpq-dev \
         python3-dev \
         apt-file \
-        netcat-openbsd  nmap net-tools inetutils-ping \
+        netcat-openbsd  nmap net-tools inetutils-ping bsdextrautils \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl --fail --location \
