@@ -2,7 +2,9 @@
 	"nodes":[
 		{"id":"e67bde3dd785b6a7","type":"file","file":"docs/canvas/attachments/High Performance Spark.png","x":-6060,"y":-3320,"width":94,"height":124},
 		{"id":"a0c25cd91ff54f73","type":"file","file":"docs/canvas/attachments/Learning Spark - Book.png","x":-6620,"y":-3121,"width":92,"height":121},
-		{"id":"5c62ee5b1599c408","type":"text","text":"\n - [[Learning Spark.pdf#page=286|Streaming Tuning]]\n\t - Cluster resource provisioning\n\t - **Number of partitions for shuffles**\n\t\t - Spark configuration \"spark.sql.shuffle.partitions\"\n\t\t\t - [[spark-streaming-hello-world.ipynb]]\n\t - Setting source rate limiting for stability\n\t - Multiple streaming queries in the same Spark application","x":-6660,"y":-2900,"width":580,"height":180}
+		{"id":"5c62ee5b1599c408","type":"text","text":"\n - [[Learning Spark.pdf#page=286|Streaming Tuning]]\n\t - Cluster resource provisioning\n\t - **Number of partitions for shuffles**\n\t\t - Spark configuration \"spark.sql.shuffle.partitions\"\n\t\t\t - [[spark-streaming-hello-world.ipynb]]\n\t - Setting source rate limiting for stability\n\t - Multiple streaming queries in the same Spark application","x":-6660,"y":-2900,"width":580,"height":180},
+		{"id":"73dbc9fb152009c8","type":"text","text":" - [spark-streaming-hello-world.ipynb](http://jupyter-spark-4-1.localhost:8080/lab/tree/spark/streaming/spark-streaming-hello-world.ipynb)\n\n![[http://jupyter-spark-4-1.localhost:8080/lab/tree/spark/streaming/spark-streaming-hello-world.ipynb)]]\n","x":-7480,"y":-3600,"width":820,"height":100},
+		{"id":"4f775041c1995b92","type":"link","url":"http://jupyter-spark-4-1.localhost:8080/lab/tree/spark/streaming/spark-streaming-hello-world.ipynb","x":-7520,"y":-3430,"width":860,"height":1270}
 	],
 	"edges":[
 		{"id":"6c2bc534c08ff1a0","fromNode":"a0c25cd91ff54f73","fromSide":"bottom","toNode":"5c62ee5b1599c408","toSide":"top"}

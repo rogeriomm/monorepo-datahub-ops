@@ -50,6 +50,7 @@ databricks ssh setup --name low-cost --cluster 0626-121515-spu2v7yo  --auto-star
 # Initial FinOps
 <img src="attachments/databricks-aws-finops-initial.png" alt="drawing"/>
 
+-  https://us-east-1.console.aws.amazon.com/costmanagement/home#/credits
 # Delete the AWS Cloud Formation resources
 
 ![[AwsCloudFormationDeleteDatabricks.png]]

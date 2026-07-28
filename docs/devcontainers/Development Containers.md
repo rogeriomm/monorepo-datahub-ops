@@ -24,7 +24,9 @@ docker compose -f .devcontainer/docker-compose.yaml exec airflow-3.3 \
   cat /opt/airflow/simple_auth_manager_passwords.json.generated
 ```
 
-# S3 object store
+
+
+## Local S3 object store
 - AWS CLI
 ```shell
 AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret \
@@ -36,6 +38,35 @@ aws --endpoint-url http://localhost:8333 s3 ls
 AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret \
 aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
 ```
+
+# AWS
+## CLI
+- https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html
+```shell
+aws configure list-profiles
+```
+
+```shell
+unset AWS_CA_BUNDLE 
+unset REQUESTS_CA_BUNDLE 
+unset SSL_CERT_FILE
+```
+
+ - Login user "administrator"
+```shell
+aws login --profile administrator
+```
+
+- whoami
+```shell
+aws sts get-caller-identity --profile administrator
+```
+
+# Databricks
+## CLI
+[📓 databricks-cli-hello-world.ipynb](http://jupyter-spark-4-1.localhost:8080/notebooks/databricks/free-edition/databricks-cli-hello-world.ipynb) [[databricks-cli-hello-world.ipynb]]
+
+
 # Local links
 - Reverse proxy
 	- http://traefik.localhost:8080/dashboard/ Traefik admin interface
