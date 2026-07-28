@@ -23,6 +23,10 @@ from types import MethodType
 spark_matrix = {
     "4.1": {
         "scala": "2.13",
+        "kafka": {
+            "version": "4.1.3",
+            "package": "org.apache.spark:spark-sql-kafka-0-10_2.13:4.1.3",
+        },
         "delta": {
             "version": "4.1.0",
             "package": "io.delta:delta-spark_4.1_2.13:4.1.0",
@@ -45,6 +49,10 @@ spark_matrix = {
     },
     "4.0": {
         "scala": "2.13",
+        "kafka": {
+            "version": "4.0.0",
+            "package": "org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0",
+        },
         "delta": {
             "version": "4.0.0",
             "package": "io.delta:delta-spark_2.13:4.0.0",
@@ -65,6 +73,10 @@ spark_matrix = {
     },
     "3.5": {
         "scala": "2.12",
+        "kafka": {
+            "version": "3.5.9",
+            "package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.9",
+        },
         "delta": {
             "version": "3.3.2",
             "package": "io.delta:delta-spark_2.12:3.3.2",
@@ -85,6 +97,10 @@ spark_matrix = {
     },
     "3.4": {
         "scala": "2.12",
+        "kafka": {
+            "version": "3.4.0",
+            "package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0",
+        },
         "delta": {
             "version": "2.4.0",
             "package": "io.delta:delta-core_2.12:2.4.0",
@@ -105,6 +121,10 @@ spark_matrix = {
     },
     "3.3": {
         "scala": "2.12",
+        "kafka": {
+            "version": "3.3.0",
+            "package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0",
+        },
         "delta": {
             "version": "2.3.0",
             "package": "io.delta:delta-core_2.12:2.3.0",
@@ -125,6 +145,10 @@ spark_matrix = {
     },
     "3.2": {
         "scala": "2.12",
+        "kafka": {
+            "version": "3.2.0",
+            "package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0",
+        },
         "delta": {
             "version": "2.0.2",
             "package": "io.delta:delta-core_2.12:2.0.2",
@@ -145,6 +169,10 @@ spark_matrix = {
     },
     "3.1": {
         "scala": "2.12",
+        "kafka": {
+            "version": "3.1.0",
+            "package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.0",
+        },
         "delta": {
             "version": "1.0.1",
             "package": "io.delta:delta-core_2.12:1.0.1",
@@ -177,15 +205,17 @@ def get_spark_packages(
     spark_version = spark_version or get_spark_major_minor_version()
     matrix = spark_matrix[spark_version]
     data_format = _normalize_data_format(data_format)
+    packages = [matrix["kafka"]["package"]]
 
     if data_format is None:
-        return ""
+        return ",".join(packages)
 
     format_config = matrix.get(data_format)
     if format_config is None:
         raise ValueError(f"{data_format} is not supported for Spark {spark_version}")
 
-    return format_config["package"]
+    packages.append(format_config["package"])
+    return ",".join(packages)
 
 
 def get_spark_sql_extensions(
