@@ -2,37 +2,40 @@
 
 - [DevPod](https://devpod.sh/)
 
-<img src="attachments/devpod-feature.png" alt="DevPod feature overview" width="200">
+![DevPod feature overview](attachments/devpod-feature.png)
 
 ## Start a development container
-## Using terminal
+
+### Using terminal
 
 ```shell
 devpod up . --ide none
 ```
 
-<img src="attachments/devpods-sample-1.png" alt="DevPod development container example" width="900">
+![DevPod development container example](attachments/devpods-sample-1.png)
 
-## Using Visual Studio Code
+### Using Visual Studio Code
+
 ```shell
 devpod up . --ide vscode
 ```
 
-<img src="attachments/Pasted image 20260729112911.png" alt="DevPod development container example" width="900">
+![DevPod development container in Visual Studio Code](attachments/Pasted%20image%2020260729112911.png)
 
 ## Traefik reverse proxy
 
 Open the [Traefik dashboard](http://traefik.localhost:8080/dashboard/) to access the administration interface.
 
-<img src="attachments/reverse-proxy-admin-1.png" alt="Traefik administration interface" width="800">
+![Traefik administration interface](attachments/reverse-proxy-admin-1.png)
 
 ## Jupyter notebooks
 
 See the [local services](#local-services) for the available Jupyter endpoints.
+## AWS CLI
+ - [[aws-cli-hello-world.ipynb]]
 
 ## Zeppelin notebooks
 
-See the [local services](#local-services) for the available Zeppelin endpoint.
 
 ## Airflow
 
@@ -90,9 +93,9 @@ Log in as the `administrator` user on the host:
 aws login --profile administrator
 ```
 
-![AWS CLI browser login](<attachments/Pasted image 20260729100251.png>)
+![AWS CLI browser login](attachments/Pasted%20image%2020260729100251.png)
 
-![AWS CLI login confirmation](<attachments/Pasted image 20260729095857.png>)
+![AWS CLI login confirmation](attachments/Pasted%20image%2020260729095857.png)
 
 Verify the authenticated identity:
 
@@ -100,7 +103,7 @@ Verify the authenticated identity:
 aws sts get-caller-identity --profile administrator | jq
 ```
 
-![AWS identity returned by the CLI](<attachments/Pasted image 20260729100657.png>)
+![AWS identity returned by the CLI](attachments/Pasted%20image%2020260729100657.png)
 
 List the available S3 buckets:
 
@@ -108,7 +111,7 @@ List the available S3 buckets:
 aws s3 ls --profile administrator
 ```
 
-![S3 buckets returned by the CLI](<attachments/Pasted image 20260729100605.png>)
+![S3 buckets returned by the CLI](attachments/Pasted%20image%2020260729100605.png)
 
 Start the development container:
 
@@ -130,9 +133,10 @@ Then verify the authenticated AWS identity:
 aws sts get-caller-identity --profile administrator | jq
 ```
 
-![AWS identity returned inside the development container|2147](<attachments/Pasted image 20260729104847.png>)
+![AWS identity returned inside the development container](attachments/Pasted%20image%2020260729104847.png)
 
-![[Pasted image 20260729112809.png|1440]]
+Using Visual Studio Code:
+![AWS identity verification in the development container](attachments/Pasted%20image%2020260729112809.png)
 
 ## Databricks
 
@@ -164,7 +168,10 @@ aws sts get-caller-identity --profile administrator | jq
 
 ## References
 
+- [Video: My Entire Neovim + Tmux + Workflow (2026 Update)](https://youtu.be/fjoGZ90bOzw?t=2947)
+	- [Video: Stateless Workstation](https://youtu.be/S6T5M4jLqR8?t=1410)
 - [VS Code dev container with Zsh, Oh My Zsh, and the Agnoster theme](https://medium.com/@jamiekt/vscode-devcontainer-with-zsh-oh-my-zsh-and-agnoster-theme-8adf884ad9f6)
   - [My data engineering development setup — March 2022](https://medium.com/@jamiekt/my-dev-setup-march-2022-e89d21b19fe6)
 - [Development Container JSON schema](https://github.com/devcontainers/spec/blob/main/schemas/devContainer.base.schema.json)
 - [Development Container Dockerfile guide](https://containers.dev/guide/dockerfile)
+- https://github.com/coder/coder
