@@ -5,12 +5,20 @@
 <img src="attachments/devpod-feature.png" alt="DevPod feature overview" width="200">
 
 ## Start a development container
+## Using terminal
 
 ```shell
 devpod up . --ide none
 ```
 
-<img src="attachments/devpods-sample-1.png" alt="DevPod development container example" width="800">
+<img src="attachments/devpods-sample-1.png" alt="DevPod development container example" width="900">
+
+## Using Visual Studio Code
+```shell
+devpod up . --ide vscode
+```
+
+<img src="attachments/Pasted image 20260729112911.png" alt="DevPod development container example" width="900">
 
 ## Traefik reverse proxy
 
@@ -113,7 +121,7 @@ ssh monorepo-datahub-ops-private.devpod
 Inside the development container, unset the AWS environment variables that override the selected profile:
 
 ```shell
-unset AWS_ACCESS_KEY_ID AWS_CONFIG_FILE AWS_REGION AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
+unset AWS_ACCESS_KEY_ID AWS_CONFIG_FILE AWS_REGION AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_CA_BUNDLE
 ```
 
 Then verify the authenticated AWS identity:
@@ -122,7 +130,9 @@ Then verify the authenticated AWS identity:
 aws sts get-caller-identity --profile administrator | jq
 ```
 
-![AWS identity returned inside the development container](<attachments/Pasted image 20260729104847.png>)
+![AWS identity returned inside the development container|2147](<attachments/Pasted image 20260729104847.png>)
+
+![[Pasted image 20260729112809.png|1440]]
 
 ## Databricks
 
