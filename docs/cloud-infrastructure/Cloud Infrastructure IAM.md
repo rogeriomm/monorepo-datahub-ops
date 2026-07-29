@@ -1,9 +1,18 @@
 
 
-| User          | ARN                                                | Group          | IAM policy                   |
-| ------------- | -------------------------------------------------- | -------------- |------------------------------|
-| star          | *arn:aws:iam::586117210061:user/star*              | Development    | *mfa*, *AdministratorAccess* |
-| administrator | *arn:aws:iam::586117210061:user/administrator*<br> | Administrators | *mfa*,                       |
+| User          | ARN                                                | Group          |
+| ------------- | -------------------------------------------------- | -------------- |
+| star          | *arn:aws:iam::586117210061:user/star*              | Development    |
+| administrator | *arn:aws:iam::586117210061:user/administrator*<br> | Administrators |
+
+
+| Group          | ARN  | IAM policy                                                   |
+| -------------- | ---- | ------------------------------------------------------------ |
+| Developers     |      | *mfa*                                                        |
+| Administrators | <br> | *mfa*, *AdministratorAccess*, <br>*AWSBillingReadOnlyAccess* |
+|                |      |                                                              |
+
+
 
 
  - Create a IAM policy named *mfa*
@@ -51,4 +60,6 @@
 ```
 
 
-![[Pasted image 20260728170732.png|1363]]![[Pasted image 20260728170854.png|1361]]![[Pasted image 20260728170949.png|1363]]
+![[Pasted image 20260728170732.png|1363]]
+![[Pasted image 20260728170854.png|1361]]
+![[Pasted image 20260728170949.png|1363]]

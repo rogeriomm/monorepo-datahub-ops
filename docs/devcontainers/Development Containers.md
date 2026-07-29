@@ -41,26 +41,65 @@ aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
 
 # AWS
 ## CLI
-- https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html
-```shell
-aws configure list-profiles
+Install the AWS CLI on the host using [mise](https://mise.jdx.dev/installing-mise.html), then log in with an AWS account.
+```
+mise install aws-cli
 ```
 
+Unset custom certificate-related environment variables, if necessary:
 ```shell
 unset AWS_CA_BUNDLE 
 unset REQUESTS_CA_BUNDLE 
 unset SSL_CERT_FILE
 ```
 
- - Login user "administrator"
+List the configured AWS CLI profiles:
+```shell
+aws configure list-profiles
+```
+
+Log in as the `administrator` user on the host
 ```shell
 aws login --profile administrator
 ```
 
-- whoami
+![[Pasted image 20260729100251.png|1085]]
+
+![[Pasted image 20260729095857.png|1086]]
+
+Verify the authenticated identity:
 ```shell
-aws sts get-caller-identity --profile administrator
+aws sts get-caller-identity --profile administrator | jq
 ```
+
+![[Pasted image 20260729100657.png|1086]]
+
+```shell
+aws s3 ls --profile administrator
+```
+
+![[Pasted image 20260729100605.png|1095]]
+
+Start the dev container:
+```shell
+devpod down .
+devpod up . --ide none
+ssh monorepo-datahub-ops-private.devpod
+```
+
+Inside the dev container, unset the AWS environment variables that override the selected profile:
+```shell
+unset AWS_ACCESS_KEY_ID AWS_CONFIG_FILE AWS_REGION AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
+```
+
+Then verify the authenticated AWS identity:
+
+```shell
+aws sts get-caller-identity --profile administrator | jq
+```
+
+
+![[Pasted image 20260729104847.png|1089]]
 
 # Databricks
 ## CLI
