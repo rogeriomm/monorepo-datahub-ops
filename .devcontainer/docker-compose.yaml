@@ -79,6 +79,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # JetBrains crack
       - /opt/jetbrains/agent.jar:/opt/jetbrains/agent.jar:ro
+      # AWS Cli
+      - ${HOME}/.aws:/home/ubuntu/.aws:ro
+      - ${HOME}/.aws/login/cache:/home/ubuntu/.aws/login/cache:rw
     networks:
       - frontend
       - backend
@@ -301,6 +304,8 @@ services:
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
       - AWS_REGION=${AWS_REGION:-}
       - DATABRICKS_AUTH_STORAGE=plaintext
+      - AWS_CONFIG_FILE=/home/jovyan/.aws/config
+      - AWS_LOGIN_CACHE_DIRECTORY=/home/jovyan/.aws/login/cache
 
     profiles:
       - jupyter_spark_4_1
@@ -368,6 +373,8 @@ services:
       - "${HOME}/.databricks:/home/jovyan/.databricks:rw"
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOME}/.aws:/home/jovyan/.aws:ro
+      - ${HOME}/.aws/login/cache:/home/jovyan/.aws/login/cache:rw
 
     networks:
       - frontend
