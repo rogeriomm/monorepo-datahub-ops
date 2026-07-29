@@ -197,6 +197,8 @@ services:
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
       - AWS_REGION=${AWS_REGION:-}
       - DATABRICKS_AUTH_STORAGE=plaintext
+      - AWS_CONFIG_FILE=/home/jovyan/.aws/config
+      - AWS_LOGIN_CACHE_DIRECTORY=/home/jovyan/.aws/login/cache
 
     profiles:
       - jupyter_spark_3_5
@@ -262,6 +264,9 @@ services:
       - ../notebooks/jupyter:/home/jovyan/work
       - "${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw"
       - "${HOME}/.databricks:/home/jovyan/.databricks:rw"
+      # AWS CLI
+      - ${HOME}/.aws:/home/jovyan/.aws:ro
+      - ${HOME}/.aws/login/cache:/home/jovyan/.aws/login/cache:rw
 
     networks:
       - frontend
