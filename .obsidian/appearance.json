@@ -1,8 +1,9 @@
 {
-  "theme": "system",
+  "theme": "moonstone",
   "cssTheme": "Catppuccin",
   "interfaceFontFamily": "JetBrainsMono Nerd Font Mono",
   "textFontFamily": "JetBrainsMonoNL Nerd Font",
-  "baseFontSize": 11,
-  "baseFontSizeAction": true
+  "baseFontSize": 15,
+  "baseFontSizeAction": true,
+  "accentColor": "#0d151c"
 }
