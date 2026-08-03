@@ -63,6 +63,23 @@ AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret \
 aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
 ```
 
+
+# SSH tunnel
+
+> [!NOTE]
+> An SSH tunnel is not a full VPN, but it can be used in a similar way to securely access services on a private network from Databricks Free Edition or other Databricks environments.
+>
+> In [Databricks Free Edition](https://www.databricks.com/learn/free-edition), an [SSH tunnel](https://en.wikipedia.org/wiki/Tunneling_protocol) is the only available option for this type of private-network access.
+
+```ssh
+ssh -p 9023 tunnel@localhost \
+ -i ~/.ssh/id_ed25519_databricks_free \
+ -o BatchMode=yes \
+ -o StrictHostKeyChecking=accept-new -o \
+ -o ControlMaster=auto \ -o ControlPath=/tmp/ssh-databricks \ -o ControlPersist=10m \ 
+ UserKnownHostsFile=/tmp/known_hosts
+```
+
 ## AWS
 
 ### CLI
@@ -165,6 +182,8 @@ Using Visual Studio Code:
 - Airflow
   - [Airflow 3.3](http://airflow-3-3.localhost:8080/)
   - [Airflow 2.11](http://airflow-2-11.localhost:8080/)
+- Trino
+	- [Trino Dashboard](http://trino.localhost:8080/ui) 
 
 ## References
 
