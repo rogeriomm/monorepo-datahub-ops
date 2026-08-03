@@ -10,6 +10,7 @@ services:
       - jupyter_spark_glue_5
       - kafka
       - seaweedfs
+      - trino
       - zeppelin_0_12_1
     restart: unless-stopped
     security_opt:
@@ -85,6 +86,49 @@ services:
     networks:
       - frontend
       - backend
+
+  ssh-tunnel:
+    image: lscr.io/linuxserver/openssh-server:latest
+    container_name: ssh-tunnel
+    profiles:
+      - ssh
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    environment:
+      - PUID=${UID:-1000}
+      - PGID=${GID:-1000}
+      - USER_NAME=tunnel
+      - "PUBLIC_KEY=${SSH_TUNNEL_PUBLIC_KEY:?Set SSH_TUNNEL_PUBLIC_KEY in .devcontainer/.env}"
+      - PASSWORD_ACCESS=false
+      - SUDO_ACCESS=false
+      - LOG_STDOUT=true
+    ports:
+      - "127.0.0.1:${SSH_TUNNEL_PORT:-9023}:2222"
+    volumes:
+      - ssh-tunnel-config:/config
+    networks:
+      - frontend
+      - backend
+
+  trino:
+    image: trinodb/trino:latest
+    container_name: trino
+    profiles:
+      - trino
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    volumes:
+      - ./trino/config.properties:/etc/trino/config.properties:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.trino.rule=Host(`trino.localhost`)
+      - traefik.http.routers.trino.entrypoints=web
+      - traefik.http.routers.trino.service=trino
+      - traefik.http.services.trino.loadbalancer.server.port=8080
+    networks:
+      - frontend
 
   # https://airflow.apache.org/docs/apache-airflow/stable/start.html
   airflow-3.3:
@@ -374,12 +418,14 @@ services:
 
     volumes:
       - ../notebooks/jupyter:/home/jovyan/work
-      - "${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw"
-      - "${HOME}/.databricks:/home/jovyan/.databricks:rw"
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
+      # AWS CLI
       - ${HOME}/.aws:/home/jovyan/.aws:ro
       - ${HOME}/.aws/login/cache:/home/jovyan/.aws/login/cache:rw
+      # Databricks CLI
+      - ${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw
+      - ${HOME}/.databricks:/home/jovyan/.databricks:rw
 
     networks:
       - frontend
@@ -574,6 +620,7 @@ volumes:
   airflow-data:
   kafka-data:
   seaweedfs-data:
+  ssh-tunnel-config:
 
 # https://docs.docker.com/compose/how-tos/networking/
 networks:
