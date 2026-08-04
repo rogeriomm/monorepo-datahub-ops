@@ -31,11 +31,12 @@ Open the [Traefik dashboard](http://traefik.localhost:8080/dashboard/) to access
 ## Jupyter notebooks
 
 See the [local services](#local-services) for the available Jupyter endpoints.
+
 ## AWS CLI
- - [[aws-cli-hello-world.ipynb]]
+
+- [AWS CLI hello world notebook](../../notebooks/jupyter/aws/aws-cli-hello-world.ipynb)
 
 ## Zeppelin notebooks
-
 
 ## Airflow
 
@@ -63,8 +64,64 @@ AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret \
 aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
 ```
 
+## PostgreSQL
 
-# SSH tunnel
+PostgreSQL requires TLS for all TCP connections. Its public certificate is
+available at `.devcontainer/postgres/certificates/server.crt` after the
+container starts. The private key remains inside the PostgreSQL data volume.
+
+### Connect from the host
+
+```shell
+PGSSLMODE=verify-full \
+PGSSLROOTCERT=.devcontainer/postgres/certificates/server.crt \
+PGPASSWORD='postgres' \
+psql \
+  --host=localhost \
+  --username=postgres \
+  --dbname=postgres
+```
+
+![PostgreSQL TLS connection from the host](attachments/Pasted%20image%2020260804161626.png)
+
+### Connect from another container
+
+For example, connect from `jupyter-spark-4.1` using the Compose service name:
+
+```shell
+PGSSLMODE=require \
+PGPASSWORD='postgres' \
+psql \
+  --host=postgres \
+  --username=postgres \
+  --dbname=postgres
+```
+
+### Connect from the PostgreSQL container
+
+```shell
+docker compose -f .devcontainer/docker-compose.yaml exec postgres /bin/bash
+```
+
+Then switch to the `postgres` user and connect:
+
+```shell
+su - postgres
+PGSSLMODE=require \
+PGPASSWORD='postgres' \
+psql \
+  --host=localhost \
+  --username=postgres \
+  --dbname=postgres
+```
+
+- [PostgreSQL hello world notebook](../../notebooks/jupyter/postgres/postgres-hello-world.ipynb)
+
+### pgAdmin 4
+
+![PostgreSQL connection configured in pgAdmin 4](attachments/Pasted%20image%2020260804162938.png)
+
+## SSH tunnel
 
 > [!NOTE]
 > An SSH tunnel is not a full VPN, but it can be used in a similar way to securely access services on a private network from Databricks Free Edition or other Databricks environments.
@@ -72,12 +129,15 @@ aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
 > In [Databricks Free Edition](https://www.databricks.com/learn/free-edition), an [SSH tunnel](https://en.wikipedia.org/wiki/Tunneling_protocol) is the only available option for this type of private-network access.
 
 ```ssh
-ssh -p 9023 tunnel@localhost \
- -i ~/.ssh/id_ed25519_databricks_free \
- -o BatchMode=yes \
- -o StrictHostKeyChecking=accept-new -o \
- -o ControlMaster=auto \ -o ControlPath=/tmp/ssh-databricks \ -o ControlPersist=10m \ 
- UserKnownHostsFile=/tmp/known_hosts
+ssh -p 9023 \
+  -i ~/.ssh/id_ed25519_databricks_free \
+  -o BatchMode=yes \
+  -o StrictHostKeyChecking=accept-new \
+  -o ControlMaster=auto \
+  -o ControlPath=/tmp/ssh-databricks \
+  -o ControlPersist=10m \
+  -o UserKnownHostsFile=/tmp/known_hosts \
+  tunnel@localhost
 ```
 
 ## AWS
@@ -153,6 +213,7 @@ aws sts get-caller-identity --profile administrator | jq
 ![AWS identity returned inside the development container](attachments/Pasted%20image%2020260729104847.png)
 
 Using Visual Studio Code:
+
 ![AWS identity verification in the development container](attachments/Pasted%20image%2020260729112809.png)
 
 ## Databricks
@@ -183,14 +244,14 @@ Using Visual Studio Code:
   - [Airflow 3.3](http://airflow-3-3.localhost:8080/)
   - [Airflow 2.11](http://airflow-2-11.localhost:8080/)
 - Trino
-	- [Trino Dashboard](http://trino.localhost:8080/ui) 
+  - [Trino dashboard](http://trino.localhost:8080/ui)
 
 ## References
 
 - [Video: My Entire Neovim + Tmux + Workflow (2026 Update)](https://youtu.be/fjoGZ90bOzw?t=2947)
-	- [Video: Stateless Workstation](https://youtu.be/S6T5M4jLqR8?t=1410)
+  - [Video: Stateless Workstation](https://youtu.be/S6T5M4jLqR8?t=1410)
 - [VS Code dev container with Zsh, Oh My Zsh, and the Agnoster theme](https://medium.com/@jamiekt/vscode-devcontainer-with-zsh-oh-my-zsh-and-agnoster-theme-8adf884ad9f6)
   - [My data engineering development setup — March 2022](https://medium.com/@jamiekt/my-dev-setup-march-2022-e89d21b19fe6)
 - [Development Container JSON schema](https://github.com/devcontainers/spec/blob/main/schemas/devContainer.base.schema.json)
 - [Development Container Dockerfile guide](https://containers.dev/guide/dockerfile)
-- https://github.com/coder/coder
+- [Coder](https://github.com/coder/coder)
