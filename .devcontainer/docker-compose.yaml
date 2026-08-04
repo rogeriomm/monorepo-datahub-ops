@@ -544,6 +544,45 @@ services:
       POSTGRES_USER: "${POSTGRES_USER:-postgres}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
       POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+    entrypoint:
+      - /bin/bash
+      - -ec
+      - |
+        tls_dir=/var/lib/postgresql/tls
+        certificate_export_dir=/etc/postgresql/certificates
+        install -d -m 700 -o postgres -g postgres "$${tls_dir}"
+        if [[ ! -s "$${tls_dir}/server.crt" || ! -s "$${tls_dir}/server.key" ]]; then
+          openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+            -subj "/CN=postgres" \
+            -addext "subjectAltName=DNS:postgres,DNS:localhost,IP:127.0.0.1" \
+            -keyout "$${tls_dir}/server.key" \
+            -out "$${tls_dir}/server.crt"
+          chown postgres:postgres "$${tls_dir}/server.crt" "$${tls_dir}/server.key"
+          chmod 600 "$${tls_dir}/server.key"
+        fi
+        install -m 644 "$${tls_dir}/server.crt" "$${certificate_export_dir}/server.crt"
+        install -m 600 -o postgres -g postgres /dev/null "$${tls_dir}/pg_hba.conf"
+        printf '%s\n' \
+          'local all all trust' \
+          'hostssl all all 0.0.0.0/0 scram-sha-256' \
+          'hostssl all all ::/0 scram-sha-256' \
+          'hostnossl all all 0.0.0.0/0 reject' \
+          'hostnossl all all ::/0 reject' \
+          > "$${tls_dir}/pg_hba.conf"
+        exec docker-entrypoint.sh "$${@}"
+      - --
+    command:
+      - postgres
+      - -c
+      - ssl=on
+      - -c
+      - ssl_cert_file=/var/lib/postgresql/tls/server.crt
+      - -c
+      - ssl_key_file=/var/lib/postgresql/tls/server.key
+      - -c
+      - ssl_min_protocol_version=TLSv1.2
+      - -c
+      - hba_file=/var/lib/postgresql/tls/pg_hba.conf
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
@@ -552,7 +591,9 @@ services:
       start_period: 10s
     volumes:
       - postgres-data:/var/lib/postgresql
+      - ./postgres/certificates:/etc/postgresql/certificates
     networks:
+      - frontend
       - backend
       - tunnel
 

@@ -14,6 +14,7 @@ RUN apt-get update \
         python3-dev \
         apt-file \
         netcat-openbsd  nmap net-tools inetutils-ping bsdextrautils \
+        postgresql-client-16 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl --fail --location \

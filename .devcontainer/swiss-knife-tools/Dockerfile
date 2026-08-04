@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y \
     file \
     fontconfig \
     build-essential \
+    postgresql-client-16 \
     # Jetbrains IDE \
     xdg-utils \
     && rm -rf /var/lib/apt/lists/*
