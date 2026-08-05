@@ -70,6 +70,10 @@ PostgreSQL requires TLS for all TCP connections. Its public certificate is
 available at `.devcontainer/postgres/certificates/server.crt` after the
 container starts. The private key remains inside the PostgreSQL data volume.
 
+### Cleaning the database
+```shell
+docker volume rm devcontainer_postgres-data
+```
 ### Connect from the host
 
 ```shell
@@ -121,6 +125,39 @@ psql \
 
 ![PostgreSQL connection configured in pgAdmin 4](attachments/Pasted%20image%2020260804162938.png)
 
+## Kafka
+
+Kafka requires TLS on its internal, host-facing, and KRaft controller
+listeners. A development CA and broker certificate are generated on the first
+startup under `.devcontainer/kafka-4/certificates/`; the private keys and
+stores in that directory are ignored by Git.
+
+The host listener is available at `localhost:9092`. Verify its certificate
+with:
+
+```shell
+openssl s_client \
+  -connect localhost:9092 \
+  -servername localhost \
+  -CAfile .devcontainer/kafka-4/certificates/ca.crt \
+  -verify_return_error </dev/null
+```
+
+The `jupyter-spark-4.1` image includes a TLS-enabled [`kafkactl`](https://github.com/deviceinsight/kafkactl) context for
+the internal `kafka-4-backend:29092` listener. Kafka UI uses the same trusted CA and is
+available through the [local services](#local-services) section.
+
+```shell
+docker compose -f .devcontainer/docker-compose.yaml \
+  exec jupyter-spark-4.1 \
+  bash -lc 'eval "$($HOME/.local/bin/mise activate bash)" && kafkactl get topics'
+```
+
+```shell
+docker compose -f .devcontainer/docker-compose.yaml \
+  exec jupyter-spark-4.1 \
+  bash -lc 'eval "$($HOME/.local/bin/mise activate bash)" && kafkactl get topics'
+```
 ## SSH tunnel
 
 > [!NOTE]
@@ -232,6 +269,8 @@ Using Visual Studio Code:
   - [Spark 4.1](http://jupyter-spark-4.1.localhost:8080/lab)
 - AWS Glue
   - [JupyterLab](http://jupyter-glue-5.localhost:8080/lab)
+- Kafka
+  - [Kafka UI](http://kafka-ui.localhost:8080)
 - Zeppelin
   - [Zeppelin 0.12.1](http://zeppelin-0.12.1.localhost:8080)
 - Kafka
