@@ -82,18 +82,43 @@ is generated at `.devcontainer/seaweedfs/certificates/ca.crt` when the service
 first starts.
 
 Use the AWS CLI to connect directly:
-
 ```shell
-AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret \
-AWS_CA_BUNDLE=.devcontainer/seaweedfs/certificates/ca.crt \
+export AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret 
+export AWS_CA_BUNDLE=.devcontainer/seaweedfs/certificates/ca.crt
+export AWS_REGION=us-east-1
+```
+
+ - Create a bucket
+```shell
+aws --endpoint-url https://localhost:8333 \
+  s3 mb s3://my-bucket
+```
+
+ - Remove a bucket
+ ```shell
+aws --endpoint-url https://localhost:8333 \
+  s3 rm s3://my-bucket
+ ```
+ - List buckets
+```shell
 aws --endpoint-url https://localhost:8333 s3 ls
 ```
+
 
 Or connect through Traefik:
 
 ```shell
-AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret \
 aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
+```
+
+![[Pasted image 20260805164131.png|1219]]
+
+[[s3-hello-world.ipynb]]
+
+### Cleaning the S3 object store
+
+```shell
+docker volume rm devcontainer_seaweedfs-data
 ```
 
 ## PostgreSQL
@@ -112,7 +137,7 @@ cd .devcontainer
 docker compose logs postgres -f
 ```
 
-Example using Databricks Free Edition and an on-premises public endpoint:
+Example using Databricks Free Edition and on-premises public endpoint:
 
 ![Databricks Free Edition connection using an on-premises public endpoint](attachments/Pasted%20image%2020260805104218.png)
 
