@@ -1,10 +1,37 @@
 # Development Containers
 
+## Table of contents
+
+- [Start a development container](#start-a-development-container)
+  - [Using terminal](#using-terminal)
+  - [Using Visual Studio Code](#using-visual-studio-code)
+- [Traefik reverse proxy](#traefik-reverse-proxy)
+- [Jupyter notebooks](#jupyter-notebooks)
+- [AWS CLI](#aws-cli)
+- [Zeppelin notebooks](#zeppelin-notebooks)
+- [Airflow](#airflow)
+- [Local S3 object store](#local-s3-object-store)
+- [PostgreSQL](#postgresql)
+  - [Debugging](#debugging)
+  - [Cleaning the database](#cleaning-the-database)
+  - [Connect from the host](#connect-from-the-host)
+  - [Connect from another container](#connect-from-another-container)
+  - [Connect from the PostgreSQL container](#connect-from-the-postgresql-container)
+  - [pgAdmin 4](#pgadmin-4)
+- [Kafka](#kafka)
+- [SSH tunnel](#ssh-tunnel)
+- [AWS](#aws)
+  - [CLI](#cli)
+- [Databricks](#databricks)
+  - [CLI](#cli-1)
+- [Local services](#local-services)
+- [References](#references)
+
+## Start a development container
+
 - [DevPod](https://devpod.sh/)
 
 ![DevPod feature overview](attachments/devpod-feature.png)
-
-## Start a development container
 
 ### Using terminal
 
@@ -50,11 +77,16 @@ docker compose -f .devcontainer/docker-compose.yaml exec airflow-3.3 \
 
 ## Local S3 object store
 
+The direct SeaweedFS S3 endpoint requires TLS. Its development CA certificate
+is generated at `.devcontainer/seaweedfs/certificates/ca.crt` when the service
+first starts.
+
 Use the AWS CLI to connect directly:
 
 ```shell
 AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret \
-aws --endpoint-url http://localhost:8333 s3 ls
+AWS_CA_BUNDLE=.devcontainer/seaweedfs/certificates/ca.crt \
+aws --endpoint-url https://localhost:8333 s3 ls
 ```
 
 Or connect through Traefik:
@@ -70,23 +102,49 @@ PostgreSQL requires TLS for all TCP connections. Its public certificate is
 available at `.devcontainer/postgres/certificates/server.crt` after the
 container starts. The private key remains inside the PostgreSQL data volume.
 
+### Debugging
+
+```shell
+cd .devcontainer
+```
+
+```shell
+docker compose logs postgres -f
+```
+
+Example using Databricks Free Edition and an on-premises public endpoint:
+
+![Databricks Free Edition connection using an on-premises public endpoint](attachments/Pasted%20image%2020260805104218.png)
+
+![Databricks Free Edition connection details](attachments/Pasted%20image%2020260805104318.png)
+
 ### Cleaning the database
+
 ```shell
 docker volume rm devcontainer_postgres-data
 ```
+
 ### Connect from the host
 
+Use the `POSTGRES_PORT` value configured for Docker Compose, or port `5432` by
+default:
+
 ```shell
-PGSSLMODE=verify-full \
-PGSSLROOTCERT=.devcontainer/postgres/certificates/server.crt \
-PGPASSWORD='postgres' \
+export PGPORT="${POSTGRES_PORT:-5432}"
+export PGSSLMODE=verify-full \
+export PGSSLROOTCERT=.devcontainer/postgres/certificates/server.crt \
+export PGPASSWORD='postgres'
+```
+
+```shell
 psql \
   --host=localhost \
+  --port=$PGPORT \
   --username=postgres \
   --dbname=postgres
 ```
 
-![PostgreSQL TLS connection from the host](attachments/Pasted%20image%2020260804161626.png)
+![PostgreSQL host connection](attachments/Pasted%20image%2020260805103317.png)
 
 ### Connect from another container
 
@@ -153,17 +211,16 @@ docker compose -f .devcontainer/docker-compose.yaml \
   bash -lc 'eval "$($HOME/.local/bin/mise activate bash)" && kafkactl get topics'
 ```
 
-```shell
-docker compose -f .devcontainer/docker-compose.yaml \
-  exec jupyter-spark-4.1 \
-  bash -lc 'eval "$($HOME/.local/bin/mise activate bash)" && kafkactl get topics'
-```
 ## SSH tunnel
 
 > [!NOTE]
-> An SSH tunnel is not a full VPN, but it can be used in a similar way to securely access services on a private network from Databricks Free Edition or other Databricks environments.
+> An SSH tunnel is not a full VPN, but it can be used in a similar way to
+> securely access services on a private network from Databricks Free Edition
+> or other Databricks environments.
 >
-> In [Databricks Free Edition](https://www.databricks.com/learn/free-edition), an [SSH tunnel](https://en.wikipedia.org/wiki/Tunneling_protocol) is the only available option for this type of private-network access.
+> In [Databricks Free Edition](https://www.databricks.com/learn/free-edition),
+> an [SSH tunnel](https://en.wikipedia.org/wiki/Tunneling_protocol) is the only
+> available option for this type of private-network access.
 
 ```ssh
 ssh -p 9023 \
@@ -181,7 +238,9 @@ ssh -p 9023 \
 
 ### CLI
 
-Install the AWS CLI on the host using [mise](https://mise.jdx.dev/installing-mise.html), then log in with an AWS account.
+Install the AWS CLI on the host using
+[mise](https://mise.jdx.dev/installing-mise.html), then log in with an AWS
+account.
 
 ```shell
 mise install aws-cli
@@ -273,8 +332,6 @@ Using Visual Studio Code:
   - [Kafka UI](http://kafka-ui.localhost:8080)
 - Zeppelin
   - [Zeppelin 0.12.1](http://zeppelin-0.12.1.localhost:8080)
-- Kafka
-  - [Kafka UI](http://kafka-ui.localhost:8080)
 - S3 object storage
   - [SeaweedFS master](http://seaweedfs-master.localhost:8080)
   - [SeaweedFS filer](http://seaweedfs-filer.localhost:8080)
