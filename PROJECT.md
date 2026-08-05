@@ -4,23 +4,25 @@
 
 ```
 .
-├── .devcontainer/       # Development containers
-├── .github/             # GitHub CI/CD
-├── .idea/               # JetBrains configuration
-├── .obsidian/           # Obsidian configuration
-├── .vscode/             # VS Code configuration
-├── cloud-aws/           # AWS cloud infrastructure
-├── cloud-databricks/    # Databricks Premium and Free Community
-├── container-data/      # Docker container persistent data
-├── data-project/        # Data projects
-├── docs/                # Documentation
-├── docs/attachments/    # Documentation attachments
-├── docs/attachments/books/  # Books and PDFs
-├── notebooks
-├── notebooks/jupyter
-├── notebooks/jupyter/databricks # Databricks notebooks
-├── notebooks/zeppelin
-└── on-premises/         # On-premises infrastructure
+├── .devcontainer/                 # Development containers
+├── .github/                       # GitHub CI/CD
+├── .idea/                         # JetBrains configuration
+├── .obsidian/                     # Obsidian configuration
+├── .vscode/                       # VS Code configuration
+├── cloud-aws/                     # AWS cloud infrastructure
+├── cloud-databricks/              # Databricks Premium and Free Community
+├── container-data/                # Docker container persistent data
+├── data-project/                  # Data projects
+├── docs/                          # Documentation
+│   └── attachments/               # Documentation attachments
+│       └── books/                 # Books and PDFs 
+├── docs/attachments/              # Documentation attachments
+├── docs/attachments/
+├── notebooks/
+│   ├── jupyter 
+│   │   └── databricks/            # Databricks notebookss      
+│   └── zeppelin/
+└── on-premises/                   # On-premises infrastructure
 ```
 
 ## Documentation Conventions
