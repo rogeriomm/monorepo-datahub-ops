@@ -1,0 +1,6 @@
+http:
+  serversTransports:
+    seaweedfs-s3-tls:
+      # The direct S3 endpoint remains verifiable with the generated CA. This
+      # transport only handles Traefik's connection to the local dev service.
+      insecureSkipVerify: true

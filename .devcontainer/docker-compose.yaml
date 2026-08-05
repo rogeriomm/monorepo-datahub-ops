@@ -19,6 +19,7 @@ services:
       - --entrypoints.web.address=:80
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
+      - --providers.file.filename=/etc/traefik/dynamic/seaweedfs-tls.yaml
       - --api.dashboard=true
     ports:
       - "${TRAEFIK_HTTP_PORT:-8080}:80"
@@ -32,6 +33,7 @@ services:
       - traefik.http.routers.traefik-dashboard-localhost.service=api@internal
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/seaweedfs-tls.yaml:/etc/traefik/dynamic/seaweedfs-tls.yaml:ro
     networks:
       - backend
       - frontend
@@ -430,6 +432,8 @@ services:
       - ../notebooks/jupyter:/home/jovyan/work
       # Kafka development CA certificate
       - ./kafka-4/certificates:/etc/kafka/tls:ro
+      # seaweedfs development CA certificate
+      - ./seaweedfs/certificates:/etc/seaweedfs/tls
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
       # AWS CLI
@@ -450,6 +454,9 @@ services:
       args:
         SCALA_VERSION: "2.12.18"
         GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+
+    container_name: jupyter-glue-5
+
     environment:
       - JUPYTER_SERVICE_NAME=jupyter-glue-5
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
@@ -693,7 +700,10 @@ services:
       - backend
 
   seaweedfs:
-    image: chrislusf/seaweedfs:4.39
+    image: local/seaweedfs:4.39
+    build:
+      context: seaweedfs
+      dockerfile: Dockerfile
     container_name: seaweedfs
     profiles:
       - seaweedfs
@@ -701,14 +711,22 @@ services:
     restart: unless-stopped
     security_opt:
       - label=disable
-    command: server -dir=/data -filer -s3 -ip=seaweedfs -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=1024
+    command: >-
+      server -dir=/data -filer -s3 -ip=seaweedfs -ip.bind=0.0.0.0
+      -master.volumeSizeLimitMB=1024
+      -s3.cert.file=/etc/seaweedfs/tls/server.crt
+      -s3.key.file=/etc/seaweedfs/tls/server.key
     ports:
-      - "${SEAWEEDFS_S3_PORT:-8333}:8333"
+      - target: 8333
+        published: "${SEAWEEDFS_S3_PORT:-8333}"
+        host_ip: "${SEAWEEDFS_BIND_ADDRESS:-0.0.0.0}"
+        protocol: tcp
     environment:
       AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
       AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
     volumes:
       - seaweedfs-data:/data
+      - ./seaweedfs/certificates:/etc/seaweedfs/tls
     labels:
       - traefik.enable=true
       - traefik.http.routers.seaweedfs-master.rule=Host(`seaweedfs-master.localhost`)
@@ -723,8 +741,12 @@ services:
       - traefik.http.routers.seaweedfs-s3.entrypoints=web
       - traefik.http.routers.seaweedfs-s3.service=seaweedfs-s3
       - traefik.http.services.seaweedfs-s3.loadbalancer.server.port=8333
+      - traefik.http.services.seaweedfs-s3.loadbalancer.server.scheme=https
+      - traefik.http.services.seaweedfs-s3.loadbalancer.serversTransport=seaweedfs-s3-tls@file
     networks:
       - frontend
+      - backend
+      - tunnel
 
 secrets:
   GITHUB_TOKEN:
