@@ -1,0 +1,24 @@
+# https://docs.databricks.com/aws/en/dev-tools/bundles/settings
+#  databricks bundle deploy --debug
+#  databricks bundle validate --strict
+#  databricks bundle destroy --auto-approve --force-lock
+
+bundle:
+  name: on-premises-integration
+
+sync:
+  paths:
+    - docker/seaweedfs/certificates
+  include:
+    - docker/seaweedfs/certificates/ca.crt
+    - docker/postgres/certificates/server.crt
+    - docker/kafka-4/certificates/ca.crt
+  exclude:
+    - docker/seaweedfs/certificates/.gitignore
+
+targets:
+  dev:
+    default: true
+
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/datahub/

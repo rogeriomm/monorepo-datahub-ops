@@ -1,0 +1,59 @@
+[tools]
+fastfetch = "latest"
+zoxide = "latest"
+starship = "latest"
+eza = "latest"
+jq = "latest"
+yq = "latest"
+neovim = "latest"
+
+aws-cli = "latest"
+aws-sam  = "latest"
+aws = "latest"
+
+gcloud = "latest"
+
+databricks-cli  = "latest"
+
+cloudflared  = "latest"
+
+gh  = "latest"
+github-cli = "latest"
+
+terragrunt = "latest"
+terraform = "latest"
+#uv = "latest"
+# Ansible needs pipx
+pipx = "latest"
+ansible = "latest"
+
+argocd = "latest"
+k9s  = "latest"
+kubecolor  = "latest"
+kubectl  = "latest"
+helm  = "latest"
+
+gum = "latest"
+
+node = "latest"
+python = "latest"
+poetry = "latest"
+
+
+go  = "latest"
+rust = "1.96.0"
+
+# Additional Java versions are installed by the Dockerfile but are not
+# configured here, so mise does not activate them or override Spark's JVM.
+maven = "3.8.7"
+
+codex = "latest"
+claude = "latest"
+claude-code = "latest"
+claude-powerline = "latest"
+claude-squad = "latest"
+
+infracost = "latest"
+
+[env]
+DATABRICKS_AUTH_STORAGE = "plaintext"
