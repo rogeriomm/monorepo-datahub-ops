@@ -68,23 +68,23 @@ See the [local services](#local-services) for the available Jupyter endpoints.
 ## Airflow
 
 Get the administrator password using the repository's
-[`docker-compose.yaml`](../../.devcontainer/docker-compose.yaml) file:
+[`docker-compose.yaml`](../../on-premises/docker/docker-compose.yaml) file:
 
 ```shell
-docker compose -f .devcontainer/docker-compose.yaml exec airflow-3.3 \
+docker compose -f on-premises/docker/docker-compose.yaml exec airflow-3.3 \
   cat /opt/airflow/simple_auth_manager_passwords.json.generated
 ```
 
 ## Local S3 object store
 
 The direct SeaweedFS S3 endpoint requires TLS. Its development CA certificate
-is generated at `.devcontainer/seaweedfs/certificates/ca.crt` when the service
+is generated at `on-premises/docker/seaweedfs/certificates/ca.crt` when the service
 first starts.
 
 Use the AWS CLI to connect directly:
 ```shell
 export AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret 
-export AWS_CA_BUNDLE=.devcontainer/seaweedfs/certificates/ca.crt
+export AWS_CA_BUNDLE=on-premises/docker/seaweedfs/certificates/ca.crt
 export AWS_REGION=us-east-1
 ```
 
@@ -124,13 +124,13 @@ docker volume rm devcontainer_seaweedfs-data
 ## PostgreSQL
 
 PostgreSQL requires TLS for all TCP connections. Its public certificate is
-available at `.devcontainer/postgres/certificates/server.crt` after the
+available at `on-premises/docker/postgres/certificates/server.crt` after the
 container starts. The private key remains inside the PostgreSQL data volume.
 
 ### Debugging
 
 ```shell
-cd .devcontainer
+cd on-premises/docker
 ```
 
 ```shell
@@ -157,7 +157,7 @@ default:
 ```shell
 export PGPORT="${POSTGRES_PORT:-5432}"
 export PGSSLMODE=verify-full \
-export PGSSLROOTCERT=.devcontainer/postgres/certificates/server.crt \
+export PGSSLROOTCERT=on-premises/docker/postgres/certificates/server.crt \
 export PGPASSWORD='postgres'
 ```
 
@@ -187,7 +187,7 @@ psql \
 ### Connect from the PostgreSQL container
 
 ```shell
-docker compose -f .devcontainer/docker-compose.yaml exec postgres /bin/bash
+docker compose -f on-premises/docker/docker-compose.yaml exec postgres /bin/bash
 ```
 
 Then switch to the `postgres` user and connect:
@@ -212,7 +212,7 @@ psql \
 
 Kafka requires TLS on its internal, host-facing, and KRaft controller
 listeners. A development CA and broker certificate are generated on the first
-startup under `.devcontainer/kafka-4/certificates/`; the private keys and
+startup under `on-premises/docker/kafka-4/certificates/`; the private keys and
 stores in that directory are ignored by Git.
 
 The host listener is available at `localhost:9092`. Verify its certificate
@@ -222,7 +222,7 @@ with:
 openssl s_client \
   -connect localhost:9092 \
   -servername localhost \
-  -CAfile .devcontainer/kafka-4/certificates/ca.crt \
+  -CAfile on-premises/docker/kafka-4/certificates/ca.crt \
   -verify_return_error </dev/null
 ```
 
@@ -231,7 +231,7 @@ the internal `kafka-4-backend:29092` listener. Kafka UI uses the same trusted CA
 available through the [local services](#local-services) section.
 
 ```shell
-docker compose -f .devcontainer/docker-compose.yaml \
+docker compose -f on-premises/docker/docker-compose.yaml \
   exec jupyter-spark-4.1 \
   bash -lc 'eval "$($HOME/.local/bin/mise activate bash)" && kafkactl get topics'
 ```
@@ -350,7 +350,8 @@ Using Visual Studio Code:
   - [Traefik administration interface](http://traefik.localhost:8080/dashboard/)
 - Jupyter
   - [Spark 3.5](http://jupyter-spark-3-5.localhost:8080/lab)
-  - [Spark 4.1](http://jupyter-spark-4.1.localhost:8080/lab)
+  - [Spark 4.1](http://jupyter-spark-4-1.localhost:8080/lab)
+  - [Spark 4.2](http://jupyter-spark-4-2.localhost:8080/lab)
 - AWS Glue
   - [JupyterLab](http://jupyter-glue-5.localhost:8080/lab)
 - Kafka
