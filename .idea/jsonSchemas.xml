@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JsonSchemaMappingsProjectConfiguration">
+    <state>
+      <map>
+        <entry key="Declarative Automation Bundles">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="Declarative Automation Bundles" />
+              <option name="relativePathToSchema" value="https://github.com/databricks/cli/releases/latest/download/jsonschema.json" />
+              <option name="applicationDefined" value="true" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value="cloud-databricks/free-edition/hello-world/databricks.yml" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="cloud-databricks/free-edition/samples/hello-world/databricks.yml" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="cloud-databricks/free-edition/samples/dab-hello-world/databricks.yml" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="on-premises/databricks/integration/docker/databricks.yml" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="on-premises/databricks.yml" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="on-premises/integration/databricks.yml" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="on-premises/databricks-integration/databricks.yml" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+        <entry key="mise">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="mise" />
+              <option name="relativePathToSchema" value="https://mise.jdx.dev/schema/mise.json" />
+              <option name="applicationDefined" value="true" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value="mise.toml" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+      </map>
+    </state>
+  </component>
+</project>

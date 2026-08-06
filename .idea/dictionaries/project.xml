@@ -4,9 +4,21 @@
       <w>Jetbrains</w>
       <w>autoremove</w>
       <w>cloudflared</w>
+      <w>errexit</w>
+      <w>hostnossl</w>
+      <w>hostssl</w>
+      <w>isready</w>
+      <w>jdbc</w>
+      <w>longrightarrow</w>
+      <w>nopasswd</w>
       <w>nvim</w>
+      <w>pipefail</w>
       <w>pwsh</w>
       <w>rogermm</w>
+      <w>seaweedfs</w>
+      <w>sorttable</w>
+      <w>traefik</w>
+      <w>vmbr</w>
       <w>worldl</w>
     </words>
   </dictionary>
