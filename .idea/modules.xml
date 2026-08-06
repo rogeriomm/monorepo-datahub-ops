@@ -7,7 +7,6 @@
       <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/golang/app-3/golang-app-3.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/golang/app-3/golang-app-3.iml" />
       <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/golang/app-4/golang-app-4.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/golang/app-4/golang-app-4.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/jupyter.iml" filepath="$PROJECT_DIR$/.idea/jupyter.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/jupyter@1.iml" filepath="$PROJECT_DIR$/.idea/jupyter@1.iml" />
       <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/rust/app-1/rust-app-1.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/rust/app-1/rust-app-1.iml" />
       <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/rust/app-2/rust-app-2.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/rust/app-2/rust-app-2.iml" />
       <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/rust/app-3/rust-app-3.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/rust/app-3/rust-app-3.iml" />
