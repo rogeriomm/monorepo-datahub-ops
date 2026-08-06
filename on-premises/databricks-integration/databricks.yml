@@ -9,12 +9,16 @@ bundle:
 sync:
   paths:
     - docker/seaweedfs/certificates
+    - docker/postgres/certificates
+    - docker/kafka-4/certificates
   include:
     - docker/seaweedfs/certificates/ca.crt
     - docker/postgres/certificates/server.crt
     - docker/kafka-4/certificates/ca.crt
   exclude:
     - docker/seaweedfs/certificates/.gitignore
+    - docker/postgres/certificates/.gitignore
+    - docker/kafka-4/certificates/.gitignore
 
 targets:
   dev:
