@@ -1,8 +1,0 @@
-contexts:
-    default:
-        brokers:
-            - kafka-4-backend:29092
-        tls:
-            enabled: true
-            ca: /etc/kafka/tls/ca.crt
-            insecure: false

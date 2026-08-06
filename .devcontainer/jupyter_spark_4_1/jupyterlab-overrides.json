@@ -1,6 +1,0 @@
-{
-  "@jupyterlab/apputils-extension:themes": {
-    "adaptive-theme": false,
-    "theme": "JupyterLab Light"
-  }
-}

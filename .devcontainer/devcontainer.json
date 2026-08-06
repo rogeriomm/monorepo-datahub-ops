@@ -1,6 +1,6 @@
 {
   "name": "monorepo-devcontainer",
-  "dockerComposeFile": "docker-compose.yaml",
+  "dockerComposeFile": "../on-premises/docker/docker-compose.yaml",
   "service": "tools",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "shutdownAction": "stopCompose",
