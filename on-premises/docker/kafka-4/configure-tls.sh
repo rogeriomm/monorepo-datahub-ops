@@ -4,8 +4,28 @@ set -o errexit -o nounset -o pipefail
 
 tls_dir=/etc/kafka/secrets
 store_password=${KAFKA_TLS_STORE_PASSWORD:-changeit}
+external_hostname=${KAFKA_HOSTNAME:?KAFKA_HOSTNAME must be set}
 keystore=${tls_dir}/kafka.keystore.p12
 truststore=${tls_dir}/kafka.truststore.p12
+
+if (( ${#external_hostname} > 253 )) \
+  || [[ ! "${external_hostname}" =~ ^[A-Za-z0-9.-]+$ ]] \
+  || [[ "${external_hostname}" == .* ]] \
+  || [[ "${external_hostname}" == *. ]] \
+  || [[ "${external_hostname}" == *..* ]]; then
+  echo "Invalid KAFKA_HOSTNAME: ${external_hostname}" >&2
+  exit 1
+fi
+
+IFS=. read -r -a hostname_labels <<< "${external_hostname}"
+for hostname_label in "${hostname_labels[@]}"; do
+  if (( ${#hostname_label} > 63 )) \
+    || [[ "${hostname_label}" == -* ]] \
+    || [[ "${hostname_label}" == *- ]]; then
+    echo "Invalid KAFKA_HOSTNAME: ${external_hostname}" >&2
+    exit 1
+  fi
+done
 
 mkdir -p "${tls_dir}"
 
@@ -20,11 +40,15 @@ if [[ ! -s "${tls_dir}/keystore-password" ]] || [[ "$(<"${tls_dir}/keystore-pass
   regenerate=true
 fi
 
-if [[ -s "${tls_dir}/kafka.crt" ]] && ! openssl x509 \
-  -in "${tls_dir}/kafka.crt" \
-  -noout \
-  -checkhost kafka-4-backend >/dev/null 2>&1; then
-  regenerate=true
+if [[ -s "${tls_dir}/kafka.crt" ]]; then
+  for required_hostname in kafka-4-backend "${external_hostname}"; do
+    if ! openssl x509 \
+      -in "${tls_dir}/kafka.crt" \
+      -noout \
+      -checkhost "${required_hostname}" >/dev/null 2>&1; then
+      regenerate=true
+    fi
+  done
 fi
 
 if [[ "${regenerate}" == true ]]; then
@@ -65,11 +89,11 @@ if [[ "${regenerate}" == true ]]; then
     -subj "/CN=kafka-4-backend" \
     -out "${tls_dir}/kafka.csr"
 
-  cat > "${tls_dir}/kafka-cert.ext" <<'EOF'
+  cat > "${tls_dir}/kafka-cert.ext" <<EOF
 basicConstraints=critical,CA:FALSE
 keyUsage=critical,digitalSignature,keyEncipherment
 extendedKeyUsage=serverAuth,clientAuth
-subjectAltName=DNS:kafka-4-backend,DNS:kafka-4,DNS:localhost,IP:127.0.0.1
+subjectAltName=DNS:kafka-4-backend,DNS:kafka-4,DNS:localhost,DNS:${external_hostname},IP:127.0.0.1
 EOF
 
   openssl x509 \

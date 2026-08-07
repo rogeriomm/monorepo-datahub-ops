@@ -1,28 +1,65 @@
 # https://docs.databricks.com/aws/en/dev-tools/bundles/settings
 #  databricks bundle deploy --debug
+#  databricks bundle run put-trino-client-keystore-password
 #  databricks bundle validate --strict
 #  databricks bundle destroy --auto-approve --force-lock
 
 bundle:
   name: on-premises-integration
+  databricks_cli_version: ">= 0.259.0"
+
+resources:
+  secret_scopes:
+    on_premises_integration:
+      name: on-premises-integration
+
+scripts:
+  put-trino-client-keystore-password:
+    env:
+      TRINO_SECRET_SCOPE: ${bundle.name}
+    content: |
+      # mTLS client certificates
+      password_file=docker/trino/certificates/client-password
+      if [ ! -s "$password_file" ]; then
+        echo "Missing Trino client keystore password file: $password_file" >&2
+        exit 1
+      fi
+      databricks secrets put-secret \
+        "$TRINO_SECRET_SCOPE" \
+        trino-client-keystore-password \
+        < "$password_file"
 
 sync:
   paths:
-    - docker/seaweedfs/certificates
-    - docker/postgres/certificates
     - docker/kafka-4/certificates
+    - docker/postgres/certificates
+    - docker/seaweedfs/certificates
+    - docker/trino/certificates
   include:
-    - docker/seaweedfs/certificates/ca.crt
-    - docker/postgres/certificates/server.crt
+    # Kafka certificate
     - docker/kafka-4/certificates/ca.crt
+    # Postgres certificate
+    - docker/postgres/certificates/server.crt
+    # Seaweedfs certificates
+    - docker/seaweedfs/certificates/ca.crt
+    # Trino certificates
+    - docker/trino/certificates/trino-client.p12
+    - docker/trino/certificates/ca.crt
   exclude:
-    - docker/seaweedfs/certificates/.gitignore
     - docker/postgres/certificates/.gitignore
+    - docker/seaweedfs/certificates/.gitignore
+    - docker/trino/certificates/.gitignore
     - docker/kafka-4/certificates/.gitignore
 
 targets:
-  dev:
+  free-edition:
     default: true
+
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/datahub/
+
+  premium:
+    default: false
 
     workspace:
       root_path: /Workspace/Users/${workspace.current_user.userName}/datahub/

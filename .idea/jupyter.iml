@@ -5,7 +5,7 @@
     <content url="file://$MODULE_DIR$/notebooks/jupyter">
       <excludeFolder url="file://$MODULE_DIR$/notebooks/jupyter/.venv" />
     </content>
-    <orderEntry type="jdk" jdkName="uv (jupyter)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="~/git/monorepo-datahub-ops/notebooks/jupyter/.venv" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
