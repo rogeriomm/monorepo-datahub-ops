@@ -8,5 +8,7 @@
  - Genealogy tree
    - https://www.familysearch.org/en/developers/docs/api/resources
    - https://www.wikitree.com/
+- https://www.nyc.gov/site/finance/property/property-assessments.page#
+	- New York wealthy target list
 
  

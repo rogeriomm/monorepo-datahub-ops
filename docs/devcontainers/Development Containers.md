@@ -49,6 +49,21 @@ devpod up . --ide vscode
 
 ![DevPod development container in Visual Studio Code](attachments/Pasted%20image%2020260729112911.png)
 
+
+## Docker
+The Docker socket is mounted inside the container using the following configuration in `docker-compose.yml`:
+```yaml
+- /var/run/docker.sock:/var/run/docker.sock
+```
+
+This allows the container to communicate with and use the **host's Docker Engine**.
+
+To verify access:
+
+```
+docker ps -a
+```
+
 ## Traefik reverse proxy
 
 Open the [Traefik dashboard](http://traefik.localhost:8080/dashboard/) to access the administration interface.
