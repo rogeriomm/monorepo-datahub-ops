@@ -21,6 +21,13 @@ from types import MethodType
 # https://docs.delta.io/releases/
 # https://iceberg.apache.org/docs/latest/spark-getting-started/
 spark_matrix = {
+    "4.2": {
+        "scala": "2.13",
+        "kafka": {
+            "version": "4.2.0",
+            "package": "org.apache.spark:spark-sql-kafka-0-10_2.13:4.2.0",
+        },
+    },
     "4.1": {
         "scala": "2.13",
         "kafka": {

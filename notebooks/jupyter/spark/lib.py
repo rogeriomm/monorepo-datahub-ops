@@ -21,7 +21,10 @@ from IPython.core.magic import register_line_magic, register_cell_magic
 # Directories searched, in order, when %run_nb receives a bare file name.
 # An empty string has the same meaning as an empty entry in PATH: the current
 # working directory.
-RUN_NB_PATH: list[str | Path] = ["", "/home/jovyan/work/spark"]
+RUN_NB_PATH: list[str | Path] = [
+    "",
+    "/home/jovyan/work/notebooks/jupyter/spark",
+]
 
 # Prevent SQL result display from collecting an unbounded DataFrame on the
 # Jupyter driver. Override this module-level value if a different limit is needed.
