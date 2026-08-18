@@ -1,55 +1,130 @@
 # https://docs.databricks.com/aws/en/dev-tools/bundles/settings
 #  databricks bundle deploy --debug
-#  databricks bundle run put-trino-client-keystore-password
 #  databricks bundle validate --strict
 #  databricks bundle destroy --auto-approve --force-lock
 
 bundle:
   name: on-premises-integration
-  databricks_cli_version: ">= 0.259.0"
+  databricks_cli_version: ">= 1.11.0"
+
+experimental:
+  scripts:
+    postdeploy: |
+      source databricks-dab-lib.sh
+      databricks bundle run put-postgres-password -t ${bundle.target}
+      databricks bundle run put-seaweedfs-credentials -t ${bundle.target}
+      databricks bundle run put-trino-client-keystore-password -t ${bundle.target}
+      databricks bundle run upload-kafka-certificates-to-volume -t ${bundle.target}
+      databricks bundle run upload-squid-wheel-to-volume -t ${bundle.target}
+      copy_squid_wheel_to_docker
+
+variables:
+  unity_catalog_name:
+    description: Unity Catalog catalog for serverless-accessible files
+    default: workspace
+  unity_catalog_schema_name:
+    description: Unity Catalog schema for serverless-accessible files
+    default: default
+  unity_catalog_volume_name:
+    description: Unity Catalog volume for on-premises certificates
+    default: on_premises_certificates
+  unity_catalog_artifacts_volume_name:
+    description: Unity Catalog volume for Python wheels, JARs, and other artifacts
+    default: on_premises_artifacts
 
 resources:
   secret_scopes:
     on_premises_integration:
       name: on-premises-integration
 
+  volumes:
+    on_premises_certificates:
+      catalog_name: ${var.unity_catalog_name}
+      schema_name: ${var.unity_catalog_schema_name}
+      name: ${var.unity_catalog_volume_name}
+      volume_type: MANAGED
+      comment: Certificates for on-premises services used by serverless compute
+      grants:
+        - principal: ${workspace.current_user.userName}
+          privileges:
+            - READ_VOLUME
+            - WRITE_VOLUME
+
+    on_premises_artifacts:
+      catalog_name: ${var.unity_catalog_name}
+      schema_name: ${var.unity_catalog_schema_name}
+      name: ${var.unity_catalog_artifacts_volume_name}
+      volume_type: MANAGED
+      comment: Python wheels, JARs, and other artifacts used by Databricks compute
+      grants:
+        - principal: ${workspace.current_user.userName}
+          privileges:
+            - READ_VOLUME
+            - WRITE_VOLUME
+
 scripts:
+  put-postgres-password:
+    env:
+      POSTGRES_SECRET_SCOPE: ${bundle.name}
+      POSTGRES_CERTIFICATE_SOURCE: docker/postgres/certificates
+      POSTGRES_CERTIFICATE_VOLUME: dbfs:/Volumes/${var.unity_catalog_name}/${var.unity_catalog_schema_name}/${var.unity_catalog_volume_name}/postgres
+    content: |
+      source databricks-dab-lib.sh
+      
+      # mTLS disabled
+      copy_databricks_secret "$POSTGRES_CERTIFICATE_SOURCE" $POSTGRES_CERTIFICATE_VOLUME "docker/postgres/certificates/postgres-password" "$POSTGRES_SECRET_SCOPE" postgres-password
+      
+      # mTLS client certificate password
+      copy_databricks_secret "$POSTGRES_CERTIFICATE_SOURCE" $POSTGRES_CERTIFICATE_VOLUME "docker/postgres/certificates/client-password" "$POSTGRES_SECRET_SCOPE" postgres-client-keystore-password
+      
+      copy_databricks  "$POSTGRES_CERTIFICATE_SOURCE" "$POSTGRES_CERTIFICATE_VOLUME" ca.crt postgres-client.p12 client.crt client.key
+
   put-trino-client-keystore-password:
     env:
       TRINO_SECRET_SCOPE: ${bundle.name}
+      TRINO_CERTIFICATE_SOURCE: docker/trino/certificates
+      TRINO_CERTIFICATE_VOLUME: dbfs:/Volumes/${var.unity_catalog_name}/${var.unity_catalog_schema_name}/${var.unity_catalog_volume_name}/trino
     content: |
-      # mTLS client certificates
-      password_file=docker/trino/certificates/client-password
-      if [ ! -s "$password_file" ]; then
-        echo "Missing Trino client keystore password file: $password_file" >&2
-        exit 1
-      fi
-      databricks secrets put-secret \
-        "$TRINO_SECRET_SCOPE" \
-        trino-client-keystore-password \
-        < "$password_file"
+      source databricks-dab-lib.sh
+      # mTLS client certificate password
+      copy_databricks_secret "$TRINO_CERTIFICATE_SOURCE" "$TRINO_CERTIFICATE_VOLUME" "docker/trino/certificates/client-password" "$TRINO_SECRET_SCOPE" trino-client-keystore-password
+      copy_databricks  "$TRINO_CERTIFICATE_SOURCE" "$TRINO_CERTIFICATE_VOLUME" ca.crt trino-client.p12 
 
+  put-seaweedfs-credentials:
+    env:
+      SEAWEEDFS_SECRET_SCOPE: ${bundle.name}
+      SEAWEEDFS_CERTIFICATE_SOURCE: docker/seaweedfs/certificates
+      SEAWEEDFS_CERTIFICATE_VOLUME: dbfs:/Volumes/${var.unity_catalog_name}/${var.unity_catalog_schema_name}/${var.unity_catalog_volume_name}/seaweedfs
+    content: |
+      source databricks-dab-lib.sh
+      copy_databricks_secret_from_env SEAWEEDFS_ACCESS_KEY_ID "$SEAWEEDFS_SECRET_SCOPE" seaweedfs-user
+      copy_databricks_secret_from_env SEAWEEDFS_SECRET_ACCESS_KEY "$SEAWEEDFS_SECRET_SCOPE" seaweedfs-password
+      copy_databricks  "$SEAWEEDFS_CERTIFICATE_SOURCE" "$SEAWEEDFS_CERTIFICATE_VOLUME" ca.crt
+
+  upload-kafka-certificates-to-volume:
+    env:
+      KAFKA_CERTIFICATE_SOURCE: docker/kafka-4/certificates
+      KAFKA_CERTIFICATE_VOLUME: dbfs:/Volumes/${var.unity_catalog_name}/${var.unity_catalog_schema_name}/${var.unity_catalog_volume_name}/kafka-4
+    content: |
+      source databricks-dab-lib.sh
+      copy_databricks  "$KAFKA_CERTIFICATE_SOURCE" "$KAFKA_CERTIFICATE_VOLUME" ca.crt
+
+  upload-squid-wheel-to-volume:
+    env:
+      SQUID_SOURCE: squid
+      SQUID_WHEEL_VOLUME: dbfs:/Volumes/${var.unity_catalog_name}/${var.unity_catalog_schema_name}/${var.unity_catalog_artifacts_volume_name}/python-wheels
+      SQUID_WHEEL_PATTERN: squid_databricks-*-py312-none-any.whl
+    content: |
+      source databricks-dab-lib.sh
+      upload_squid_wheel_to_volume "$SQUID_SOURCE" "$SQUID_WHEEL_VOLUME" "$SQUID_WHEEL_PATTERN"
+
+# Certificates and Squid artifacts are uploaded directly to Unity Catalog
+# volumes by the bundle scripts above. Do not mirror the local bundle tree into
+# Workspace.
 sync:
-  paths:
-    - docker/kafka-4/certificates
-    - docker/postgres/certificates
-    - docker/seaweedfs/certificates
-    - docker/trino/certificates
-  include:
-    # Kafka certificate
-    - docker/kafka-4/certificates/ca.crt
-    # Postgres certificate
-    - docker/postgres/certificates/server.crt
-    # Seaweedfs certificates
-    - docker/seaweedfs/certificates/ca.crt
-    # Trino certificates
-    - docker/trino/certificates/trino-client.p12
-    - docker/trino/certificates/ca.crt
   exclude:
-    - docker/postgres/certificates/.gitignore
-    - docker/seaweedfs/certificates/.gitignore
-    - docker/trino/certificates/.gitignore
-    - docker/kafka-4/certificates/.gitignore
+    - "**"
+    - "!databricks.yml"
 
 targets:
   free-edition:

@@ -7,6 +7,39 @@ ca_certificate="${tls_dir}/ca.crt"
 ca_key="${tls_dir}/ca.key"
 server_certificate="${tls_dir}/server.crt"
 server_key="${tls_dir}/server.key"
+external_hostname=${SEAWEEDFS_HOSTNAME:?SEAWEEDFS_HOSTNAME must be set}
+
+is_valid_hostname() {
+  hostname_to_validate=$1
+  if [ "${#hostname_to_validate}" -gt 253 ]; then
+    return 1
+  fi
+
+  case "${hostname_to_validate}" in
+    *[!A-Za-z0-9.-]* | .* | *. | *..*) return 1 ;;
+  esac
+
+  original_ifs=${IFS}
+  IFS=.
+  set -- ${hostname_to_validate}
+  IFS=${original_ifs}
+  for hostname_label in "$@"; do
+    if [ "${#hostname_label}" -gt 63 ]; then
+      return 1
+    fi
+
+    case "${hostname_label}" in
+      -* | *-) return 1 ;;
+    esac
+  done
+
+  return 0
+}
+
+if ! is_valid_hostname "${external_hostname}"; then
+  echo "Invalid SEAWEEDFS_HOSTNAME: ${external_hostname}" >&2
+  exit 1
+fi
 
 mkdir -p "${tls_dir}"
 
@@ -17,11 +50,15 @@ for required_file in "${ca_certificate}" "${ca_key}" "${server_certificate}" "${
   fi
 done
 
-if [ -s "${server_certificate}" ] && ! openssl x509 \
-  -in "${server_certificate}" \
-  -noout \
-  -checkhost seaweedfs >/dev/null 2>&1; then
-  regenerate=true
+if [ -s "${server_certificate}" ]; then
+  for required_hostname in seaweedfs "${external_hostname}"; do
+    if ! openssl x509 \
+      -in "${server_certificate}" \
+      -noout \
+      -checkhost "${required_hostname}" >/dev/null 2>&1; then
+      regenerate=true
+    fi
+  done
 fi
 
 if [ "${regenerate}" = true ]; then
@@ -58,14 +95,14 @@ if [ "${regenerate}" = true ]; then
     -new \
     -sha256 \
     -key "${server_key}" \
-    -subj "/CN=seaweedfs" \
+    -subj "/CN=${external_hostname}" \
     -out "${tls_dir}/server.csr"
 
-  cat > "${tls_dir}/server-cert.ext" <<'EOF'
+  cat > "${tls_dir}/server-cert.ext" <<EOF
 basicConstraints=critical,CA:FALSE
 keyUsage=critical,digitalSignature,keyEncipherment
 extendedKeyUsage=serverAuth
-subjectAltName=DNS:seaweedfs,DNS:localhost,DNS:seaweedfs-s3.localhost,IP:127.0.0.1
+subjectAltName=DNS:${external_hostname},DNS:seaweedfs,DNS:localhost,DNS:seaweedfs-s3.localhost,IP:127.0.0.1
 EOF
 
   openssl x509 \

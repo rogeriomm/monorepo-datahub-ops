@@ -11,8 +11,8 @@ spec:
       targetRevision: 79.0.1
       helm:
         valueFiles:
-          - $values/k8s/prometheus/values.yaml
-          - $values/k8s/prometheus/values-pve.yaml
+          - $values/on-premises/k8s/prometheus/values.yaml
+          - $values/on-premises/k8s/prometheus/values-pve.yaml
     - repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
       targetRevision: master
       ref: values

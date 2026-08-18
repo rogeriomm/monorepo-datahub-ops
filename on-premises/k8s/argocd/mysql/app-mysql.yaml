@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
-    path: k8s/mysql/apps
+    path: on-premises/k8s/mysql/apps
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc

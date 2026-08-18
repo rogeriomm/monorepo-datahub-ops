@@ -21,7 +21,7 @@ github-cli = "latest"
 
 terragrunt = "latest"
 terraform = "latest"
-#uv = "latest"
+uv = "latest"
 # Ansible needs pipx
 pipx = "latest"
 ansible = "latest"

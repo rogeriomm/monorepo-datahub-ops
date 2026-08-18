@@ -12,7 +12,7 @@ RUN apt-get update \
         build-essential \
         libpq-dev \
         python3-dev \
-        apt-file \
+        apt-file zsh \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl --fail --location \

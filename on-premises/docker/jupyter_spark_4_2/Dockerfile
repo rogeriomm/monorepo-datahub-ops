@@ -7,7 +7,7 @@ USER root
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
-        curl gzip tree figlet toilet \
+        curl gzip tree figlet toilet zsh \
         build-essential \
         libpq-dev \
         python3-dev \

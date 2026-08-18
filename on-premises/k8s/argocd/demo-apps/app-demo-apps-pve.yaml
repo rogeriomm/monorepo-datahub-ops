@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
     targetRevision: HEAD
-    path: k8s/demo-apps/overlays/pve/go-app-1
+    path: on-premises/k8s/demo-apps/overlays/pve/go-app-1
   destination:
     server: https://kubernetes.default.svc
     namespace: simple-web
@@ -29,7 +29,7 @@ spec:
   source:
     repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
     targetRevision: HEAD
-    path: k8s/demo-apps/overlays/pve/go-app-2
+    path: on-premises/k8s/demo-apps/overlays/pve/go-app-2
   destination:
     server: https://kubernetes.default.svc
     namespace: simple-web
@@ -50,7 +50,7 @@ spec:
   source:
     repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
     targetRevision: HEAD
-    path: k8s/demo-apps/overlays/pve/go-app-3
+    path: on-premises/k8s/demo-apps/overlays/pve/go-app-3
   destination:
     server: https://kubernetes.default.svc
     namespace: simple-web
@@ -71,7 +71,7 @@ spec:
   source:
     repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
     targetRevision: HEAD
-    path: k8s/demo-apps/overlays/pve/go-app-4
+    path: on-premises/k8s/demo-apps/overlays/pve/go-app-4
   destination:
     server: https://kubernetes.default.svc
     namespace: simple-web

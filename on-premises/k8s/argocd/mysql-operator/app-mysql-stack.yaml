@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
     targetRevision: HEAD
-    path: k8s/mysql-operator/apps
+    path: on-premises/k8s/mysql-operator/apps
   destination:
     server: https://kubernetes.default.svc
     namespace: argo-cd

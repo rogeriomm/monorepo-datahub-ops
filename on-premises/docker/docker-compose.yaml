@@ -88,6 +88,7 @@ services:
       # AWS Cli
       - ${HOME}/.aws:/home/ubuntu/.aws:ro
       - ${HOME}/.aws/login/cache:/home/ubuntu/.aws/login/cache:rw
+      - ./Volumes:/Volumes
     networks:
       frontend:
         aliases:
@@ -151,6 +152,7 @@ services:
       - ./trino/config.properties:/etc/trino/config.properties:ro
       - ./trino/configure-tls.sh:/etc/trino/configure-tls.sh:ro
       - ./trino/certificates:/etc/trino/tls
+      - ./Volumes:/Volumes
     healthcheck:
       test:
         - CMD-SHELL
@@ -198,6 +200,7 @@ services:
       - airflow-data:/opt/airflow
       - ./airflow/dags:/opt/airflow/dags:ro
       - ../../notebooks/jupyter:/opt/airflow/notebooks:ro
+      - ./Volumes:/Volumes
     labels:
       - traefik.enable=true
       - traefik.http.routers.airflow-3-3.rule=Host(`airflow-3-3.localhost`)
@@ -237,6 +240,7 @@ services:
       - airflow-2-11-data:/opt/airflow
       - ./airflow/dags:/opt/airflow/dags:ro
       - ../../notebooks/jupyter:/opt/airflow/notebooks:ro
+      - ./Volumes:/Volumes
     labels:
       - traefik.enable=true
       - traefik.http.routers.airflow-2-11.rule=Host(`airflow-2-11.localhost`)
@@ -355,6 +359,7 @@ services:
       # AWS CLI
       - ${HOME}/.aws:/home/jovyan/.aws:ro
       - ${HOME}/.aws/login/cache:/home/jovyan/.aws/login/cache:rw
+      - ./Volumes:/Volumes
 
     networks:
       - frontend
@@ -364,7 +369,8 @@ services:
     image: local/jupyter-pyspark-base:4.1.3
 
     build:
-      context: "https://github.com/jupyter/docker-stacks.git#main:images/pyspark-notebook"
+      #context: "https://github.com/jupyter/docker-stacks.git#main:images/pyspark-notebook"
+      context: "https://github.com/jupyter/docker-stacks.git#26da4ae66471c8b6714150db241f17d61a1e269a:images/pyspark-notebook"
       args:
         spark_version: "4.1.3"
         hadoop_version: "3"
@@ -424,6 +430,7 @@ services:
 
     labels:
       - traefik.enable=true
+      - traefik.docker.network=devcontainer_frontend
       - traefik.http.routers.jupyter-spark-4-1.rule=Host(`jupyter-spark-4-1.localhost`)
       - traefik.http.routers.jupyter-spark-4-1.entrypoints=web
       - traefik.http.routers.jupyter-spark-4-1.priority=100
@@ -491,6 +498,7 @@ services:
       # Databricks CLI
       - ${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw
       - ${HOME}/.databricks:/home/jovyan/.databricks:rw
+      - ./Volumes:/Volumes
 
     networks:
       - frontend
@@ -599,6 +607,7 @@ services:
       # Databricks CLI
       - ${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw
       - ${HOME}/.databricks:/home/jovyan/.databricks:rw
+      - ./Volumes:/Volumes
 
     networks:
       - frontend
@@ -639,6 +648,7 @@ services:
       - ../../notebooks/jupyter:/home/hadoop/work
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./Volumes:/Volumes
     labels:
       - traefik.enable=true
       - traefik.http.routers.jupyter-glue-5.rule=Host(`jupyter-glue-5.localhost`)
@@ -672,6 +682,7 @@ services:
       - ../../notebooks/zeppelin:/notebooks
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./Volumes:/Volumes
     networks:
       - frontend
       - backend
@@ -710,60 +721,61 @@ services:
     ports:
       - target: 5432
         published: "${POSTGRES_PORT:-5432}"
-        host_ip: "${POSTGRES_BIND_ADDRESS:-0.0.0.0}"
+        host_ip: "${POSTGRES_BIND_ADDRESS:-127.0.0.1}"
         protocol: tcp
     environment:
       POSTGRES_USER: "${POSTGRES_USER:-postgres}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
       POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES_HOSTNAME: "${POSTGRES_HOSTNAME:-localhost}"
+      POSTGRES_CLIENT_STORE_PASSWORD: "${POSTGRES_CLIENT_STORE_PASSWORD:-changeit}"
+      POSTGRES_MTLS_ENABLED: "${POSTGRES_MTLS_ENABLED:-true}"
     entrypoint:
       - /bin/bash
-      - -ec
-      - |
-        tls_dir=/var/lib/postgresql/tls
-        certificate_export_dir=/etc/postgresql/certificates
-        install -d -m 700 -o postgres -g postgres "$${tls_dir}"
-        if [[ ! -s "$${tls_dir}/server.crt" || ! -s "$${tls_dir}/server.key" ]]; then
-          openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
-            -subj "/CN=postgres" \
-            -addext "subjectAltName=DNS:postgres,DNS:localhost,IP:127.0.0.1" \
-            -keyout "$${tls_dir}/server.key" \
-            -out "$${tls_dir}/server.crt"
-          chown postgres:postgres "$${tls_dir}/server.crt" "$${tls_dir}/server.key"
-          chmod 600 "$${tls_dir}/server.key"
-        fi
-        install -m 644 "$${tls_dir}/server.crt" "$${certificate_export_dir}/server.crt"
-        install -m 600 -o postgres -g postgres /dev/null "$${tls_dir}/pg_hba.conf"
-        printf '%s\n' \
-          'local all all trust' \
-          'hostssl all all 0.0.0.0/0 scram-sha-256' \
-          'hostssl all all ::/0 scram-sha-256' \
-          'hostnossl all all 0.0.0.0/0 reject' \
-          'hostnossl all all ::/0 reject' \
-          > "$${tls_dir}/pg_hba.conf"
-        exec docker-entrypoint.sh "$${@}"
-      - --
+      - /etc/postgresql/configure-tls.sh
     command:
       - postgres
       - -c
       - ssl=on
       - -c
-      - ssl_cert_file=/var/lib/postgresql/tls/server.crt
+      - ssl_cert_file=/etc/postgresql/tls/server.crt
       - -c
-      - ssl_key_file=/var/lib/postgresql/tls/server.key
+      - ssl_key_file=/var/run/postgresql/tls/server.key
+      - -c
+      - ssl_ca_file=/etc/postgresql/tls/ca.crt
       - -c
       - ssl_min_protocol_version=TLSv1.2
       - -c
-      - hba_file=/var/lib/postgresql/tls/pg_hba.conf
+      - hba_file=/var/run/postgresql/tls/pg_hba.conf
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test:
+        - CMD-SHELL
+        - >-
+          if [ "$${POSTGRES_MTLS_ENABLED}" = "true" ]; then
+            export PGSSLCERT=/etc/postgresql/tls/client.crt;
+            export PGSSLKEY=/var/run/postgresql/tls/client.key;
+          else
+            export PGPASSWORD="$${POSTGRES_PASSWORD}";
+          fi;
+          PGCONNECT_TIMEOUT=5
+          PGSSLMODE=verify-full
+          PGSSLROOTCERT=/etc/postgresql/tls/ca.crt
+          psql
+          --host=postgres
+          --username="$${POSTGRES_USER}"
+          --dbname="$${POSTGRES_DB}"
+          --no-password
+          --tuples-only
+          --command='SELECT 1'
+          | grep -q 1
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     volumes:
       - postgres-data:/var/lib/postgresql
-      - ./postgres/certificates:/etc/postgresql/certificates
+      - ./postgres/configure-tls.sh:/etc/postgresql/configure-tls.sh:ro
+      - ./postgres/certificates:/etc/postgresql/tls
     networks:
       - backend
       - tunnel
@@ -887,6 +899,7 @@ services:
     environment:
       AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
       AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      SEAWEEDFS_HOSTNAME: "${SEAWEEDFS_HOSTNAME:?SEAWEEDFS_HOSTNAME must be set}"
     volumes:
       - seaweedfs-data:/data
       - ./seaweedfs/certificates:/etc/seaweedfs/tls

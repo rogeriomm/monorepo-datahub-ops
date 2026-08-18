@@ -11,8 +11,8 @@ spec:
       targetRevision: 0.26.1
       helm:
         valueFiles:
-          - $values/k8s/postgres/values.yaml
-          - $values/k8s/postgres/values-pvel.yaml
+          - $values/on-premises/k8s/postgres/values.yaml
+          - $values/on-premises/k8s/postgres/values-pvel.yaml
     - repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
       targetRevision: master
       ref: values

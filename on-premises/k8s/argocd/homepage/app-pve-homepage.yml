@@ -17,8 +17,8 @@ spec:
       targetRevision: 2.1.0
       helm:
         valueFiles:
-          - $values/k8s/homepage/helm/values.yaml
-          - $values/k8s/homepage/helm/values-pve.yaml
+          - $values/on-premises/k8s/homepage/helm/values.yaml
+          - $values/on-premises/k8s/homepage/helm/values-pve.yaml
     - repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
       targetRevision: master
       ref: values

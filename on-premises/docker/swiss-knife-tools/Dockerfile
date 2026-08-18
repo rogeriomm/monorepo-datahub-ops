@@ -15,7 +15,7 @@ ENV PATH="/home/ubuntu/.local/share/mise/shims:/home/ubuntu/.local/bin:${PATH}"
 USER root
 
 RUN apt-get update && apt-get install -y \
-    figlet toilet \
+    figlet toilet zsh \
     openssh-server \
     zsh \
     sudo \
