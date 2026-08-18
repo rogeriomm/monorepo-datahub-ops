@@ -126,9 +126,9 @@ Or connect through Traefik:
 aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
 ```
 
-![[Pasted image 20260805164131.png|1219]]
+![SeaweedFS S3 buckets listed by the AWS CLI](attachments/Pasted%20image%2020260805164131.png)
 
-[[s3-hello-world.ipynb]]
+[S3 hello world notebook](../../notebooks/jupyter/s3/s3-hello-world.ipynb)
 
 ### Cleaning the S3 object store
 
@@ -138,9 +138,18 @@ docker volume rm devcontainer_seaweedfs-data
 
 ## PostgreSQL
 
-PostgreSQL requires TLS for all TCP connections. Its public certificate is
-available at `on-premises/docker/postgres/certificates/server.crt` after the
-container starts. The private key remains inside the PostgreSQL data volume.
+PostgreSQL requires mutually authenticated TLS for all TCP connections. A local
+CA signs the server and reusable client certificates. The client artifacts are
+available under `on-premises/docker/postgres/certificates/` after the container
+starts; the CA and server private keys remain inside the PostgreSQL data volume.
+
+Set `POSTGRES_HOSTNAME` to the DNS name used by remote clients before starting
+the service. The generated server certificate also includes `postgres`,
+`localhost`, and `127.0.0.1` for local access.
+
+The client certificate common name matches `POSTGRES_USER`. A PKCS12 copy named
+`postgres-client.p12`, with alias `user`, is protected by
+`POSTGRES_CLIENT_STORE_PASSWORD` for JDBC clients that require a keystore.
 
 ### Debugging
 
@@ -172,8 +181,9 @@ default:
 ```shell
 export PGPORT="${POSTGRES_PORT:-5432}"
 export PGSSLMODE=verify-full \
-export PGSSLROOTCERT=on-premises/docker/postgres/certificates/server.crt \
-export PGPASSWORD='postgres'
+export PGSSLROOTCERT=on-premises/docker/postgres/certificates/ca.crt \
+export PGSSLCERT=on-premises/docker/postgres/certificates/client.crt \
+export PGSSLKEY=on-premises/docker/postgres/certificates/client.key
 ```
 
 ```shell
@@ -191,8 +201,10 @@ psql \
 For example, connect from `jupyter-spark-4.1` using the Compose service name:
 
 ```shell
-PGSSLMODE=require \
-PGPASSWORD='postgres' \
+PGSSLMODE=verify-full \
+PGSSLROOTCERT=/home/jovyan/work/on-premises/docker/postgres/certificates/ca.crt \
+PGSSLCERT=/home/jovyan/work/on-premises/docker/postgres/certificates/client.crt \
+PGSSLKEY=/home/jovyan/work/on-premises/docker/postgres/certificates/client.key \
 psql \
   --host=postgres \
   --username=postgres \
@@ -209,8 +221,10 @@ Then switch to the `postgres` user and connect:
 
 ```shell
 su - postgres
-PGSSLMODE=require \
-PGPASSWORD='postgres' \
+PGSSLMODE=verify-full \
+PGSSLROOTCERT=/var/lib/postgresql/tls/ca.crt \
+PGSSLCERT=/var/lib/postgresql/tls/client.crt \
+PGSSLKEY=/var/lib/postgresql/tls/client.key \
 psql \
   --host=localhost \
   --username=postgres \
@@ -356,8 +370,8 @@ Using Visual Studio Code:
 
 ### CLI
 
-- [Databricks CLI hello world notebook](../../notebooks/jupyter/databricks/free-edition/databricks-cli-hello-world.ipynb)
-- [Open the notebook in the local Jupyter service](http://jupyter-spark-4-1.localhost:8080/notebooks/databricks/free-edition/databricks-cli-hello-world.ipynb)
+- [Databricks CLI hello world notebook](../../notebooks/jupyter/databricks/free-edition/databricks-cli/databricks-cli-hello-world.ipynb)
+- [Open the notebook in the local Jupyter service](http://jupyter-spark-4-1.localhost:8080/lab/tree/notebooks/jupyter/databricks/free-edition/databricks-cli/databricks-cli-hello-world.ipynb)
 
 ## Local services
 

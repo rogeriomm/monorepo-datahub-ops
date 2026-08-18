@@ -48,3 +48,8 @@ tmux list-keys | grep window
 ![Databricks notebook network and SSH test](attachments/databricks-notebook-network-ssh-test.png)
 
 [Databricks CLI sample notebook](../../../notebooks/jupyter/databricks/free-edition/databricks-cli-hello-world.ipynb)
+
+# Databricks environments
+ - https://docs.databricks.com/aws/en/compute/serverless/dependencies?utm_source=chatgpt.com
+	 - Notebook metadata:
+		 - ![[Pasted image 20260811164305.png|831]]

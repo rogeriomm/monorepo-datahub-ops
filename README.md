@@ -33,8 +33,13 @@ uppercase letter. Image and diagram assets use kebab-case. See
 
 ![Home lab on-premises architecture](docs/on-premises-infrastructure/attachments/lab-on-premises-architecture.png)
 
+Host pvel-vm:
+
+![K9s view of the home lab virtual machines](docs/on-premises-infrastructure/attachments/pvel-vm-k9s.png)
+
 ## Links
 
 - [Home lab homepage](https://pvel-homepage.worldb.site/)
+	- Cloudflare Tunnel with Google authentication and country-based access restrictions.
 
 ![Home lab homepage](docs/attachments/homepage-screenshot.png)
