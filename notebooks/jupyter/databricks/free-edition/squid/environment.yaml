@@ -1,0 +1,3 @@
+environment_version: "5"
+dependencies:
+  - /Volumes/workspace/default/on_premises_artifacts/python-wheels/squid-test-0.1.0-py3-none-any.whl

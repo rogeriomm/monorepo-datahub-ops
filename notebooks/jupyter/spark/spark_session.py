@@ -23,6 +23,10 @@ from types import MethodType
 spark_matrix = {
     "4.2": {
         "scala": "2.13",
+        "postgres": {
+            "version": "42.7.7",
+            "package": "org.postgresql:postgresql:42.7.7",
+        },
         "kafka": {
             "version": "4.2.0",
             "package": "org.apache.spark:spark-sql-kafka-0-10_2.13:4.2.0",
@@ -30,6 +34,10 @@ spark_matrix = {
     },
     "4.1": {
         "scala": "2.13",
+        "postgres": {
+            "version": "42.7.7",
+            "package": "org.postgresql:postgresql:42.7.7",
+        },
         "kafka": {
             "version": "4.1.3",
             "package": "org.apache.spark:spark-sql-kafka-0-10_2.13:4.1.3",
@@ -56,6 +64,10 @@ spark_matrix = {
     },
     "4.0": {
         "scala": "2.13",
+        "postgres": {
+            "version": "42.7.7",
+            "package": "org.postgresql:postgresql:42.7.7",
+        },
         "kafka": {
             "version": "4.0.0",
             "package": "org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0",
@@ -80,6 +92,10 @@ spark_matrix = {
     },
     "3.5": {
         "scala": "2.12",
+        "postgres": {
+            "version": "42.7.7",
+            "package": "org.postgresql:postgresql:42.7.7",
+        },
         "kafka": {
             "version": "3.5.9",
             "package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.9",
@@ -104,6 +120,10 @@ spark_matrix = {
     },
     "3.4": {
         "scala": "2.12",
+        "postgres": {
+            "version": "42.7.7",
+            "package": "org.postgresql:postgresql:42.7.7",
+        },
         "kafka": {
             "version": "3.4.0",
             "package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0",
@@ -128,6 +148,10 @@ spark_matrix = {
     },
     "3.3": {
         "scala": "2.12",
+        "postgres": {
+            "version": "42.7.7",
+            "package": "org.postgresql:postgresql:42.7.7",
+        },
         "kafka": {
             "version": "3.3.0",
             "package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0",
@@ -152,6 +176,10 @@ spark_matrix = {
     },
     "3.2": {
         "scala": "2.12",
+        "postgres": {
+            "version": "42.7.7",
+            "package": "org.postgresql:postgresql:42.7.7",
+        },
         "kafka": {
             "version": "3.2.0",
             "package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0",
@@ -176,6 +204,10 @@ spark_matrix = {
     },
     "3.1": {
         "scala": "2.12",
+        "postgres": {
+            "version": "42.7.7",
+            "package": "org.postgresql:postgresql:42.7.7",
+        },
         "kafka": {
             "version": "3.1.0",
             "package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.0",
@@ -212,7 +244,10 @@ def get_spark_packages(
     spark_version = spark_version or get_spark_major_minor_version()
     matrix = spark_matrix[spark_version]
     data_format = _normalize_data_format(data_format)
-    packages = [matrix["kafka"]["package"]]
+    packages = [
+        matrix["postgres"]["package"],
+        matrix["kafka"]["package"],
+    ]
 
     if data_format is None:
         return ",".join(packages)
