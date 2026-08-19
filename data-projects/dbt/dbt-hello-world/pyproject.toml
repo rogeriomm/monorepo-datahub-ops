@@ -1,0 +1,14 @@
+[project]
+name = "dbt-hello-world"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dbt-core>=1.12.2",
+    "dbt-databricks>=1.10.9",
+    "dbt-duckdb>=1.11.0",
+    "dbt-postgres>=1.11.0",
+    "dbt-spark>=1.11.0",
+    "dbt-trino>=1.10.3",
+]
