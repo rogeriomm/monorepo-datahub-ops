@@ -33,7 +33,7 @@ uppercase letter. Image and diagram assets use kebab-case. See
 
 ![Home lab on-premises architecture](docs/on-premises-infrastructure/attachments/lab-on-premises-architecture.png)
 
-Host pvel-vm:
+Host pvel-vm, Kubernetes pods:
 
 ![K9s view of the home lab virtual machines](docs/on-premises-infrastructure/attachments/pvel-vm-k9s.png)
 
