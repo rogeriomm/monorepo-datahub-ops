@@ -14,6 +14,10 @@ mise exec java -- sh -c 'java -XshowSettings:properties -version 2>&1 | grep "ja
 ![[Pasted image 20260817123355.png|1054]]
 ![[Pasted image 20260817122844.png|1055]]![[Pasted image 20260817123115.png|1059]]
 
-# Mise
+# Plugin
+## Mise plugin
 Enable **“Use environment variables from mise.”** All packages installed with **mise**, including **Java**, will then be available inside JetBrains.
 ![[Pasted image 20260817155018.png|1062]]
+
+## DBT plugin
+![[Pasted image 20260819171944.png|1064]]

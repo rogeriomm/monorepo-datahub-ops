@@ -1,5 +1,7 @@
-<img src="attachments/lab-on-premises-architecture.png" alt="drawing" width="1000"/>
+# On-premises infrastructure
 
-![[lab-on-premises-architecture.drawio]]
+![On-premises lab architecture](attachments/lab-on-premises-architecture.png)
 
-![[pvel-vm-k9s.png|1016]]
+[Edit the on-premises lab architecture diagram](attachments/lab-on-premises-architecture.drawio).
+
+![K9s virtual machine view in Proxmox VE](attachments/pvel-vm-k9s.png)
