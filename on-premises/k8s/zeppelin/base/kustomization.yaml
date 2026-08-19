@@ -1,7 +1,0 @@
-namespace: zeppelin
-resources:
-  - service-account.yaml
-  - cluster-role.yaml
-  - service.yaml
-  - config-map.yaml
-  - deploy.yaml

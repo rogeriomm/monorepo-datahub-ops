@@ -101,11 +101,6 @@ config:
           - Simple web:
               href: https://worldl-simple-web.worldb.site/
               siteMonitor: https://worldl-simple-web.worldb.site/
-          - Zeppelin:
-              href: https://worldl-zeppelin.worldb.site/
-              icon: si-openzeppelin
-              siteMonitor: https://worldl-zeppelin.worldb.site/
-              description: Apache Zeppelin
           - ArgoCD:
               href: https://worldl-argocd.worldb.site/
               icon: si-argo
@@ -162,11 +157,6 @@ config:
               icon: si-proxmox
               description: Proxmox router N100
               siteMonitor: https://pvel.worldb.site/
-          - Zeppelin:
-              href: https://pvel-zeppelin.worldb.site/
-              siteMonitor: https://pvel-zeppelin.worldb.site/
-              icon: si-openzeppelin
-              description: Apache Zeppelin
           - Firewall:
               href: https://firewall.worldb.site/
               icon: si-opnsense
@@ -221,11 +211,6 @@ config:
               href: https://pve-jupyter-all-spark.worldb.site
               icon: sh-jupyter
               siteMonitor: https://pve-jupyter-all-spark.worldb.site
-          - Zeppelin:
-              href: https://pve-zeppelin.worldb.site/
-              siteMonitor: https://pve-zeppelin.worldb.site/
-              icon: si-openzeppelin
-              description: Apache Zeppelin
 
     - Sample applications:
       - Golang:
