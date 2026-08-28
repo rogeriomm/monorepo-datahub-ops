@@ -4,4 +4,5 @@ version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
     "jupyterlab>=4.6.3",
+    "pympler>=1.1",
 ]
