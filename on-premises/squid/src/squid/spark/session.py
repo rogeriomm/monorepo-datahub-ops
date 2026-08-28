@@ -1,18 +1,21 @@
 import findspark
-import sparkmonitor
+
+import squid.core.main
+from squid.constants import Environment
 
 findspark.init()    
 
 from pyspark import SparkConf, SparkContext
 import pyspark
 
-from typing import Tuple
+from typing import Tuple, Any
 from pyspark.sql import SparkSession
 from pyspark import SparkContext
 
 from pathlib import Path
 
 import os
+import shutil
 import socket
 from html import escape
 from types import MethodType
@@ -70,6 +73,8 @@ spark_matrix = {
             "version": "4.1.0",
             "package": "io.delta:delta-spark_4.1_2.13:4.1.0",
             "extensions": "io.delta.sql.DeltaSparkSessionExtension",
+            "catalog_name": "local",
+            "catalog_id": 1,
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
             },
@@ -78,6 +83,8 @@ spark_matrix = {
             "version": "1.11.0",
             "package": "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0",
             "extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+            "catalog_name": "local",
+            "catalog_id": 2,
             "catalog": {
                 "spark.sql.catalog.local":
                     "org.apache.iceberg.spark.SparkCatalog",
@@ -112,6 +119,8 @@ spark_matrix = {
             "version": "4.0.0",
             "package": "io.delta:delta-spark_2.13:4.0.0",
             "extensions": "io.delta.sql.DeltaSparkSessionExtension",
+            "catalog_name": "local",
+            "catalog_id": "1",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
             },
@@ -120,6 +129,8 @@ spark_matrix = {
             "version": "1.11.0",
             "package": "org.apache.iceberg:iceberg-spark-runtime-4.0_2.13:1.11.0",
             "extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+            "catalog_name": "local",
+            "catalog_id": "2",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog",
                 "spark.sql.catalog.spark_catalog.type": "hive",
@@ -152,6 +163,8 @@ spark_matrix = {
             "version": "3.3.2",
             "package": "io.delta:delta-spark_2.12:3.3.2",
             "extensions": "io.delta.sql.DeltaSparkSessionExtension",
+            "catalog_name": "local",
+            "catalog_id": "1",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
             },
@@ -160,6 +173,8 @@ spark_matrix = {
             "version": "1.11.0",
             "package": "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.11.0",
             "extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+            "catalog_name": "local",
+            "catalog_id": "2",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog",
                 "spark.sql.catalog.spark_catalog.type": "hive",
@@ -192,6 +207,8 @@ spark_matrix = {
             "version": "2.4.0",
             "package": "io.delta:delta-core_2.12:2.4.0",
             "extensions": "io.delta.sql.DeltaSparkSessionExtension",
+            "catalog_name": "local",
+            "catalog_id": "1",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
             },
@@ -200,6 +217,8 @@ spark_matrix = {
             "version": "1.4.3",
             "package": "org.apache.iceberg:iceberg-spark-runtime-3.4_2.12:1.4.3",
             "extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+            "catalog_name": "local",
+            "catalog_id": "2",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog",
                 "spark.sql.catalog.spark_catalog.type": "hive",
@@ -232,6 +251,8 @@ spark_matrix = {
             "version": "2.3.0",
             "package": "io.delta:delta-core_2.12:2.3.0",
             "extensions": "io.delta.sql.DeltaSparkSessionExtension",
+            "catalog_name": "spark_catalog",
+            "catalog_id": "1",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
             },
@@ -240,6 +261,8 @@ spark_matrix = {
             "version": "1.3.1",
             "package": "org.apache.iceberg:iceberg-spark-runtime-3.3_2.12:1.3.1",
             "extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+            "catalog_name": "spark_catalog",
+            "catalog_id": "2",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog",
                 "spark.sql.catalog.spark_catalog.type": "hive",
@@ -272,6 +295,8 @@ spark_matrix = {
             "version": "2.0.2",
             "package": "io.delta:delta-core_2.12:2.0.2",
             "extensions": "io.delta.sql.DeltaSparkSessionExtension",
+            "catalog_name": "spark_catalog",
+            "catalog_id": "1",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
             },
@@ -280,6 +305,8 @@ spark_matrix = {
             "version": "1.1.0",
             "package": "org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:1.1.0",
             "extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+            "catalog_name": "spark_catalog",
+            "catalog_id": "2",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog",
                 "spark.sql.catalog.spark_catalog.type": "hive",
@@ -312,6 +339,8 @@ spark_matrix = {
             "version": "1.0.1",
             "package": "io.delta:delta-core_2.12:1.0.1",
             "extensions": "io.delta.sql.DeltaSparkSessionExtension",
+            "catalog_name": "spark_catalog",
+            "catalog_id": "1",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
             },
@@ -320,6 +349,8 @@ spark_matrix = {
             "version": "0.14.1",
             "package": "org.apache.iceberg:iceberg-spark-runtime-3.1_2.12:0.14.1",
             "extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+            "catalog_name": "spark_catalog",
+            "catalog_id": "2",
             "catalog": {
                 "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog",
                 "spark.sql.catalog.spark_catalog.type": "hive",
@@ -345,7 +376,7 @@ def get_spark_packages(
         #matrix["trino"]["package"], # FIXME: BAD
         matrix["s3"]["package"],
         matrix["avro"]["package"],
-        matrix["kafka"]["package"],
+        matrix["kafka"]["package"]
     ]
 
     if data_format is None:
@@ -380,7 +411,7 @@ def get_spark_sql_extensions(
 def get_spark_catalog_configs(
     spark_version: str | None = None,
     data_format: str | None = None,
-) -> dict[str, str]:
+) -> dict[Any, Any] | dict[str, Any] | dict | dict[str, str] | dict[bytes, bytes]:
     spark_version = spark_version or get_spark_major_minor_version()
     matrix = spark_matrix[spark_version]
     data_format = _normalize_data_format(data_format)
@@ -394,12 +425,14 @@ def get_spark_catalog_configs(
 
     catalog_configs = dict(format_config.get("catalog", {}))
 
-    if data_format == "iceberg" and spark_version == "4.1":
-        catalog_configs["spark.sql.catalog.local.warehouse"] = (
-            f"file://{_get_spark_warehouse_dir(spark_version, data_format)}"
-        )
+    catalog_name = format_config["catalog_name"]
+    catalog_configs[f"spark.sql.catalog.{catalog_name}.warehouse"] = (
+        f"file://{_get_spark_warehouse_dir(spark_version, data_format)}"
+    )
 
-    return catalog_configs
+    catalog_id = format_config["catalog_id"]
+
+    return catalog_configs, catalog_id
 
 
 def _normalize_data_format(data_format: str | None) -> str | None:
@@ -488,13 +521,23 @@ def _get_spark_warehouse_dir(
 ) -> Path:
     return _get_spark_base_dir(_get_jupyter_service_name(), spark_version, data_format) / "warehouse"
 
-
 def _configure_spark_java() -> None:
-    system_java = Path("/usr/bin/java").resolve()
-    if not system_java.is_file():
-        raise FileNotFoundError(f"System Java executable not found: {system_java}")
+    java_home = os.environ.get("JAVA_HOME")
+    if java_home:
+        java_home_path = Path(java_home).expanduser().resolve()
+        if (java_home_path / "bin" / "java").is_file():
+            os.environ["JAVA_HOME"] = str(java_home_path)
+            return
 
-    os.environ["JAVA_HOME"] = str(system_java.parent.parent)
+    java_executable = shutil.which("java")
+    if java_executable is None:
+        raise FileNotFoundError("Java executable not found via JAVA_HOME or PATH")
+
+    java_path = Path(java_executable).resolve()
+    if not java_path.is_file():
+        raise FileNotFoundError(f"Java executable not found: {java_path}")
+
+    os.environ["JAVA_HOME"] = str(java_path.parent.parent)
 
 
 
@@ -532,10 +575,11 @@ def resolve_listener_jar(sparkmonitor_dir: Path) -> Path:
 #   bin/spark-sql --packages io.delta:delta-spark_2.13:4.0.0 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog"
 #
 def get_spark(
-    port_offset: int = 2,
+    port_offset: int | None = None,
     driver_memory: str = "16g",
     executor_memory: str = "8g",
     data_format: str | None = None,
+    profile: str | None = None
 ) -> Tuple[SparkContext, SparkSession]:
     _configure_spark_java()
     spark_version = get_spark_major_minor_version()
@@ -549,9 +593,13 @@ def get_spark(
     )
     spark_packages = get_spark_packages(spark_version, data_format)
     spark_sql_extensions = get_spark_sql_extensions(spark_version, data_format)
-    spark_catalog_configs = get_spark_catalog_configs(spark_version, data_format)
-    spark_ui_port = 4040 + port_offset
+    spark_catalog_configs, catalog_id = get_spark_catalog_configs(spark_version, data_format)
     spark_ui_proxy_url = _get_spark_ui_proxy_url(service_name)
+
+    if port_offset is None:
+        port_offset = catalog_id + 1
+
+    print(f"Port offset: {port_offset}")
 
     print(f"Spark packages: {spark_packages}")
     print(f"Spark extensions: {spark_sql_extensions}")
@@ -562,20 +610,16 @@ def get_spark(
     metastore_db = base_dir / "metastore" / "metastore_db"
     derby_home = base_dir / "metastore" / "derby"
 
-    sparkmonitor_dir = Path(sparkmonitor.__file__).resolve().parent
-    listener_jar = resolve_listener_jar(sparkmonitor_dir)
-
     builder = (
         SparkSession.builder
         .appName("main")
-        .master("local[2]")
+        .master("local[12]")
         .config("spark.driver.bindAddress", "127.0.0.1")
         .config("spark.driver.host", "127.0.0.1")
         .config("spark.driver.port", str(7077 + port_offset))
         .config("spark.blockManager.port", str(7078 + port_offset))
-        .config("spark.ui.port", str(spark_ui_port))
+        .config("spark.ui.port", str(4040 + port_offset))
         .config("spark.ui.bindAddress", "0.0.0.0")
-        .config("spark.ui.proxyRedirectUri", spark_ui_proxy_url)
         .config("spark.port.maxRetries", "0")
         .config("spark.driver.memory", driver_memory)
         .config("spark.executor.memory", executor_memory)
@@ -608,13 +652,22 @@ def get_spark(
         .config("spark.hadoop.fs.s3a.secret.key",      os.environ["AWS_SECRET_ACCESS_KEY"])
         .config("spark.hadoop.fs.s3a.session.token",   os.environ["AWS_SESSION_TOKEN"])        
         .config("spark.hadoop.fs.s3a.endpoint.region", os.environ.get("AWS_REGION", "us-east-1"))
-        # https://github.com/swan-cern/sparkmonitor#example-with-a-manually-specified-listener-jar-path
-        .config(
-            "spark.extraListeners",
-            "sparkmonitor.listener.JupyterSparkMonitorListener",
-        )
-        .config("spark.driver.extraClassPath", str(listener_jar))
     )
+    if squid.core.main.env != Environment.DEBUG:
+        import sparkmonitor
+
+        sparkmonitor_dir = Path(sparkmonitor.__file__).resolve().parent
+        listener_jar = resolve_listener_jar(sparkmonitor_dir)
+        builder = (
+            builder
+            .config("spark.ui.proxyRedirectUri", spark_ui_proxy_url)
+            # https://github.com/swan-cern/sparkmonitor#example-with-a-manually-specified-listener-jar-path
+            .config(
+                "spark.extraListeners",
+                "sparkmonitor.listener.JupyterSparkMonitorListener",
+            )
+            .config("spark.driver.extraClassPath", str(listener_jar))
+        )
 
     if spark_packages:
         builder = builder.config("spark.jars.packages", spark_packages)
