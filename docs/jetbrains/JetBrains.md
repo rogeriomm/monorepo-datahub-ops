@@ -43,3 +43,7 @@ Enable **Use environment variables from mise**. All packages installed with
 Configure the path to the `dbt` executable for the project:
 
 ![JetBrains dbt plugin settings with the dbt executable configured](attachments/dbt-plugin-settings.png)
+
+# Data Sources
+## DuckDB
+![[Pasted image 20260820114704.png]]
