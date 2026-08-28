@@ -1,0 +1,4 @@
+*.db
+*.db.wal
+*.log
+*/*/dev.duckdb

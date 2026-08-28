@@ -1,0 +1,21 @@
+[project]
+name = "nyc-gov"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "dbt-athena>=1.11.0",
+    "dbt-core>=1.12.3",
+    "dbt-duckdb>=1.11.0",
+    "dbt-glue>=1.12.3",
+    "dbt-spark>=1.11.0",
+    "dbt-trino>=1.10.3",
+    "findspark>=2.0.1",
+    "jupyterlab>=4.6.3",
+    "pyspark==4.1",
+    "rich>=15.0.0",
+    "sparkmonitor>=3.3.0",
+    "squid-local",
+]
+
+[tool.uv.sources]
+squid-local = { path = "../../on-premises/squid", editable = true }

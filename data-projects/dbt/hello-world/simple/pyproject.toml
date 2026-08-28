@@ -1,5 +1,5 @@
 [project]
-name = "dbt-hello-world"
+name = "dbt-hello-simple"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"

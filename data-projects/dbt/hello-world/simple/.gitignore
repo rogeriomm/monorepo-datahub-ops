@@ -1,0 +1,4 @@
+*.log
+*.db
+dev.duckdb
+.user.yml

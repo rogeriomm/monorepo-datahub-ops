@@ -1,0 +1,22 @@
+version: 2
+
+sources:
+  - name: car
+    schema: main
+    tables:
+      - name: maker
+        description: "Car makers stored in the configured DuckDB database"
+
+models:
+  - name: car_makers
+    description: "A materialized list of car makers"
+    columns:
+      - name: id
+        description: "The car maker identifier"
+        data_tests:
+          - unique
+          - not_null
+      - name: maker
+        description: "The car maker name"
+        data_tests:
+          - not_null

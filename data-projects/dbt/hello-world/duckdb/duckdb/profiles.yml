@@ -1,0 +1,7 @@
+duckdb:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../../hello-world.db
+      threads: 1
