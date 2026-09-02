@@ -29,6 +29,7 @@ services:
       - jupyter_spark_glue_5
       - kafka
       - seaweedfs
+      - superset
       - trino
       - zeppelin_0_12_1
     restart: unless-stopped
@@ -277,6 +278,40 @@ services:
       - traefik.http.routers.airflow-2-11.rule=Host(`airflow-2-11.localhost`)
       - traefik.http.routers.airflow-2-11.entrypoints=web
       - traefik.http.services.airflow-2-11.loadbalancer.server.port=8080
+    networks:
+      - frontend
+      - backend
+
+  # https://superset.apache.org/admin-docs/installation/docker-compose/
+  superset:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    image: apache/superset:${SUPERSET_VERSION:-6.1.0}
+    container_name: superset
+    profiles:
+      - superset
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /app/docker/docker-init.sh
+        exec /usr/bin/run-server.sh
+    environment:
+      ADMIN_PASSWORD: "${SUPERSET_ADMIN_PASSWORD:-admin}"
+      SUPERSET_LOAD_EXAMPLES: "${SUPERSET_LOAD_EXAMPLES:-no}"
+      SUPERSET_SECRET_KEY: "${SUPERSET_SECRET_KEY:-superset-local-development-secret-key-change-me}"
+    volumes:
+      - superset-data:/app/superset_home
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=devcontainer_frontend
+      - traefik.http.routers.superset.rule=Host(`superset.localhost`)
+      - traefik.http.routers.superset.entrypoints=web
+      - traefik.http.services.superset.loadbalancer.server.port=8088
     networks:
       - frontend
       - backend
@@ -1004,6 +1039,7 @@ volumes:
   postgres-data:
   seaweedfs-data:
   ssh-tunnel-config:
+  superset-data:
 
 # https://docs.docker.com/compose/how-tos/networking/
 networks:
