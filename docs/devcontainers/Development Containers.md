@@ -5,12 +5,15 @@
 - [Start a development container](#start-a-development-container)
   - [Using terminal](#using-terminal)
   - [Using Visual Studio Code](#using-visual-studio-code)
+- [Docker](#docker)
 - [Traefik reverse proxy](#traefik-reverse-proxy)
 - [Jupyter notebooks](#jupyter-notebooks)
 - [AWS CLI](#aws-cli)
 - [Zeppelin notebooks](#zeppelin-notebooks)
 - [Airflow](#airflow)
+- [Superset](#superset)
 - [Local S3 object store](#local-s3-object-store)
+  - [Cleaning the S3 object store](#cleaning-the-s3-object-store)
 - [PostgreSQL](#postgresql)
   - [Debugging](#debugging)
   - [Cleaning the database](#cleaning-the-database)
@@ -47,20 +50,23 @@ devpod up . --ide none
 devpod up . --ide vscode
 ```
 
-![DevPod development container in Visual Studio Code](attachments/Pasted%20image%2020260729112911.png)
-
+![DevPod development container in Visual Studio Code](attachments/devpod-vscode.png)
 
 ## Docker
-The Docker socket is mounted inside the container using the following configuration in `docker-compose.yml`:
+
+The Docker socket is mounted inside the development container by the
+repository's
+[`docker-compose.yaml`](../../on-premises/docker/docker-compose.yaml):
+
 ```yaml
 - /var/run/docker.sock:/var/run/docker.sock
 ```
 
-This allows the container to communicate with and use the **host's Docker Engine**.
+This allows the development container to use the host's Docker Engine.
 
-To verify access:
+Verify access from inside the development container:
 
-```
+```shell
 docker ps -a
 ```
 
@@ -90,6 +96,35 @@ docker compose -f on-premises/docker/docker-compose.yaml exec airflow-3.3 \
   cat /opt/airflow/simple_auth_manager_passwords.json.generated
 ```
 
+## Superset
+
+Superset is defined in the repository's
+[`docker-compose.yaml`](../../on-premises/docker/docker-compose.yaml) under the
+`superset` profile. It initializes its metadata database in the persistent
+`devcontainer_superset-data` volume.
+
+> [!WARNING]
+> The default administrator credentials are `admin` / `admin`. Set
+> `SUPERSET_ADMIN_PASSWORD` and `SUPERSET_SECRET_KEY` in
+> `on-premises/docker/.env` before using the service outside an isolated local
+> environment.
+
+Generate a secret key with:
+
+```shell
+openssl rand -base64 42
+```
+
+Start Superset and Traefik from the repository root:
+
+```shell
+docker compose -f on-premises/docker/docker-compose.yaml \
+  --profile superset up -d traefik superset
+```
+
+Open [Superset](http://superset.localhost:8080/) in a browser. If
+`TRAEFIK_HTTP_PORT` is configured, replace `8080` with that value.
+
 ## Local S3 object store
 
 The direct SeaweedFS S3 endpoint requires TLS. Its development CA certificate
@@ -97,28 +132,32 @@ is generated at `on-premises/docker/seaweedfs/certificates/ca.crt` when the serv
 first starts.
 
 Use the AWS CLI to connect directly:
+
 ```shell
-export AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret 
+export AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret
 export AWS_CA_BUNDLE=on-premises/docker/seaweedfs/certificates/ca.crt
 export AWS_REGION=us-east-1
 ```
 
- - Create a bucket
+Create a bucket:
+
 ```shell
 aws --endpoint-url https://localhost:8333 \
   s3 mb s3://my-bucket
 ```
 
- - Remove a bucket
- ```shell
+Remove a bucket:
+
+```shell
 aws --endpoint-url https://localhost:8333 \
   s3 rm s3://my-bucket
- ```
- - List buckets
+```
+
+List buckets:
+
 ```shell
 aws --endpoint-url https://localhost:8333 s3 ls
 ```
-
 
 Or connect through Traefik:
 
@@ -126,7 +165,7 @@ Or connect through Traefik:
 aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
 ```
 
-![SeaweedFS S3 buckets listed by the AWS CLI](attachments/Pasted%20image%2020260805164131.png)
+![SeaweedFS S3 buckets listed by the AWS CLI](attachments/seaweedfs-s3-aws-cli.png)
 
 [S3 hello world notebook](../../notebooks/jupyter/s3/s3-hello-world.ipynb)
 
@@ -163,9 +202,9 @@ docker compose logs postgres -f
 
 Example using Databricks Free Edition and on-premises public endpoint:
 
-![Databricks Free Edition connection using an on-premises public endpoint](attachments/Pasted%20image%2020260805104218.png)
+![Databricks Free Edition connection using an on-premises public endpoint](attachments/databricks-postgres-public-endpoint.png)
 
-![Databricks Free Edition connection details](attachments/Pasted%20image%2020260805104318.png)
+![Databricks Free Edition connection details](attachments/databricks-postgres-connection-details.png)
 
 ### Cleaning the database
 
@@ -180,21 +219,21 @@ default:
 
 ```shell
 export PGPORT="${POSTGRES_PORT:-5432}"
-export PGSSLMODE=verify-full \
-export PGSSLROOTCERT=on-premises/docker/postgres/certificates/ca.crt \
-export PGSSLCERT=on-premises/docker/postgres/certificates/client.crt \
+export PGSSLMODE=verify-full
+export PGSSLROOTCERT=on-premises/docker/postgres/certificates/ca.crt
+export PGSSLCERT=on-premises/docker/postgres/certificates/client.crt
 export PGSSLKEY=on-premises/docker/postgres/certificates/client.key
 ```
 
 ```shell
 psql \
   --host=localhost \
-  --port=$PGPORT \
+  --port="$PGPORT" \
   --username=postgres \
   --dbname=postgres
 ```
 
-![PostgreSQL host connection](attachments/Pasted%20image%2020260805103317.png)
+![PostgreSQL host connection](attachments/postgres-host-connection.png)
 
 ### Connect from another container
 
@@ -231,11 +270,11 @@ psql \
   --dbname=postgres
 ```
 
-- [PostgreSQL hello world notebook](../../notebooks/jupyter/postgres/postgres-hello-world.ipynb)
+- [PostgreSQL CLI hello world notebook](../../notebooks/jupyter/postgres/postgres-cli-hello-world.ipynb)
 
 ### pgAdmin 4
 
-![PostgreSQL connection configured in pgAdmin 4](attachments/Pasted%20image%2020260804162938.png)
+![PostgreSQL connection configured in pgAdmin 4](attachments/pgadmin-postgres-connection.png)
 
 ## Kafka
 
@@ -276,7 +315,7 @@ docker compose -f on-premises/docker/docker-compose.yaml \
 > an [SSH tunnel](https://en.wikipedia.org/wiki/Tunneling_protocol) is the only
 > available option for this type of private-network access.
 
-```ssh
+```shell
 ssh -p 9023 \
   -i ~/.ssh/id_ed25519_databricks_free \
   -o BatchMode=yes \
@@ -320,9 +359,9 @@ Log in as the `administrator` user on the host:
 aws login --profile administrator
 ```
 
-![AWS CLI browser login](attachments/Pasted%20image%2020260729100251.png)
+![AWS CLI browser login](attachments/aws-cli-browser-login.png)
 
-![AWS CLI login confirmation](attachments/Pasted%20image%2020260729095857.png)
+![AWS CLI login confirmation](attachments/aws-cli-login-confirmation.png)
 
 Verify the authenticated identity:
 
@@ -330,7 +369,7 @@ Verify the authenticated identity:
 aws sts get-caller-identity --profile administrator | jq
 ```
 
-![AWS identity returned by the CLI](attachments/Pasted%20image%2020260729100657.png)
+![AWS identity returned by the CLI](attachments/aws-cli-identity.png)
 
 List the available S3 buckets:
 
@@ -338,7 +377,7 @@ List the available S3 buckets:
 aws s3 ls --profile administrator
 ```
 
-![S3 buckets returned by the CLI](attachments/Pasted%20image%2020260729100605.png)
+![S3 buckets returned by the CLI](attachments/aws-cli-s3-buckets.png)
 
 Start the development container:
 
@@ -348,7 +387,8 @@ devpod up . --ide none
 ssh monorepo-datahub-ops-private.devpod
 ```
 
-Inside the development container, unset the AWS environment variables that override the selected profile:
+Inside the development container, unset the AWS environment variables that
+override the selected profile:
 
 ```shell
 unset AWS_ACCESS_KEY_ID AWS_CONFIG_FILE AWS_REGION AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_CA_BUNDLE
@@ -360,11 +400,11 @@ Then verify the authenticated AWS identity:
 aws sts get-caller-identity --profile administrator | jq
 ```
 
-![AWS identity returned inside the development container](attachments/Pasted%20image%2020260729104847.png)
+![AWS identity returned inside the development container](attachments/aws-cli-devcontainer-identity.png)
 
 Using Visual Studio Code:
 
-![AWS identity verification in the development container](attachments/Pasted%20image%2020260729112809.png)
+![AWS identity verification in the development container](attachments/aws-cli-vscode-identity.png)
 
 ## Databricks
 
@@ -386,7 +426,7 @@ Using Visual Studio Code:
 - Kafka
   - [Kafka UI](http://kafka-ui.localhost:8080)
 - Zeppelin
-  - [Zeppelin 0.12.1](http://zeppelin-0.12.1.localhost:8080)
+  - [Zeppelin 0.12.1](http://zeppelin.localhost:8080)
 - S3 object storage
   - [SeaweedFS master](http://seaweedfs-master.localhost:8080)
   - [SeaweedFS filer](http://seaweedfs-filer.localhost:8080)
@@ -394,8 +434,9 @@ Using Visual Studio Code:
 - Airflow
   - [Airflow 3.3](http://airflow-3-3.localhost:8080/)
   - [Airflow 2.11](http://airflow-2-11.localhost:8080/)
-- Trino
-  - [Trino dashboard](http://trino.localhost:8080/ui)
+- Data presentation
+  - [Superset](http://superset.localhost:8080/)
+    - Default local credentials: `admin` / `admin`
 
 ## References
 
