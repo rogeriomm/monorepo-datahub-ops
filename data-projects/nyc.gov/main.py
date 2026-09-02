@@ -12,27 +12,7 @@ import subprocess
 import squid
 from squid.spark.session import get_spark
 from ingest import ingest
-
-def run(cmd:str):
-    print(f"Command: {cmd}")
-    result = subprocess.run(
-        cmd,
-        shell=True,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    print(result.stdout)
-    return result.stdout
-
-def show_spark_config(names: list[str]):
-    for name in names:
-        value = spark.conf.get(name)
-        print(f"{name}: {value}")
-
-def sql(query: str):
-    df = spark.sql(query)
-    df.show(truncate=False)
+from common import show_spark_config, sql, run
 
 run("echo $HOME")
 run("echo $PATH")
@@ -43,7 +23,7 @@ sc, spark = get_spark(data_format = "iceberg")
 
 spark.sparkContext.setLogLevel("ERROR")
 
-show_spark_config([
+show_spark_config(spark, [
     "spark.sql.extensions",
     "spark.sql.warehouse.dir",
     "spark.sql.shuffle.partitions",
@@ -63,10 +43,10 @@ print(f"{spark.sparkContext.uiWebUrl}")
 spark.sql("CREATE NAMESPACE IF NOT EXISTS local.default")
 spark.sql("USE local.default")
 
-sql("SHOW NAMESPACES")
-sql("SHOW CATALOGS")
-sql("SHOW DATABASES")
-sql("SHOW TABLES")
+sql(spark, "SHOW NAMESPACES")
+sql(spark, "SHOW CATALOGS")
+sql(spark, "SHOW DATABASES")
+sql(spark, "SHOW TABLES")
 
 df = ingest(spark)
 
@@ -80,7 +60,7 @@ df.createOrReplaceTempView("property_master_temp")
 df.printSchema()
 df.show(truncate=False)
 
-sql("SELECT COUNT(*) FROM property_master_temp")
+sql(spark, "SELECT COUNT(*) FROM property_master_temp")
 
 # Save as a managed Iceberg table.
 table_name = "nyc_property_master"
@@ -94,16 +74,16 @@ spark.sql("USE local.default")
     .createOrReplace()
 )
 
-sql("DESCRIBE TABLE local.default.nyc_property_master.files")
+sql(spark, "DESCRIBE TABLE local.default.nyc_property_master.files")
 
-sql(""" SELECT record_count, file_size_in_bytes, content_size_in_bytes, file_format, *
+sql(spark, """ SELECT record_count, file_size_in_bytes, content_size_in_bytes, file_format, *
 --   | Catalog | Namespace table | Iceberg metadata table |
 FROM local.default.nyc_property_master.files """)
 
-sql("SHOW NAMESPACES")
-sql("SHOW CATALOGS")
-sql("SHOW DATABASES")
-sql("SHOW TABLES")
+sql(spark, "SHOW NAMESPACES")
+sql(spark, "SHOW CATALOGS")
+sql(spark, "SHOW DATABASES")
+sql(spark, "SHOW TABLES")
 
 print("END")
 

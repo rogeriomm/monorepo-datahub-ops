@@ -1,0 +1,16 @@
+seeds:
+  - name: country_codes
+    config:
+      column_types:
+        country_code: varchar(2)
+        country_name: varchar(400)
+  - name: popular_names_by_country_2026
+    config:
+      column_types:
+        country_code: varchar(2)
+        country_name: varchar(400)
+        type: varchar(15)
+        rank: int
+        name: varchar(15)
+        name_id: varchar(15)
+        gender: char
