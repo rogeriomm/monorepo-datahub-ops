@@ -148,9 +148,47 @@ services:
       - backend
       - external
 
+  hive-metastore:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+      seaweedfs-init:
+        condition: service_completed_successfully
+    image: apache/hive:${HIVE_VERSION:-4.2.1}
+    container_name: hive-metastore
+    profiles:
+      - trino
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    environment:
+      AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      DB_DRIVER: derby
+      HIVE_AUX_JARS_PATH: "/opt/hadoop/share/hadoop/tools/lib/hadoop-aws-3.4.1.jar,/opt/hadoop/share/hadoop/tools/lib/bundle-2.24.6.jar"
+      SERVICE_NAME: metastore
+      SERVICE_OPTS: >-
+        -Dmetastore.warehouse.dir=s3a://trino-lakehouse
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/9083'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    volumes:
+      - hive-metastore-data:/opt/hive/data/warehouse
+      - ./hive-metastore/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
+      - ./hive-metastore/core-site.xml:/opt/hive/conf/core-site.xml:ro
+    networks:
+      - backend
+
   trino:
     depends_on:
       startup:
+        condition: service_completed_successfully
+      hive-metastore:
+        condition: service_healthy
+      seaweedfs-init:
         condition: service_completed_successfully
     image: trinodb/trino:latest
     container_name: trino
@@ -173,9 +211,12 @@ services:
       TRINO_CLIENT_NAME: "${TRINO_CLIENT_NAME:-trino-client}"
       TRINO_CLIENT_STORE_PASSWORD: "${TRINO_CLIENT_STORE_PASSWORD:-changeit}"
       TRINO_HOSTNAME: "${TRINO_HOSTNAME:?TRINO_HOSTNAME must be set}"
+      SEAWEEDFS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      SEAWEEDFS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
       TRINO_TLS_STORE_PASSWORD: "${TRINO_TLS_STORE_PASSWORD:-changeit}"
     volumes:
       - ./trino/config.properties:/etc/trino/config.properties:ro
+      - ./trino/catalog:/etc/trino/catalog:ro
       - ./trino/configure-tls.sh:/etc/trino/configure-tls.sh:ro
       - ./trino/certificates:/etc/trino/tls
       - ./Volumes:/Volumes
@@ -287,7 +328,12 @@ services:
     depends_on:
       startup:
         condition: service_completed_successfully
-    image: apache/superset:${SUPERSET_VERSION:-6.1.0}
+    image: local/superset:${SUPERSET_VERSION:-6.1.0}
+    build:
+      context: superset
+      dockerfile: Dockerfile
+      args:
+        SUPERSET_VERSION: "${SUPERSET_VERSION:-6.1.0}"
     container_name: superset
     profiles:
       - superset
@@ -298,14 +344,33 @@ services:
       - /bin/bash
       - -c
       - |
+        set -euo pipefail
+        umask 077
+
+        rm -f /etc/trino/tls/trino-client-key.tmp
+        trap 'rm -f /etc/trino/tls/trino-client-key.tmp' EXIT
+        openssl pkcs12 \
+          -in /etc/trino/tls/trino-client.p12 \
+          -nocerts \
+          -noenc \
+          -passin env:TRINO_CLIENT_STORE_PASSWORD \
+          -out /etc/trino/tls/trino-client-key.tmp
+        chmod 600 /etc/trino/tls/trino-client-key.tmp
+        mv -f \
+          /etc/trino/tls/trino-client-key.tmp \
+          /etc/trino/tls/trino-client-key
+        trap - EXIT
+
         /app/docker/docker-init.sh
         exec /usr/bin/run-server.sh
     environment:
       ADMIN_PASSWORD: "${SUPERSET_ADMIN_PASSWORD:-admin}"
       SUPERSET_LOAD_EXAMPLES: "${SUPERSET_LOAD_EXAMPLES:-no}"
       SUPERSET_SECRET_KEY: "${SUPERSET_SECRET_KEY:-superset-local-development-secret-key-change-me}"
+      TRINO_CLIENT_STORE_PASSWORD: "${TRINO_CLIENT_STORE_PASSWORD:-changeit}"
     volumes:
       - superset-data:/app/superset_home
+      - ./trino/certificates:/etc/trino/tls:rw
     labels:
       - traefik.enable=true
       - traefik.docker.network=devcontainer_frontend
@@ -560,6 +625,8 @@ services:
           /home/jovyan/.local/bin/mise install
         fi
         eval "$(/home/jovyan/.local/bin/mise activate bash)"
+        export JAVA_HOME="$$(dirname "$$(dirname "$$(readlink -f /usr/bin/java)")")"
+        cd ~/work ; mise trust --yes .
         exec start-notebook.py --ServerApp.token=''
 
     volumes:
@@ -987,12 +1054,15 @@ services:
     profiles:
       - seaweedfs
       - s3
+      - trino
     restart: unless-stopped
     security_opt:
       - label=disable
     command: >-
       server -dir=/data -filer -s3 -ip=seaweedfs -ip.bind=0.0.0.0
       -master.volumeSizeLimitMB=1024
+      -s3.port=8334
+      -s3.port.https=8333
       -s3.cert.file=/etc/seaweedfs/tls/server.crt
       -s3.key.file=/etc/seaweedfs/tls/server.key
     ports:
@@ -1004,6 +1074,12 @@ services:
       AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
       AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
       SEAWEEDFS_HOSTNAME: "${SEAWEEDFS_HOSTNAME:?SEAWEEDFS_HOSTNAME must be set}"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8888/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     volumes:
       - seaweedfs-data:/data
       - ./seaweedfs/certificates:/etc/seaweedfs/tls
@@ -1028,12 +1104,33 @@ services:
       - backend
       - tunnel
 
+  seaweedfs-init:
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    image: local/seaweedfs:4.39
+    container_name: seaweedfs-init
+    profiles:
+      - trino
+    security_opt:
+      - label=disable
+    entrypoint:
+      - /bin/sh
+      - -c
+    command:
+      - >-
+        printf 'fs.mkdir /buckets/trino-lakehouse\n' |
+        weed shell -master=seaweedfs:9333 -filer=seaweedfs:8888
+    networks:
+      - backend
+
 secrets:
   GITHUB_TOKEN:
     environment: GITHUB_TOKEN
 
 volumes:
   airflow-2-11-data:
+  hive-metastore-data:
   airflow-data:
   kafka-data:
   postgres-data:

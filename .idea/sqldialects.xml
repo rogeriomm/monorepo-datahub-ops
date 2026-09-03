@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/data-projects/dbt/hello-world/duckdb/duckdb" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/data-projects/dbt/hello-world/simple/simple" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/data-projects/nyc.gov/simple" dialect="GenericSQL" />
+  </component>
+</project>
