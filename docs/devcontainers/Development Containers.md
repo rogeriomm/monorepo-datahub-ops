@@ -98,10 +98,7 @@ docker compose -f on-premises/docker/docker-compose.yaml exec airflow-3.3 \
 
 ## Superset
 
-Superset is defined in the repository's
-[`docker-compose.yaml`](../../on-premises/docker/docker-compose.yaml) under the
-`superset` profile. It initializes its metadata database in the persistent
-`devcontainer_superset-data` volume.
+Superset is defined in the repository's [`docker-compose.yaml`](../../on-premises/docker/docker-compose.yaml) under the `superset` profile. It initializes its metadata database in the persistent `devcontainer_superset-data` volume.
 
 > [!WARNING]
 > The default administrator credentials are `admin` / `admin`. Set
@@ -109,22 +106,30 @@ Superset is defined in the repository's
 > `on-premises/docker/.env` before using the service outside an isolated local
 > environment.
 
-Generate a secret key with:
-
-```shell
-openssl rand -base64 42
-```
 
 Start Superset and Traefik from the repository root:
 
 ```shell
 docker compose -f on-premises/docker/docker-compose.yaml \
-  --profile superset up -d traefik superset
+  --profile superset up -d traefik superset trino
 ```
 
-Open [Superset](http://superset.localhost:8080/) in a browser. If
-`TRAEFIK_HTTP_PORT` is configured, replace `8080` with that value.
+Open [Superset](http://superset.localhost:8080/) in a browser. If `TRAEFIK_HTTP_PORT` is configured, replace `8080` with that value.
 
+ - SQLAlchemy URI
+```text
+trino://trino-client@trino:8443/system
+```
+ - Secure extra
+```text
+{"auth_method":"certificate","auth_params":{"cert":"/etc/trino/tls/trino-client.crt","key":"/etc/trino/tls/trino-client-key"}}
+```
+- Engine parameters
+```text
+{"connect_args":{"verify":"/etc/trino/tls/ca.crt"}}
+```
+
+![[Pasted image 20260903103448.png|813]]![[Pasted image 20260903103540.png|814]]![[Pasted image 20260903103627.png|907]]![[Pasted image 20260903120238.png|805]]
 ## Local S3 object store
 
 The direct SeaweedFS S3 endpoint requires TLS. Its development CA certificate
