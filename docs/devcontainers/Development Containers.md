@@ -116,20 +116,46 @@ docker compose -f on-premises/docker/docker-compose.yaml \
 
 Open [Superset](http://superset.localhost:8080/) in a browser. If `TRAEFIK_HTTP_PORT` is configured, replace `8080` with that value.
 
- - SQLAlchemy URI
+Configure a Trino database connection with the following values.
+
+SQLAlchemy URI:
+
 ```text
 trino://trino-client@trino:8443/system
 ```
- - Secure extra
+
+![Superset Trino connection URI](attachments/superset-trino-connection-uri.png)
+
+On the **Advanced** tab, enter the TLS client certificate settings under
+**Security**.
+
+Secure extra:
+
 ```text
 {"auth_method":"certificate","auth_params":{"cert":"/etc/trino/tls/trino-client.crt","key":"/etc/trino/tls/trino-client-key"}}
 ```
-- Engine parameters
+
+![Superset Trino TLS client certificate settings](attachments/superset-trino-tls-client-certificate.png)
+
+Enter the CA verification setting under **Other**.
+
+Engine parameters:
+
 ```text
 {"connect_args":{"verify":"/etc/trino/tls/ca.crt"}}
 ```
 
-![[Pasted image 20260903103448.png|813]]![[Pasted image 20260903103540.png|814]]![[Pasted image 20260903103627.png|907]]![[Pasted image 20260903120238.png|805]]
+![Superset Trino CA verification setting](attachments/superset-trino-ca-verification.png)
+
+After connecting, use SQL Lab to verify that Superset can query Trino:
+
+```sql
+SELECT *
+FROM information_schema.tables;
+```
+
+![Successful Trino query in Superset SQL Lab](attachments/superset-trino-sql-lab-query.png)
+
 ## Local S3 object store
 
 The direct SeaweedFS S3 endpoint requires TLS. Its development CA certificate
