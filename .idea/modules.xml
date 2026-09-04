@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/dbt-hello-duckdb.iml" filepath="$PROJECT_DIR$/.idea/dbt-hello-duckdb.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/dbt-hello-simple.iml" filepath="$PROJECT_DIR$/.idea/dbt-hello-simple.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/docker.iml" filepath="$PROJECT_DIR$/.idea/docker.iml" />
       <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/golang/app-1/golang-app-1.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/golang/app-1/golang-app-1.iml" />
       <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/golang/app-2/golang-app-2.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/golang/app-2/golang-app-2.iml" />
       <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/golang/app-3/golang-app-3.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/golang/app-3/golang-app-3.iml" />
@@ -14,6 +15,9 @@
       <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/rust/app-2/rust-app-2.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/rust/app-2/rust-app-2.iml" />
       <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/rust/app-3/rust-app-3.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/rust/app-3/rust-app-3.iml" />
       <module fileurl="file://$PROJECT_DIR$/on-premises/lang-samples/rust/app-4/rust-app-4.iml" filepath="$PROJECT_DIR$/on-premises/lang-samples/rust/app-4/rust-app-4.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/squid-databricks.iml" filepath="$PROJECT_DIR$/.idea/squid-databricks.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/squid-local.iml" filepath="$PROJECT_DIR$/.idea/squid-local.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/squid-on-premises.iml" filepath="$PROJECT_DIR$/.idea/squid-on-premises.iml" />
       <module fileurl="file://$PROJECT_DIR$/notebooks/zeppelin/zeppelin-notebooks.iml" filepath="$PROJECT_DIR$/notebooks/zeppelin/zeppelin-notebooks.iml" />
     </modules>
   </component>
