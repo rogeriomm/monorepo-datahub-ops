@@ -370,6 +370,7 @@ services:
       TRINO_CLIENT_STORE_PASSWORD: "${TRINO_CLIENT_STORE_PASSWORD:-changeit}"
     volumes:
       - superset-data:/app/superset_home
+      - ./superset/assets:/app/superset-assets
       - ./trino/certificates:/etc/trino/tls:rw
     labels:
       - traefik.enable=true
