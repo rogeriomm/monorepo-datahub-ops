@@ -5,6 +5,5 @@
       <excludeFolder url="file://$MODULE_DIR$/data-projects/nyc.gov/.venv" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="squid-local" exported="" />
   </component>
 </module>

@@ -190,7 +190,7 @@ services:
         condition: service_healthy
       seaweedfs-init:
         condition: service_completed_successfully
-    image: trinodb/trino:latest
+    image: trinodb/trino:483
     container_name: trino
     profiles:
       - trino
@@ -562,6 +562,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
       - AWS_REGION=${AWS_REGION:-}
+      - SEAWEEDFS_ACCESS_KEY_ID=${SEAWEEDFS_ACCESS_KEY_ID:-admin}
+      - SEAWEEDFS_SECRET_ACCESS_KEY=${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}
       - DATABRICKS_AUTH_STORAGE=plaintext
       - AWS_CONFIG_FILE=/home/jovyan/.aws/config
       - AWS_LOGIN_CACHE_DIRECTORY=/home/jovyan/.aws/login/cache
