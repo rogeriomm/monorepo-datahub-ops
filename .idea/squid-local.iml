@@ -3,6 +3,7 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$/on-premises/squid">
       <sourceFolder url="file://$MODULE_DIR$/on-premises/squid/src" />
+      <excludeFolder url="file://$MODULE_DIR$/on-premises/squid/.venv" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

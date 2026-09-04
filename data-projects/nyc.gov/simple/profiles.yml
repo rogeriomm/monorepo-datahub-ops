@@ -5,3 +5,16 @@ simple:
       type: duckdb
       path: ../../hello-world.db
       threads: 1
+    prod:
+      type: trino
+      method: certificate
+      host: localhost
+      port: 8443
+      user: trino-client
+      database: iceberg
+      schema: nyc_gov
+      cert: false
+      suppress_cert_warning: true
+      client_certificate: ../../../on-premises/docker/trino/certificates/trino-client.crt
+      client_private_key: ../../../on-premises/docker/trino/certificates/trino-client-key
+      threads: 1
