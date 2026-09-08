@@ -154,7 +154,13 @@ services:
         condition: service_completed_successfully
       seaweedfs-init:
         condition: service_completed_successfully
-    image: apache/hive:${HIVE_VERSION:-4.2.1}
+      hive-postgres-init:
+        condition: service_completed_successfully
+    build:
+      context: hive-metastore
+      args:
+        HIVE_VERSION: "${HIVE_VERSION:-4.2.1}"
+    image: local/hive-metastore:${HIVE_VERSION:-4.2.1}
     container_name: hive-metastore
     profiles:
       - trino
@@ -164,7 +170,8 @@ services:
     environment:
       AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
       AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
-      DB_DRIVER: derby
+      DB_DRIVER: postgres
+      HIVE_CUSTOM_CONF_DIR: /etc/hive/postgres/conf
       HIVE_AUX_JARS_PATH: "/opt/hadoop/share/hadoop/tools/lib/hadoop-aws-3.4.1.jar,/opt/hadoop/share/hadoop/tools/lib/bundle-2.24.6.jar"
       SERVICE_NAME: metastore
       SERVICE_OPTS: >-
@@ -177,8 +184,32 @@ services:
       start_period: 30s
     volumes:
       - hive-metastore-data:/opt/hive/data/warehouse
+      - hive-postgres-config:/etc/hive/postgres:ro
       - ./hive-metastore/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
-      - ./hive-metastore/core-site.xml:/opt/hive/conf/core-site.xml:ro
+      # Hive renders its own configuration from this template on every start.
+      - ./hive-metastore/core-site.xml:/opt/hive/conf/core-site.xml.template:ro
+    networks:
+      - backend
+
+  hive-postgres-init:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    image: postgres:18
+    profiles:
+      - trino
+    security_opt:
+      - label=disable
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+      POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES_MTLS_ENABLED: "${POSTGRES_MTLS_ENABLED:-true}"
+    entrypoint: ["/bin/bash", "/init-postgres.sh"]
+    volumes:
+      - ./hive-metastore/init-postgres.sh:/init-postgres.sh:ro
+      - ./postgres/certificates:/etc/postgresql/tls:ro
+      - hive-postgres-config:/etc/hive/postgres
     networks:
       - backend
 
@@ -426,6 +457,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
       - AWS_REGION=${AWS_REGION:-}
+      - SEAWEEDFS_ACCESS_KEY_ID=${SEAWEEDFS_ACCESS_KEY_ID:-admin}
+      - SEAWEEDFS_SECRET_ACCESS_KEY=${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}
       - DATABRICKS_AUTH_STORAGE=plaintext
       - AWS_CONFIG_FILE=/home/jovyan/.aws/config
       - AWS_LOGIN_CACHE_DIRECTORY=/home/jovyan/.aws/login/cache
@@ -683,6 +716,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
       - AWS_REGION=${AWS_REGION:-}
+      - SEAWEEDFS_ACCESS_KEY_ID=${SEAWEEDFS_ACCESS_KEY_ID:-admin}
+      - SEAWEEDFS_SECRET_ACCESS_KEY=${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}
       - DATABRICKS_AUTH_STORAGE=plaintext
       - AWS_CONFIG_FILE=/home/jovyan/.aws/config
       - AWS_LOGIN_CACHE_DIRECTORY=/home/jovyan/.aws/login/cache
@@ -881,6 +916,8 @@ services:
     container_name: postgres
     profiles:
       - postgres
+      - trino
+      - cdc
     restart: unless-stopped
     security_opt:
       - label=disable
@@ -913,6 +950,12 @@ services:
       - ssl_min_protocol_version=TLSv1.2
       - -c
       - hba_file=/var/run/postgresql/tls/pg_hba.conf
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=10
+      - -c
+      - max_wal_senders=10
     healthcheck:
       test:
         - CMD-SHELL
@@ -958,6 +1001,8 @@ services:
     container_name: kafka-4
     profiles:
       - kafka
+      - postgres
+      - cdc
     restart: unless-stopped
     security_opt:
       - label=disable
@@ -1012,6 +1057,106 @@ services:
       tunnel:
         aliases:
           - kafka-4-tunnel
+
+  debezium-postgres-init:
+    image: postgres:18
+    profiles:
+      - postgres
+      - cdc
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - label=disable
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+      POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES_MTLS_ENABLED: "${POSTGRES_MTLS_ENABLED:-true}"
+      DEBEZIUM_SCHEMA: "${DEBEZIUM_SCHEMA:-public}"
+    entrypoint: ["/bin/bash", "/init-postgres.sh"]
+    volumes:
+      - ./debezium/init-postgres.sh:/init-postgres.sh:ro
+      - ./postgres/certificates:/etc/postgresql/tls:ro
+      - debezium-postgres-config:/etc/debezium/postgres
+    networks:
+      - backend
+
+  debezium:
+    image: quay.io/debezium/connect:3.3.2.Final
+    container_name: debezium
+    profiles:
+      - postgres
+      - cdc
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    depends_on:
+      kafka-4:
+        condition: service_healthy
+      debezium-postgres-init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:${DEBEZIUM_PORT:-8083}:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka-4-backend:29092
+      GROUP_ID: compose-debezium
+      CONFIG_STORAGE_TOPIC: _debezium_configs
+      OFFSET_STORAGE_TOPIC: _debezium_offsets
+      STATUS_STORAGE_TOPIC: _debezium_status
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_PARTITIONS: 1
+      CONNECT_STATUS_STORAGE_PARTITIONS: 1
+      OFFSET_FLUSH_INTERVAL_MS: 1000
+      REST_HOST_NAME: 0.0.0.0
+      ADVERTISED_HOST_NAME: debezium
+      CONNECT_SECURITY_PROTOCOL: SSL
+      CONNECT_SSL_TRUSTSTORE_LOCATION: /etc/kafka/tls/kafka.truststore.p12
+      CONNECT_SSL_TRUSTSTORE_PASSWORD: "${KAFKA_TLS_STORE_PASSWORD:-changeit}"
+      CONNECT_SSL_TRUSTSTORE_TYPE: PKCS12
+      CONNECT_PRODUCER_SECURITY_PROTOCOL: SSL
+      CONNECT_PRODUCER_SSL_TRUSTSTORE_LOCATION: /etc/kafka/tls/kafka.truststore.p12
+      CONNECT_PRODUCER_SSL_TRUSTSTORE_PASSWORD: "${KAFKA_TLS_STORE_PASSWORD:-changeit}"
+      CONNECT_PRODUCER_SSL_TRUSTSTORE_TYPE: PKCS12
+      CONNECT_CONFIG_PROVIDERS: file,env
+      CONNECT_CONFIG_PROVIDERS_FILE_CLASS: org.apache.kafka.common.config.provider.FileConfigProvider
+      CONNECT_CONFIG_PROVIDERS_FILE_PARAM_ALLOWED_PATHS: /etc/debezium/postgres/credentials.properties
+      CONNECT_CONFIG_PROVIDERS_ENV_CLASS: org.apache.kafka.common.config.provider.EnvVarConfigProvider
+      CONNECT_CONFIG_PROVIDERS_ENV_PARAM_ALLOWLIST_PATTERN: POSTGRES_DB|DEBEZIUM_SCHEMA|DEBEZIUM_TOPIC_PREFIX
+      POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      DEBEZIUM_SCHEMA: "${DEBEZIUM_SCHEMA:-public}"
+      DEBEZIUM_TOPIC_PREFIX: "${DEBEZIUM_TOPIC_PREFIX:-postgres}"
+    volumes:
+      - ./kafka-4/certificates:/etc/kafka/tls:ro
+      - debezium-postgres-config:/etc/debezium/postgres:ro
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8083/connectors"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - backend
+      - frontend
+
+  debezium-register:
+    image: quay.io/debezium/connect:3.3.2.Final
+    profiles:
+      - postgres
+      - cdc
+    depends_on:
+      debezium:
+        condition: service_healthy
+    security_opt:
+      - label=disable
+    entrypoint: ["/bin/bash", "/etc/debezium/register-connector.sh"]
+    volumes:
+      - ./debezium/register-connector.sh:/etc/debezium/register-connector.sh:ro
+      - ./debezium/postgres-connector.json:/etc/debezium/postgres-connector.json:ro
+    networks:
+      - backend
 
   kafka-ui:
     image: ghcr.io/kafbat/kafka-ui:latest
@@ -1132,8 +1277,10 @@ secrets:
     environment: GITHUB_TOKEN
 
 volumes:
+  debezium-postgres-config:
   airflow-2-11-data:
   hive-metastore-data:
+  hive-postgres-config:
   airflow-data:
   kafka-data:
   postgres-data:

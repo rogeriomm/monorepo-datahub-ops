@@ -18,6 +18,35 @@ environment and the shared uv workspace. Deployment package manifests live in
 Both deployment distributions use version `0.1.0` and provide the `squid`
 Python package.
 
+## Spark metastore
+
+`squid.spark.session.get_spark()` uses the Compose Hive Metastore at
+`thrift://hive-metastore:9083` and the shared `s3a://trino-lakehouse` warehouse.
+Iceberg catalogs use this metastore too. Start the service from
+`on-premises/docker` before creating a Spark session:
+
+```shell
+docker compose --profile trino up -d --build hive-metastore
+```
+
+Run Spark on the Compose `backend` network so it can resolve `hive-metastore`
+and `seaweedfs`. Set `HIVE_METASTORE_URI` in the Spark process environment to
+override the metastore address. SeaweedFS credentials come from
+`SEAWEEDFS_ACCESS_KEY_ID` and `SEAWEEDFS_SECRET_ACCESS_KEY`; Compose passes these
+to the Jupyter Spark 3.5, 4.1, and 4.2 services. Storage settings apply only to
+the `trino-lakehouse` bucket, preserving AWS access for other buckets.
+
+Restart the notebook kernel after changing session configuration. Existing local
+Derby metadata and local warehouse files are not migrated automatically.
+
+Spark uses an isolated Hive client downloaded through Maven (4.0.1 for Spark 4,
+3.1.3 for Spark 3). Iceberg additionally loads a checksum-verified Hive 4.0.1
+client from `~/.cache/squid/hive-client`, because Spark's bundled Hive 2.3 client
+calls RPCs removed from the Compose Hive 4.2 server. Spark 3 Iceberg sessions
+also load a compatible Thrift 0.16 library from that cache. The first session requires
+network access to Maven repositories and can take several minutes to resolve
+dependencies. Later sessions reuse the downloaded dependencies.
+
 ## Create the environment
 
 From the repository root:

@@ -17,8 +17,11 @@ from pathlib import Path
 import os
 import shutil
 import socket
+import hashlib
+import tempfile
 from html import escape
 from types import MethodType
+from urllib.request import urlopen
 
 #
 # https://docs.delta.io/releases/
@@ -89,7 +92,7 @@ spark_matrix = {
                 "spark.sql.catalog.local":
                     "org.apache.iceberg.spark.SparkCatalog",
                 "spark.sql.catalog.local.type":
-                    "hadoop",
+                    "hive",
             },
         },
     },
@@ -411,13 +414,13 @@ def get_spark_sql_extensions(
 def get_spark_catalog_configs(
     spark_version: str | None = None,
     data_format: str | None = None,
-) -> dict[Any, Any] | dict[str, Any] | dict | dict[str, str] | dict[bytes, bytes]:
+) -> tuple[dict[str, str], int]:
     spark_version = spark_version or get_spark_major_minor_version()
     matrix = spark_matrix[spark_version]
     data_format = _normalize_data_format(data_format)
 
     if data_format is None:
-        return {}
+        return {}, 0
 
     format_config = matrix.get(data_format.lower())
     if format_config is None:
@@ -425,12 +428,15 @@ def get_spark_catalog_configs(
 
     catalog_configs = dict(format_config.get("catalog", {}))
 
-    catalog_name = format_config["catalog_name"]
-    catalog_configs[f"spark.sql.catalog.{catalog_name}.warehouse"] = (
-        f"file://{_get_spark_warehouse_dir(spark_version, data_format)}"
-    )
+    # Configure the registered catalog (older matrix entries call it "local"
+    # even though they register spark_catalog).
+    for catalog_key in tuple(catalog_configs):
+        if catalog_key.count(".") == 3:
+            catalog_configs[f"{catalog_key}.warehouse"] = "s3a://trino-lakehouse"
+            if data_format == "iceberg":
+                catalog_configs[f"{catalog_key}.uri"] = _get_hive_metastore_uri()
 
-    catalog_id = format_config["catalog_id"]
+    catalog_id = int(format_config["catalog_id"])
 
     return catalog_configs, catalog_id
 
@@ -499,27 +505,58 @@ def _patch_spark_context_repr(spark_context: SparkContext, spark_ui_url: str) ->
     spark_context._repr_html_ = MethodType(_repr_html_override, spark_context)
 
 
-def _get_spark_base_dir(
-    service_name: str,
-    spark_version: str,
-    data_format: str | None,
-) -> Path:
-    return (
-        Path.home()
-        / "work"
-        / "data"
-        / "datalake"
-        / service_name
-        / f"spark-{spark_version}"
-        / (data_format or "none")
-    )
+def _get_hive_metastore_uri() -> str:
+    return os.environ.get("HIVE_METASTORE_URI") or "thrift://hive-metastore:9083"
 
 
-def _get_spark_warehouse_dir(
-    spark_version: str,
-    data_format: str | None,
-) -> Path:
-    return _get_spark_base_dir(_get_jupyter_service_name(), spark_version, data_format) / "warehouse"
+def _resolve_iceberg_hive_client_jars(spark_version: str) -> list[Path]:
+    # Iceberg loads its Hive client from the driver classpath, independently
+    # of Spark's isolated Hive client. Hive 2.3 uses RPCs removed in Hive 4.
+    jars = [
+        _cache_hive_client_jar(
+            "org/apache/hive/hive-standalone-metastore-common/4.0.1/"
+            "hive-standalone-metastore-common-4.0.1.jar",
+            "f74d06e29a18d6a6b215b4e7b0445ef5c8bf7c73d5be4ab7eaed3f185cf000f8",
+        )
+    ]
+    if int(spark_version.split(".")[0]) < 4:
+        # Spark 3 bundles Thrift 0.12, which lacks the transport classes used
+        # by the Hive 4 client. Spark 4 already supplies Thrift 0.16.
+        jars.append(
+            _cache_hive_client_jar(
+                "org/apache/thrift/libthrift/0.16.0/libthrift-0.16.0.jar",
+                "b311ad08f7dc5ba90139910ec8619460914a4a2952f738603f1d7803ffdbe0a8",
+            )
+        )
+    return jars
+
+
+def _cache_hive_client_jar(artifact_path: str, expected_sha256: str) -> Path:
+    jar_name = artifact_path.rsplit("/", 1)[-1]
+    cache_dir = Path.home() / ".cache" / "squid" / "hive-client"
+    jar_path = cache_dir / jar_name
+    if (
+        jar_path.is_file()
+        and hashlib.sha256(jar_path.read_bytes()).hexdigest() == expected_sha256
+    ):
+        return jar_path
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    url = f"https://repo.maven.apache.org/maven2/{artifact_path}"
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=cache_dir, delete=False) as temporary:
+            temporary_path = Path(temporary.name)
+            with urlopen(url, timeout=60) as response:
+                shutil.copyfileobj(response, temporary)
+        if hashlib.sha256(temporary_path.read_bytes()).hexdigest() != expected_sha256:
+            raise RuntimeError(f"Checksum mismatch for {jar_name}")
+        temporary_path.replace(jar_path)
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
+    return jar_path
+
 
 def _configure_spark_java() -> None:
     java_home = os.environ.get("JAVA_HOME")
@@ -572,7 +609,9 @@ def resolve_listener_jar(sparkmonitor_dir: Path) -> Path:
 
 #
 # https://docs.delta.io/quick-start/
-#   bin/spark-sql --packages io.delta:delta-spark_2.13:4.0.0 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog"
+#   bin/spark-sql --packages io.delta:delta-spark_2.13:4.0.0 \
+#        --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" \
+#        --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog"
 #
 def get_spark(
     port_offset: int | None = None,
@@ -595,6 +634,11 @@ def get_spark(
     spark_sql_extensions = get_spark_sql_extensions(spark_version, data_format)
     spark_catalog_configs, catalog_id = get_spark_catalog_configs(spark_version, data_format)
     spark_ui_proxy_url = _get_spark_ui_proxy_url(service_name)
+    driver_classpath = []
+    if data_format == "iceberg":
+        driver_classpath.extend(
+            str(jar) for jar in _resolve_iceberg_hive_client_jars(spark_version)
+        )
 
     if port_offset is None:
         port_offset = catalog_id + 1
@@ -604,11 +648,6 @@ def get_spark(
     print(f"Spark packages: {spark_packages}")
     print(f"Spark extensions: {spark_sql_extensions}")
     print(f"Spark catalog configs: {spark_catalog_configs}")
-
-    base_dir = _get_spark_base_dir(service_name, spark_version, data_format)
-    warehouse_dir = base_dir / "warehouse"
-    metastore_db = base_dir / "metastore" / "metastore_db"
-    derby_home = base_dir / "metastore" / "derby"
 
     builder = (
         SparkSession.builder
@@ -623,41 +662,57 @@ def get_spark(
         .config("spark.port.maxRetries", "0")
         .config("spark.driver.memory", driver_memory)
         .config("spark.executor.memory", executor_memory)
-        ##.config("spark.driver.extraJavaOptions", "-Djava.net.preferIPv4Stack=true")
-            
-        .config("spark.sql.warehouse.dir", warehouse_dir)
+
+        .config("spark.sql.warehouse.dir", "s3a://trino-lakehouse")
+        # Use Spark's supported client shim rather than its bundled Hive 2.3
+        # client. The metastore server remains the Compose Hive 4.2 service.
         .config(
-          "javax.jdo.option.ConnectionURL",
-          f"jdbc:derby:{metastore_db};create=true"
+            "spark.sql.hive.metastore.version",
+            "4.0.1" if int(spark_version.split(".")[0]) >= 4 else "3.1.3",
         )
+        .config("spark.sql.hive.metastore.jars", "maven")
         .config(
-           "spark.driver.extraJavaOptions",
-            f"-Dderby.system.home={derby_home}"
-        )            
+            "spark.hadoop.hive.metastore.uris",
+            _get_hive_metastore_uri(),
+        )
         .enableHiveSupport()            
 
         # AWS S3
-        #.config("spark.hadoop.fs.s3.impl",                       "org.apache.hadoop.fs.s3a.S3AFileSystem")
         .config("spark.hadoop.fs.s3a.impl",                      "org.apache.hadoop.fs.s3a.S3AFileSystem")
         .config("spark.hadoop.fs.s3a.experimental.fadvise",      "random")
         .config("spark.hadoop.fs.s3a.endpoint",                  "https://s3.amazonaws.com")
-        #.config("spark.hadoop.fs.s3a.aws.credentials.provider",  "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider,com.amazonaws.auth.EnvironmentVariableCredentialsProvider,com.amazonaws.auth.InstanceProfileCredentialsProvider")
         .config(
                "spark.hadoop.fs.s3a.aws.credentials.provider",
                "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider"
         )
-        #.config("spark.hadoop.fs.s3n.impl",                      "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
 
-        .config("spark.hadoop.fs.s3a.access.key",      os.environ["AWS_ACCESS_KEY_ID"])
-        .config("spark.hadoop.fs.s3a.secret.key",      os.environ["AWS_SECRET_ACCESS_KEY"])
-        .config("spark.hadoop.fs.s3a.session.token",   os.environ["AWS_SESSION_TOKEN"])        
+        .config("spark.hadoop.fs.s3a.access.key",      os.environ.get("AWS_ACCESS_KEY_ID", ""))
+        .config("spark.hadoop.fs.s3a.secret.key",      os.environ.get("AWS_SECRET_ACCESS_KEY", ""))
+        .config("spark.hadoop.fs.s3a.session.token",   os.environ.get("AWS_SESSION_TOKEN", ""))
         .config("spark.hadoop.fs.s3a.endpoint.region", os.environ.get("AWS_REGION", "us-east-1"))
     )
+
+    # The shared Hive warehouse lives in SeaweedFS. Bucket overrides keep
+    # native AWS credentials and endpoints available for other S3 buckets.
+    warehouse_s3_configs = {
+        "endpoint": "http://seaweedfs:8334",
+        "endpoint.region": "us-east-1",
+        "path.style.access": "true",
+        "connection.ssl.enabled": "false",
+        "aws.credentials.provider": "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider",
+        "access.key": os.environ["SEAWEEDFS_ACCESS_KEY_ID"],
+        "secret.key": os.environ["SEAWEEDFS_SECRET_ACCESS_KEY"],
+    }
+    for config_name, config_value in warehouse_s3_configs.items():
+        builder = builder.config(
+            f"spark.hadoop.fs.s3a.bucket.trino-lakehouse.{config_name}", config_value
+        )
     if squid.core.main.env != Environment.DEBUG:
         import sparkmonitor
 
         sparkmonitor_dir = Path(sparkmonitor.__file__).resolve().parent
         listener_jar = resolve_listener_jar(sparkmonitor_dir)
+        driver_classpath.append(str(listener_jar))
         builder = (
             builder
             .config("spark.ui.proxyRedirectUri", spark_ui_proxy_url)
@@ -666,7 +721,11 @@ def get_spark(
                 "spark.extraListeners",
                 "sparkmonitor.listener.JupyterSparkMonitorListener",
             )
-            .config("spark.driver.extraClassPath", str(listener_jar))
+        )
+
+    if driver_classpath:
+        builder = builder.config(
+            "spark.driver.extraClassPath", os.pathsep.join(driver_classpath)
         )
 
     if spark_packages:
