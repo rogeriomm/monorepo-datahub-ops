@@ -3,7 +3,7 @@ simple:
   outputs:
     dev:
       type: duckdb
-      path: ../../hello-world.db
+      path: ./nyc-gov.db
       threads: 1
     prod:
       type: trino
