@@ -206,6 +206,17 @@ aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
 docker volume rm devcontainer_seaweedfs-data
 ```
 
+
+- https://github.com/seaweedfs/seaweedfs/wiki/S3-Table-Bucket
+	- "SeaweedFS supports **Amazon S3 Tables**, providing a dedicated interface for managing structured datasets. A table bucket holds one table format and declares which when it is created: **Apache Iceberg**, served by the [SeaweedFS Iceberg Catalog](https://github.com/seaweedfs/seaweedfs/wiki/SeaweedFS-Iceberg-Catalog)"
+# Hive metastore
+```sql
+SELECT  "DB_ID", "DESC", "DB_LOCATION_URI", "NAME", "OWNER_NAME",
+		"OWNER_TYPE", "CTLG_NAME", "CREATE_TIME", "DB_MANAGED_LOCATION_URI", 
+        "TYPE", "DATACONNECTOR_NAME", "REMOTE_DBNAME"
+	FROM public."DBS";
+```
+![[Pasted image 20260907100004.png|1730]]
 ## PostgreSQL
 
 PostgreSQL requires mutually authenticated TLS for all TCP connections. A local
