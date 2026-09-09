@@ -14,6 +14,8 @@
 - [Superset](#superset)
 - [Local S3 object store](#local-s3-object-store)
   - [Cleaning the S3 object store](#cleaning-the-s3-object-store)
+- [Hive metastore](#hive-metastore)
+  - [Enable Hive metastore CDC](#enable-hive-metastore-cdc)
 - [PostgreSQL](#postgresql)
   - [Debugging](#debugging)
   - [Cleaning the database](#cleaning-the-database)
@@ -206,17 +208,43 @@ aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
 docker volume rm devcontainer_seaweedfs-data
 ```
 
+SeaweedFS also documents support for
+[Amazon S3 table buckets](https://github.com/seaweedfs/seaweedfs/wiki/S3-Table-Bucket)
+and an
+[Apache Iceberg catalog](https://github.com/seaweedfs/seaweedfs/wiki/SeaweedFS-Iceberg-Catalog).
 
-- https://github.com/seaweedfs/seaweedfs/wiki/S3-Table-Bucket
-	- "SeaweedFS supports **Amazon S3 Tables**, providing a dedicated interface for managing structured datasets. A table bucket holds one table format and declares which when it is created: **Apache Iceberg**, served by the [SeaweedFS Iceberg Catalog](https://github.com/seaweedfs/seaweedfs/wiki/SeaweedFS-Iceberg-Catalog)"
-# Hive metastore
+## Hive metastore
+
+Query the Hive metastore databases directly from PostgreSQL:
+
 ```sql
-SELECT  "DB_ID", "DESC", "DB_LOCATION_URI", "NAME", "OWNER_NAME",
-		"OWNER_TYPE", "CTLG_NAME", "CREATE_TIME", "DB_MANAGED_LOCATION_URI", 
-        "TYPE", "DATACONNECTOR_NAME", "REMOTE_DBNAME"
-	FROM public."DBS";
+SELECT
+  "DB_ID",
+  "DESC",
+  "DB_LOCATION_URI",
+  "NAME",
+  "OWNER_NAME",
+  "OWNER_TYPE",
+  "CTLG_NAME",
+  "CREATE_TIME",
+  "DB_MANAGED_LOCATION_URI",
+  "TYPE",
+  "DATACONNECTOR_NAME",
+  "REMOTE_DBNAME"
+FROM public."DBS";
 ```
-![[Pasted image 20260907100004.png|1730]]
+
+![Hive metastore databases queried in PostgreSQL](attachments/hive-metastore-databases.png)
+
+### Enable Hive metastore CDC
+
+```shell
+cd /workspaces/on-premises/docker/debezium
+./enable-hive-metastore-cdc.sh enable
+```
+
+![Hive metastore CDC topics in Kafka UI](attachments/hive-metastore-cdc-topics.png)
+
 ## PostgreSQL
 
 PostgreSQL requires mutually authenticated TLS for all TCP connections. A local
