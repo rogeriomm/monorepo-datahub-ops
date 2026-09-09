@@ -59,6 +59,7 @@ services:
       - frontend
 
   tools:
+    init: true
     depends_on:
       startup:
         condition: service_completed_successfully
@@ -68,7 +69,6 @@ services:
       args:
         UID: "${UID:-1000}"
         GID: "${GID:-1000}"
-        DOCKER_GID: 960
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
@@ -77,6 +77,9 @@ services:
       - AWS_REGION=${AWS_REGION:-}
     container_name: tool
     restart: unless-stopped
+    post_start:
+      - command: chown root:ubuntu /var/run/docker.sock
+        user: root
     security_opt:
       - label=disable
     ports:
@@ -1036,6 +1039,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
     healthcheck:
       test:
         - CMD-SHELL

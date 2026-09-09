@@ -19,9 +19,14 @@ else
 fi
 
 export DEBEZIUM_SCHEMA=${DEBEZIUM_SCHEMA:-public}
+export DEBEZIUM_PUBLICATION_NAME=${DEBEZIUM_PUBLICATION_NAME:-dbz_compose_publication}
 # One schema name, also used as a quoted literal in the connector's Java regex.
 if [[ ! "${DEBEZIUM_SCHEMA}" =~ ^[a-z_][a-z0-9_]{0,62}$ ]]; then
   echo 'DEBEZIUM_SCHEMA must be a lowercase PostgreSQL schema name' >&2
+  exit 1
+fi
+if [[ ! "${DEBEZIUM_PUBLICATION_NAME}" =~ ^[a-z_][a-z0-9_]{0,62}$ ]]; then
+  echo 'DEBEZIUM_PUBLICATION_NAME must be a lowercase PostgreSQL identifier' >&2
   exit 1
 fi
 
@@ -40,6 +45,7 @@ psql --no-psqlrc --no-password --set=ON_ERROR_STOP=1 <<'SQL'
 \getenv cdc_password DEBEZIUM_DATABASE_PASSWORD
 \getenv cdc_schema DEBEZIUM_SCHEMA
 \getenv cdc_database PGDATABASE
+\getenv cdc_publication DEBEZIUM_PUBLICATION_NAME
 BEGIN;
 DO $$
 BEGIN
@@ -58,10 +64,19 @@ ALTER ROLE debezium LOGIN REPLICATION PASSWORD :'cdc_password';
 GRANT CONNECT ON DATABASE :"cdc_database" TO debezium;
 -- Includes future tables regardless of their owner, without granting writes or RLS bypass.
 GRANT pg_read_all_data TO debezium;
-SELECT format('CREATE PUBLICATION dbz_compose_publication FOR TABLES IN SCHEMA %I', :'cdc_schema')
-WHERE NOT EXISTS (SELECT FROM pg_publication WHERE pubname = 'dbz_compose_publication')
+SELECT format(
+  'CREATE PUBLICATION %I FOR TABLES IN SCHEMA %I',
+  :'cdc_publication', :'cdc_schema'
+)
+WHERE NOT EXISTS (
+  SELECT FROM pg_publication WHERE pubname = :'cdc_publication'
+)
 \gexec
-ALTER PUBLICATION dbz_compose_publication SET TABLES IN SCHEMA :"cdc_schema";
+SELECT format(
+  'ALTER PUBLICATION %I SET TABLES IN SCHEMA %I',
+  :'cdc_publication', :'cdc_schema'
+)
+\gexec
 COMMIT;
 SQL
 

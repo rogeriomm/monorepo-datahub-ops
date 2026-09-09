@@ -19,6 +19,31 @@ Both the connector and its task should report `RUNNING`. The worker health check
 only checks REST availability; `debezium-register` additionally checks task status.
 The REST port is bound to localhost and configurable with `DEBEZIUM_PORT`.
 
+## Enable or disable a database from the tools container
+
+The management scripts run inside the `tools` container, where the repository
+and Docker socket are mounted. From a shell in that container:
+
+```bash
+cd /workspaces/on-premises/docker/debezium
+./enable-postgres-cdc.sh enable DATABASE [SCHEMA]
+./enable-postgres-cdc.sh disable DATABASE [SCHEMA]
+```
+
+`SCHEMA` defaults to `public`. For the Hive Metastore database, use the shorter
+wrapper:
+
+```bash
+./enable-hive-metastore-cdc.sh enable
+./enable-hive-metastore-cdc.sh disable
+```
+
+The scripts use the Docker socket directly, so Compose does not need to resolve
+container-side repository paths. The `postgres`, `kafka-4`, and `debezium`
+containers must already have been created by Compose. A stopped container is
+started automatically. The scripts also locate `jq` through `mise` when it is
+not on `PATH`.
+
 PostgreSQL's `wal_level=logical`, replication slots, and WAL senders are configured
 as server arguments, so existing data volumes work after the service is recreated.
 Applying this configuration for the first time briefly restarts PostgreSQL.
