@@ -80,6 +80,9 @@ services:
     post_start:
       - command: chown root:ubuntu /var/run/docker.sock
         user: root
+      - command: mise trust --yes .
+        user: ubuntu
+        working_dir: /workspaces
     security_opt:
       - label=disable
     ports:
