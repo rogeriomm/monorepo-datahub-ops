@@ -8,6 +8,7 @@
 - [Docker](#docker)
 - [Traefik reverse proxy](#traefik-reverse-proxy)
 - [Jupyter notebooks](#jupyter-notebooks)
+  - [Codex CLI](#codex-cli)
 - [AWS CLI](#aws-cli)
 - [Zeppelin notebooks](#zeppelin-notebooks)
 - [Airflow](#airflow)
@@ -81,6 +82,14 @@ Open the [Traefik dashboard](http://traefik.localhost:8080/dashboard/) to access
 ## Jupyter notebooks
 
 See the [local services](#local-services) for the available Jupyter endpoints.
+
+### Codex CLI
+
+The `jupyter-spark-3.5`, `jupyter-spark-4.1`, and `jupyter-spark-4.2` Docker
+Compose services expose Jupyter AI Model Context Protocol (MCP) servers. Codex
+can use these servers to inspect and run notebooks from the IDE.
+
+![Codex running a Jupyter notebook through an MCP server](attachments/jupyter-ai-mcp-codex.png)
 
 ## AWS CLI
 
