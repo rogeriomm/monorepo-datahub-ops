@@ -1,0 +1,37 @@
+[mcp_servers.jupyter_spark_4_1]
+url = "http://jupyter-spark-4-1.localhost:8080/mcp"
+startup_timeout_sec = 30
+tool_timeout_sec = 300
+
+[mcp_servers.jupyter_spark_4_1.tools.execute_code]
+approval_mode = "approve"
+
+[mcp_servers.jupyter_spark_4_1.tools.unuse_notebook]
+approval_mode = "approve"
+
+[mcp_servers.jupyter_spark_4_1.tools.use_notebook]
+approval_mode = "approve"
+
+[mcp_servers.jupyter_spark_4_1.tools.list_kernels]
+approval_mode = "approve"
+
+[mcp_servers.jupyter_spark_4_1.tools.list_notebooks]
+approval_mode = "approve"
+
+[mcp_servers.jupyter_spark_4_1.tools.notebook_get-selected-cell]
+approval_mode = "approve"
+
+[mcp_servers.jupyter_spark_4_1.tools.list_files]
+approval_mode = "approve"
+
+[mcp_servers.jupyter_spark_4_1.tools.docmanager_open]
+approval_mode = "approve"
+
+[mcp_servers.jupyter_spark_4_1.tools.read_notebook]
+approval_mode = "approve"
+
+[mcp_servers.jupyter_spark_4_1.tools.insert_execute_code_cell]
+approval_mode = "approve"
+
+[mcp_servers.jupyter_spark_4_1.tools.insert_cell]
+approval_mode = "approve"
