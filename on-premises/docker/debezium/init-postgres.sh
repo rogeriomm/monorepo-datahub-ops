@@ -64,6 +64,32 @@ ALTER ROLE debezium LOGIN REPLICATION PASSWORD :'cdc_password';
 GRANT CONNECT ON DATABASE :"cdc_database" TO debezium;
 -- Includes future tables regardless of their owner, without granting writes or RLS bypass.
 GRANT pg_read_all_data TO debezium;
+-- PostgreSQL rejects updates and deletes on published tables that have neither
+-- a primary key nor another replica identity. This is common in Hive metastore
+-- tables such as NEXT_LOCK_ID and WRITE_SET.
+SELECT format(
+  'ALTER TABLE %I.%I REPLICA IDENTITY FULL',
+  n.nspname, c.relname
+)
+FROM pg_class AS c
+JOIN pg_namespace AS n ON n.oid = c.relnamespace
+WHERE n.nspname = :'cdc_schema'
+  AND c.relkind IN ('r', 'p')
+  AND (
+    c.relreplident = 'n'
+    OR (
+      c.relreplident = 'd'
+      AND NOT EXISTS (
+        SELECT
+        FROM pg_index AS i
+        WHERE i.indrelid = c.oid
+          AND i.indisprimary
+          AND i.indisvalid
+      )
+    )
+  )
+ORDER BY n.nspname, c.relname
+\gexec
 SELECT format(
   'CREATE PUBLICATION %I FOR TABLES IN SCHEMA %I',
   :'cdc_publication', :'cdc_schema'

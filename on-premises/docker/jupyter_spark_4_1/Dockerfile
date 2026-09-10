@@ -25,7 +25,18 @@ RUN curl --fail --location \
 
 RUN pip install --no-cache-dir \
     pandas parquet-tools kagglehub contexttimer rich findspark \
-    humanize ipython-autotime sparkmonitor itables aws-sdk-python trino
+    humanize ipython-autotime sparkmonitor itables aws-sdk-python trino \
+    jupyter-mcp-server jupyter-mcp-tools
+
+# Streamable HTTP notifications have no JSON-RPC response body. A 202 status
+# tells MCP clients that the notification was accepted; jupyter-mcp-server
+# currently returns an empty 200 SSE response, which Codex rejects.
+RUN sed --in-place \
+        '/if request_id is None:/,/^[[:space:]]*return$/ s/self\.set_status(200)/self.set_status(202)/' \
+        /opt/conda/lib/python*/site-packages/jupyter_mcp_server/jupyter_extension/handlers.py \
+    && grep --quiet \
+        'self.set_status(202)' \
+        /opt/conda/lib/python*/site-packages/jupyter_mcp_server/jupyter_extension/handlers.py
 
 RUN echo "jovyan ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/jovyan \
   && chmod 0440 /etc/sudoers.d/jovyan

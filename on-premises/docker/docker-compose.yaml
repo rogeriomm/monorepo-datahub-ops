@@ -537,6 +537,8 @@ services:
       - ${HOME}/.aws:/home/jovyan/.aws:ro
       - ${HOME}/.aws/login/cache:/home/jovyan/.aws/login/cache:rw
       - ./Volumes:/Volumes
+      # Maven cache, Spark build
+      - $HOME/.m2:/home/ubuntu/.m2:z
 
     networks:
       - frontend
@@ -613,6 +615,13 @@ services:
 
     restart: unless-stopped
 
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8888/mcp/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
     security_opt:
       - label=disable
 
@@ -669,7 +678,10 @@ services:
         eval "$(/home/jovyan/.local/bin/mise activate bash)"
         export JAVA_HOME="$$(dirname "$$(dirname "$$(readlink -f /usr/bin/java)")")"
         cd ~/work ; mise trust --yes .
-        exec start-notebook.py --ServerApp.token=''
+        exec start-notebook.py --ServerApp.token='' \
+          --ServerApp.disable_check_xsrf=True \
+          --JupyterMCPServerExtensionApp.open_notebook_in_ui=True \
+          --JupyterMCPServerExtensionApp.allowed_jupyter_mcp_tools='notebook_run-all-cells,notebook_get-selected-cell,notebook_select-next,notebook_select-previous,docmanager_open,filebrowser_go-to-path,filebrowser_refresh,filebrowser_toggle-hidden-files,application_toggle-left-area,application_toggle-right-area,application_toggle-presentation-mode,application_set-theme,mainmenu_open-edit,mainmenu_open-file,mainmenu_open-help,documentsearch_start,documentsearch_highlightNext,documentsearch_highlightPrevious'
 
     volumes:
       # Git repository
@@ -689,6 +701,8 @@ services:
       - ${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw
       - ${HOME}/.databricks:/home/jovyan/.databricks:rw
       - ./Volumes:/Volumes
+      # Maven cache, Spark build
+      - $HOME/.m2:/home/ubuntu/.m2:z
 
     networks:
       - frontend
