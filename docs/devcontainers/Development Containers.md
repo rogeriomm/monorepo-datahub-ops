@@ -127,36 +127,19 @@ docker compose -f on-premises/docker/docker-compose.yaml \
 
 Open [Superset](http://superset.localhost:8080/) in a browser. If `TRAEFIK_HTTP_PORT` is configured, replace `8080` with that value.
 
-Configure a Trino database connection with the following values.
+Add the Trino database connection by running the
+[`add-trino-database.py`](../../on-premises/docker/superset/add-trino-database.py)
+script inside the `tools` container:
 
-SQLAlchemy URI:
-
-```text
-trino://trino-client@trino:8443/system
+```shell
+docker compose -f on-premises/docker/docker-compose.yaml exec tools \
+  /workspaces/on-premises/docker/superset/add-trino-database.py
 ```
 
-![Superset Trino connection URI](attachments/superset-trino-connection-uri.png)
-
-On the **Advanced** tab, enter the TLS client certificate settings under
-**Security**.
-
-Secure extra:
-
-```text
-{"auth_method":"certificate","auth_params":{"cert":"/etc/trino/tls/trino-client.crt","key":"/etc/trino/tls/trino-client-key"}}
-```
-
-![Superset Trino TLS client certificate settings](attachments/superset-trino-tls-client-certificate.png)
-
-Enter the CA verification setting under **Other**.
-
-Engine parameters:
-
-```text
-{"connect_args":{"verify":"/etc/trino/tls/ca.crt"}}
-```
-
-![Superset Trino CA verification setting](attachments/superset-trino-ca-verification.png)
+The script uses `admin` / `admin` by default. If the administrator credentials
+differ, pass `SUPERSET_USERNAME` and `SUPERSET_PASSWORD` into the container.
+It tests the Trino connection before adding it and can be run again without
+creating a duplicate.
 
 After connecting, use SQL Lab to verify that Superset can query Trino:
 
