@@ -23,6 +23,7 @@ services:
     container_name: traefik
     profiles:
       - airflow
+      - flink
       - jupyter_spark_3_5
       - jupyter_spark_4_1
       - jupyter_spark_4_2
@@ -277,6 +278,107 @@ services:
     networks:
       - backend
       - external
+
+  # https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/resource-providers/standalone/docker/
+  flink-jobmanager:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+      kafka-4:
+        condition: service_healthy
+      seaweedfs-init:
+        condition: service_completed_successfully
+    image: local/flink:2.1.3-delta-4.4.0
+    build:
+      context: flink
+      dockerfile: Dockerfile
+    container_name: flink-jobmanager
+    profiles:
+      - flink
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command: jobmanager
+    environment:
+      AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      AWS_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_EC2_METADATA_DISABLED: "true"
+      DELTA_TABLE_ROOT: s3://delta-lakehouse
+      HADOOP_CONF_DIR: /opt/flink/conf
+      KAFKA_BOOTSTRAP_SERVERS: kafka-4-backend:29092
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/tls/ca.crt
+      KAFKA_SSL_TRUSTSTORE_TYPE: PEM
+      FLINK_PROPERTIES: |-
+        jobmanager.rpc.address: flink-jobmanager
+        rest.bind-address: 0.0.0.0
+        execution.checkpointing.interval: 10s
+        execution.checkpointing.mode: EXACTLY_ONCE
+        execution.checkpointing.min-pause: 5s
+        state.checkpoints.dir: file:///opt/flink/state/checkpoints
+        state.savepoints.dir: file:///opt/flink/state/savepoints
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/8081'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - flink-state:/opt/flink/state
+      - ./kafka-4/certificates:/etc/kafka/tls:ro
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=devcontainer_frontend
+      - traefik.http.routers.flink.rule=Host(`flink.localhost`)
+      - traefik.http.routers.flink.entrypoints=web
+      - traefik.http.services.flink.loadbalancer.server.port=8081
+    networks:
+      - frontend
+      - backend
+
+  flink-taskmanager:
+    depends_on:
+      flink-jobmanager:
+        condition: service_healthy
+    image: local/flink:2.1.3-delta-4.4.0
+    build:
+      context: flink
+      dockerfile: Dockerfile
+    container_name: flink-taskmanager
+    profiles:
+      - flink
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command: taskmanager
+    environment:
+      AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      AWS_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_EC2_METADATA_DISABLED: "true"
+      DELTA_TABLE_ROOT: s3://delta-lakehouse
+      HADOOP_CONF_DIR: /opt/flink/conf
+      KAFKA_BOOTSTRAP_SERVERS: kafka-4-backend:29092
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/tls/ca.crt
+      KAFKA_SSL_TRUSTSTORE_TYPE: PEM
+      FLINK_PROPERTIES: |-
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 2
+        execution.checkpointing.interval: 10s
+        execution.checkpointing.mode: EXACTLY_ONCE
+        execution.checkpointing.min-pause: 5s
+        state.checkpoints.dir: file:///opt/flink/state/checkpoints
+        state.savepoints.dir: file:///opt/flink/state/savepoints
+    volumes:
+      - flink-state:/opt/flink/state
+      - ./kafka-4/certificates:/etc/kafka/tls:ro
+    networks:
+      - backend
 
   # https://airflow.apache.org/docs/apache-airflow/stable/start.html
   airflow-3.3:
@@ -1023,6 +1125,7 @@ services:
       - kafka
       - postgres
       - cdc
+      - flink
     restart: unless-stopped
     security_opt:
       - label=disable
@@ -1224,6 +1327,7 @@ services:
       - seaweedfs
       - s3
       - trino
+      - flink
     restart: unless-stopped
     security_opt:
       - label=disable
@@ -1281,6 +1385,7 @@ services:
     container_name: seaweedfs-init
     profiles:
       - trino
+      - flink
     security_opt:
       - label=disable
     entrypoint:
@@ -1288,7 +1393,7 @@ services:
       - -c
     command:
       - >-
-        printf 'fs.mkdir /buckets/trino-lakehouse\n' |
+        printf 'fs.mkdir /buckets/trino-lakehouse\nfs.mkdir /buckets/delta-lakehouse\n' |
         weed shell -master=seaweedfs:9333 -filer=seaweedfs:8888
     networks:
       - backend
@@ -1300,6 +1405,7 @@ secrets:
 volumes:
   debezium-postgres-config:
   airflow-2-11-data:
+  flink-state:
   hive-metastore-data:
   hive-postgres-config:
   airflow-data:

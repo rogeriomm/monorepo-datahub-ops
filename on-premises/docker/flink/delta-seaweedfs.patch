@@ -1,0 +1,13 @@
+diff --git a/flink/src/main/java/io/delta/flink/table/AbstractKernelTable.java b/flink/src/main/java/io/delta/flink/table/AbstractKernelTable.java
+index e58e737b3..419166e14 100644
+--- a/flink/src/main/java/io/delta/flink/table/AbstractKernelTable.java
++++ b/flink/src/main/java/io/delta/flink/table/AbstractKernelTable.java
+@@ -527,7 +527,7 @@ public abstract class AbstractKernelTable implements DeltaTable {
+ 
+     conf.set("fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem");
+     conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem");
+-    conf.set("fs.s3a.path.style.access", "false");
++    conf.set("fs.s3a.path.style.access", "true");
+     conf.set("fs.s3.impl.disable.cache", "true");
+     conf.set("fs.s3a.impl.disable.cache", "true");
+ 
