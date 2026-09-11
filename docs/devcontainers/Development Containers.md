@@ -499,6 +499,8 @@ Using Visual Studio Code:
 - Data presentation
   - [Superset](http://superset.localhost:8080/)
     - Default local credentials: `admin` / `admin`
+- Apache Flink
+	- [Flink](http://flink.localhost:8080)
 
 ## References
 
