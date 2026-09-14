@@ -11,12 +11,6 @@
 > [Obsidian](https://obsidian.md/). Some files may contain Obsidian-specific
 > Markdown syntax.
 
-### Documentation file names
-
-Document files under `docs/` use spaces between words and start with an
-uppercase letter. Image and diagram assets use kebab-case. See
-[Documentation conventions](docs/Documents%20Conventions.md) for details.
-
 ## Documentation Sections
 
 - [Development containers](docs/devcontainers/Development%20Containers.md)
