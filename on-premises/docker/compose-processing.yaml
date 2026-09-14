@@ -1,0 +1,260 @@
+services:
+# https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/resource-providers/standalone/docker/
+  flink-state-init:
+    image: local/flink:2.1.3-delta-4.4.0
+    build:
+      context: flink
+      dockerfile: Dockerfile
+    profiles:
+      - flink
+    user: "0:0"
+    entrypoint:
+      - /bin/sh
+      - -c
+    command:
+      - mkdir -p /opt/flink/state/checkpoints /opt/flink/state/savepoints && chown -R 9999:9999 /opt/flink/state
+    volumes:
+      - flink-state:/opt/flink/state
+
+  flink-jobmanager:
+    depends_on:
+      flink-state-init:
+        condition: service_completed_successfully
+      startup:
+        condition: service_completed_successfully
+      kafka-4:
+        condition: service_healthy
+      seaweedfs-init:
+        condition: service_completed_successfully
+    image: local/flink:2.1.3-delta-4.4.0
+    build:
+      context: flink
+      dockerfile: Dockerfile
+    container_name: flink-jobmanager
+    profiles:
+      - flink
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command: jobmanager
+    environment:
+      AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      AWS_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_EC2_METADATA_DISABLED: "true"
+      DELTA_TABLE_ROOT: s3://delta-lakehouse
+      HADOOP_CONF_DIR: /opt/flink/conf
+      KAFKA_BOOTSTRAP_SERVERS: kafka-4-backend:29092
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/tls/ca.crt
+      KAFKA_SSL_TRUSTSTORE_TYPE: PEM
+      FLINK_PROPERTIES: |-
+        jobmanager.rpc.address: flink-jobmanager
+        rest.bind-address: 0.0.0.0
+        execution.checkpointing.interval: 10s
+        execution.checkpointing.mode: EXACTLY_ONCE
+        execution.checkpointing.min-pause: 5s
+        state.checkpoints.dir: file:///opt/flink/state/checkpoints
+        state.savepoints.dir: file:///opt/flink/state/savepoints
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/8081'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - flink-state:/opt/flink/state
+      - ./kafka-4/certificates:/etc/kafka/tls:ro
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=devcontainer_frontend
+      - traefik.http.routers.flink.rule=Host(`flink.localhost`)
+      - traefik.http.routers.flink.entrypoints=web
+      - traefik.http.services.flink.loadbalancer.server.port=8081
+    networks:
+      - frontend
+      - backend
+
+  flink-taskmanager:
+    depends_on:
+      flink-jobmanager:
+        condition: service_healthy
+    image: local/flink:2.1.3-delta-4.4.0
+    build:
+      context: flink
+      dockerfile: Dockerfile
+    container_name: flink-taskmanager
+    profiles:
+      - flink
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command: taskmanager
+    environment:
+      AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      AWS_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_EC2_METADATA_DISABLED: "true"
+      DELTA_TABLE_ROOT: s3://delta-lakehouse
+      HADOOP_CONF_DIR: /opt/flink/conf
+      KAFKA_BOOTSTRAP_SERVERS: kafka-4-backend:29092
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/tls/ca.crt
+      KAFKA_SSL_TRUSTSTORE_TYPE: PEM
+      FLINK_PROPERTIES: |-
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 2
+        execution.checkpointing.interval: 10s
+        execution.checkpointing.mode: EXACTLY_ONCE
+        execution.checkpointing.min-pause: 5s
+        state.checkpoints.dir: file:///opt/flink/state/checkpoints
+        state.savepoints.dir: file:///opt/flink/state/savepoints
+    volumes:
+      - flink-state:/opt/flink/state
+      - ./kafka-4/certificates:/etc/kafka/tls:ro
+    networks:
+      - backend
+
+  # https://airflow.apache.org/docs/apache-airflow/stable/start.html
+  airflow-3.3:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    image: local/airflow:3.3.0
+    build:
+      context: airflow-3.3
+      dockerfile: Dockerfile
+    container_name: airflow-3.3
+    profiles:
+      - airflow
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command: standalone
+    environment:
+      AIRFLOW__API__BASE_URL: "http://airflow-3-3.localhost:${TRAEFIK_HTTP_PORT:-8080}"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - airflow-data:/opt/airflow
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - ../../notebooks/jupyter:/opt/airflow/notebooks:ro
+      - ./Volumes:/Volumes
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.airflow-3-3.rule=Host(`airflow-3-3.localhost`)
+      - traefik.http.routers.airflow-3-3.entrypoints=web
+      - traefik.http.services.airflow-3-3.loadbalancer.server.port=8080
+    networks:
+      - frontend
+      - backend
+
+  airflow-2.11:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    image: local/airflow:2.11.2
+    build:
+      context: airflow-2.11
+      dockerfile: Dockerfile
+    container_name: airflow-2.11
+    profiles:
+      - airflow
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command:
+      - bash
+      - -c
+      - |
+        rm -f /opt/airflow/airflow-webserver.pid
+        exec airflow standalone
+    environment:
+      AIRFLOW__WEBSERVER__BASE_URL: "http://airflow-2-11.localhost:${TRAEFIK_HTTP_PORT:-8080}"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - airflow-2-11-data:/opt/airflow
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - ../../notebooks/jupyter:/opt/airflow/notebooks:ro
+      - ./Volumes:/Volumes
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.airflow-2-11.rule=Host(`airflow-2-11.localhost`)
+      - traefik.http.routers.airflow-2-11.entrypoints=web
+      - traefik.http.services.airflow-2-11.loadbalancer.server.port=8080
+    networks:
+      - frontend
+      - backend
+
+  # https://superset.apache.org/admin-docs/installation/docker-compose/
+  superset:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    image: local/superset:${SUPERSET_VERSION:-6.1.0}
+    build:
+      context: superset
+      dockerfile: Dockerfile
+      args:
+        SUPERSET_VERSION: "${SUPERSET_VERSION:-6.1.0}"
+    container_name: superset
+    profiles:
+      - superset
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -euo pipefail
+        umask 077
+
+        rm -f /etc/trino/tls/trino-client-key.tmp
+        trap 'rm -f /etc/trino/tls/trino-client-key.tmp' EXIT
+        openssl pkcs12 \
+          -in /etc/trino/tls/trino-client.p12 \
+          -nocerts \
+          -noenc \
+          -passin env:TRINO_CLIENT_STORE_PASSWORD \
+          -out /etc/trino/tls/trino-client-key.tmp
+        chmod 600 /etc/trino/tls/trino-client-key.tmp
+        mv -f \
+          /etc/trino/tls/trino-client-key.tmp \
+          /etc/trino/tls/trino-client-key
+        trap - EXIT
+
+        /app/docker/docker-init.sh
+        exec /usr/bin/run-server.sh
+    environment:
+      ADMIN_PASSWORD: "${SUPERSET_ADMIN_PASSWORD:-admin}"
+      SUPERSET_LOAD_EXAMPLES: "${SUPERSET_LOAD_EXAMPLES:-no}"
+      SUPERSET_SECRET_KEY: "${SUPERSET_SECRET_KEY:-superset-local-development-secret-key-change-me}"
+      TRINO_CLIENT_STORE_PASSWORD: "${TRINO_CLIENT_STORE_PASSWORD:-changeit}"
+    volumes:
+      - superset-data:/app/superset_home
+      - ./superset/assets:/app/superset-assets
+      - ./trino/certificates:/etc/trino/tls:rw
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=devcontainer_frontend
+      - traefik.http.routers.superset.rule=Host(`superset.localhost`)
+      - traefik.http.routers.superset.entrypoints=web
+      - traefik.http.services.superset.loadbalancer.server.port=8088
+    networks:
+      - frontend
+      - backend

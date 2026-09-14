@@ -15,8 +15,12 @@ from typing import Any
 # Run this script inside the Compose tools container. These service names and
 # ports are reachable through the shared backend network.
 SUPERSET_URL = "http://superset:8088"
-DATABASE_NAME = "Trino"
-SQLALCHEMY_URI = "trino://trino-client@trino:8443/system"
+TRINO_BASE_URI = "trino://trino-client@trino:8443"
+# Add another display-name/catalog pair here to provision another connection.
+TRINO_DATABASES = {
+    #"Trino Delta": "delta",
+    "Trino System": "system",
+}
 
 ENCRYPTED_EXTRA = {
     "auth_method": "certificate",
@@ -144,28 +148,30 @@ class SupersetClient:
         self.csrf_token = csrf_token
 
 
-def connection_payload() -> dict[str, Any]:
+def connection_payload(database_name: str, catalog: str) -> dict[str, Any]:
     return {
-        "database_name": DATABASE_NAME,
-        "sqlalchemy_uri": SQLALCHEMY_URI,
+        "database_name": database_name,
+        "sqlalchemy_uri": f"{TRINO_BASE_URI}/{catalog}",
         "configuration_method": "sqlalchemy_form",
         "encrypted_extra": json.dumps(ENCRYPTED_EXTRA, separators=(",", ":")),
         "extra": json.dumps(EXTRA, separators=(",", ":")),
     }
 
 
-def main() -> int:
-    username = os.environ.get("SUPERSET_USERNAME", "admin")
-    password = os.environ.get("SUPERSET_PASSWORD", "admin")
+def rison_string(value: str) -> str:
+    escaped_value = value.replace("!", "!!").replace("'", "!'")
+    return f"'{escaped_value}'"
 
-    client = SupersetClient()
-    client.login(username, password)
 
+def add_database(client: SupersetClient, database_name: str, catalog: str) -> None:
     databases = client.request(
         "GET",
         "/api/v1/database/",
         query={
-            "q": f"(filters:!((col:database_name,opr:eq,value:{DATABASE_NAME})))",
+            "q": (
+                "(filters:!((col:database_name,opr:eq,value:"
+                f"{rison_string(database_name)})))"
+            ),
         },
     )
     existing_count = databases.get("count")
@@ -174,11 +180,10 @@ def main() -> int:
             "Superset returned an unexpected database-list response"
         )
     if existing_count > 0:
-        print(f"Superset database connection '{DATABASE_NAME}' already exists.")
-        return 0
+        print(f"Superset database connection '{database_name}' already exists.")
+        return
 
-    client.load_csrf_token()
-    payload = connection_payload()
+    payload = connection_payload(database_name, catalog)
     client.request(
         "POST",
         "/api/v1/database/test_connection/",
@@ -197,11 +202,24 @@ def main() -> int:
     database_id = result.get("id")
     if isinstance(database_id, int):
         print(
-            f"Added Superset database connection '{DATABASE_NAME}' "
+            f"Added Superset database connection '{database_name}' "
             f"with ID {database_id}."
         )
     else:
-        print(f"Added Superset database connection '{DATABASE_NAME}'.")
+        print(f"Added Superset database connection '{database_name}'.")
+
+
+def main() -> int:
+    username = os.environ.get("SUPERSET_USERNAME", "admin")
+    password = os.environ.get("SUPERSET_PASSWORD", "admin")
+
+    client = SupersetClient()
+    client.login(username, password)
+    client.load_csrf_token()
+
+    for database_name, catalog in TRINO_DATABASES.items():
+        add_database(client, database_name, catalog)
+
     return 0
 
 

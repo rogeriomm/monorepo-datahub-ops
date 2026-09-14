@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import shlex
 import sys
 from pathlib import Path
@@ -16,6 +17,7 @@ import warnings
 from itables import show
 
 from IPython.core.magic import register_line_magic, register_cell_magic
+from squid.resources.trino import get_trino
 
 
 # Directories searched, in order, when %run_nb receives a bare file name.
@@ -23,12 +25,17 @@ from IPython.core.magic import register_line_magic, register_cell_magic
 # working directory.
 RUN_NB_PATH: list[str | Path] = [
     "",
-    "/home/jovyan/work/notebooks/jupyter/spark",
+    "/home/jovyan/work/notebooks/jupyter/lib",
 ]
 
 # Prevent SQL result display from collecting an unbounded DataFrame on the
 # Jupyter driver. Override this module-level value if a different limit is needed.
 SQL_DISPLAY_LIMIT = 1000
+
+_TSQL_MAX_COLWIDTH_PREFIX = re.compile(r"^\s*--max-colwidth(?:\s|=|$)")
+_TSQL_MAX_COLWIDTH_OPTION = re.compile(
+    r"^\s*--max-colwidth(?:=(\S+)|\s+(\S+))(?=\s|$)"
+)
 
 
 def _find_notebook(notebook_name: str, search_paths: Sequence[str | Path]) -> str:
@@ -248,6 +255,82 @@ def run_sql(ipython, line: str, cell: str | None = None) -> None:
             raise RuntimeError(context) from error
 
 
+def _parse_tsql_options(line: str) -> tuple[str, int | None, bool]:
+    if not _TSQL_MAX_COLWIDTH_PREFIX.match(line):
+        return line, None, False
+
+    match = _TSQL_MAX_COLWIDTH_OPTION.match(line)
+    if match is None:
+        raise ValueError("--max-colwidth requires 'none' or a non-negative integer")
+
+    value = match.group(1) or match.group(2)
+    assert value is not None
+    if value.casefold() == "none":
+        max_colwidth = None
+    else:
+        try:
+            max_colwidth = int(value)
+        except ValueError:
+            raise ValueError(
+                "--max-colwidth requires 'none' or a non-negative integer"
+            ) from None
+        if max_colwidth < 0:
+            raise ValueError(
+                "--max-colwidth requires 'none' or a non-negative integer"
+            )
+
+    return line[match.end():].lstrip(), max_colwidth, True
+
+
+def run_tsql(ipython, line: str, cell: str | None = None) -> None:
+    """Run one or more SQL statements using a Trino connection.
+
+    Pass ``--max-colwidth none`` or a non-negative integer before the SQL to
+    override pandas' display limit for this invocation.
+    """
+    sql_line, max_colwidth, max_colwidth_is_set = _parse_tsql_options(line)
+    sql = sql_line if cell is None else "\n".join(
+        part for part in (sql_line, cell) if part
+    )
+
+    statements = _split_sql_statements(sql)
+    if not statements:
+        raise ValueError(
+            "Usage: %tsql [--max-colwidth WIDTH|none] SQL-statement "
+            "or %%tsql [--max-colwidth WIDTH|none] followed by SQL"
+        )
+
+    connection = get_trino()
+    try:
+        cursor = connection.cursor()
+        try:
+            statement_count = len(statements)
+            for number, statement in enumerate(statements, start=1):
+                try:
+                    cursor.execute(statement)
+                    rows = cursor.fetchall()
+                    if cursor.description is not None:
+                        columns = [column[0] for column in cursor.description]
+                        result = pd.DataFrame(rows, columns=columns)
+                        if max_colwidth_is_set:
+                            with pd.option_context(
+                                "display.max_colwidth", max_colwidth
+                            ):
+                                display(result)
+                        else:
+                            display(result)
+                except Exception as error:
+                    context = f"Trino SQL statement {number} of {statement_count} failed"
+                    if hasattr(error, "add_note"):
+                        error.add_note(context)
+                        raise
+                    raise RuntimeError(context) from error
+        finally:
+            cursor.close()
+    finally:
+        connection.close()
+
+
 def load_ipython_extension(ipython):
     ipython.register_magic_function(
         lambda line: run_nb(ipython, line),
@@ -258,4 +341,9 @@ def load_ipython_extension(ipython):
         lambda line, cell=None: run_sql(ipython, line, cell),
         magic_kind="line_cell",
         magic_name="sql",
+    )
+    ipython.register_magic_function(
+        lambda line, cell=None: run_tsql(ipython, line, cell),
+        magic_kind="line_cell",
+        magic_name="tsql",
     )

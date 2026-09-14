@@ -1,0 +1,179 @@
+services:
+  startup:
+    image: alpine:latest
+    container_name: startup
+    user: "${HOST_UID:?HOST_UID must be set}:${HOST_GID:?HOST_GID must be set}"
+    security_opt:
+      - label=disable
+    command:
+      - /bin/sh
+      - /usr/local/bin/startup.sh
+    volumes:
+      - ./startup.sh:/usr/local/bin/startup.sh:ro
+      - $HOME:/home/local
+
+  traefik:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    image: traefik:v3.7.6
+    container_name: traefik
+    profiles:
+      - airflow
+      - flink
+      - jupyter_spark_3_5
+      - jupyter_spark_4_1
+      - jupyter_spark_4_2
+      - jupyter_spark_glue_5
+      - kafka
+      - seaweedfs
+      - superset
+      - trino
+      - zeppelin_0_12_1
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command:
+      - --entrypoints.web.address=:80
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.filename=/etc/traefik/dynamic/seaweedfs-tls.yaml
+      - --api.dashboard=true
+    ports:
+      - "${TRAEFIK_HTTP_PORT:-8080}:80"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)
+      - traefik.http.routers.traefik-dashboard.entrypoints=web
+      - traefik.http.routers.traefik-dashboard.service=api@internal
+      - traefik.http.routers.traefik-dashboard-localhost.rule=Host(`localhost`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+      - traefik.http.routers.traefik-dashboard-localhost.entrypoints=web
+      - traefik.http.routers.traefik-dashboard-localhost.service=api@internal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/seaweedfs-tls.yaml:/etc/traefik/dynamic/seaweedfs-tls.yaml:ro
+    networks:
+      - backend
+      - frontend
+
+  tools:
+    init: true
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    build:
+      context: swiss-knife-tools
+      dockerfile: Dockerfile
+      args:
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      - AWS_REGION=${AWS_REGION:-}
+    container_name: tool
+    restart: unless-stopped
+    post_start:
+      - command: chown root:ubuntu /var/run/docker.sock
+        user: root
+      - command: mise trust --yes .
+        user: ubuntu
+        working_dir: /workspaces
+    security_opt:
+      - label=disable
+    ports:
+      # Java debug port
+      - "5005:5005"
+      # SSH server
+      - "9022:22"
+    # mount a local directory
+    volumes:
+      - ../..:/workspaces:cached
+      - $HOME/data:/data:z
+      # SSH configuration
+      - $HOME/.ssh:/home/ubuntu/.ssh:z
+      # Maven cache, Spark build
+      - $HOME/.m2:/home/ubuntu/.m2:z
+      # mise cache
+      - $HOME/.local/share/mise:/home/ubuntu/.local/share/mise:z
+      # TMUX configuration
+      - $HOME/.tmux.conf:/home/ubuntu/.tmux.conf:z
+      - $HOME/.tmux:/home/ubuntu/.tmux:z
+      # Dot config directory
+      - $HOME/.config:/home/ubuntu/.config:z
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Kafka development CA certificate
+      - ./kafka-4/certificates:/etc/kafka/tls:ro
+      # JetBrains crack
+      - /opt/jetbrains/agent.jar:/opt/jetbrains/agent.jar:ro
+      # AWS Cli
+      - ${HOME}/.aws:/home/ubuntu/.aws:ro
+      - ${HOME}/.aws/login/cache:/home/ubuntu/.aws/login/cache:rw
+      - ./Volumes:/Volumes
+    networks:
+      frontend:
+        aliases:
+          - tools-frontend
+      backend:
+        aliases:
+          - tools-backend
+      tunnel:
+        aliases:
+          - tools
+      external:
+
+  ssh-tunnel:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    image: lscr.io/linuxserver/openssh-server:latest
+    container_name: ssh-tunnel
+    profiles:
+      - ssh
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    environment:
+      - PUID=${UID:-1000}
+      - PGID=${GID:-1000}
+      - USER_NAME=tunnel
+      - "PUBLIC_KEY=${SSH_TUNNEL_PUBLIC_KEY:?Set SSH_TUNNEL_PUBLIC_KEY in on-premises/docker/.env}"
+      - PASSWORD_ACCESS=false
+      - SUDO_ACCESS=false
+      - LOG_STDOUT=true
+    ports:
+      - "127.0.0.1:${SSH_TUNNEL_PORT:-9023}:2222"
+    volumes:
+      - ssh-tunnel-config:/config
+    networks:
+      - backend
+      - external
+
+  # https://docs.localstack.cloud/aws/getting-started/installation/
+  localstack:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    container_name: '${LOCALSTACK_DOCKER_NAME:-localstack-main}'
+    profiles:
+      - localstack
+    image: localstack/localstack-pro # required for Pro
+    #ports:
+      #- '127.0.0.1:4566:4566' # LocalStack Gateway
+      #- '127.0.0.1:4510-4559:4510-4559' # external services port range
+      #- '127.0.0.1:443:443' # LocalStack HTTPS Gateway (Pro)
+    environment:
+      # Activate LocalStack for AWS: https://docs.localstack.cloud/getting-started/auth-token/
+      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN:?} # required for Pro
+      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
+      - DEBUG=${DEBUG:-0}
+      - PERSISTENCE=${PERSISTENCE:-0}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+    volumes:
+      - '${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    networks:
+      - backend

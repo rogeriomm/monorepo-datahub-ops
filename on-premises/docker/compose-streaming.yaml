@@ -1,0 +1,284 @@
+services:
+  postgres:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    image: postgres:18
+    container_name: postgres
+    profiles:
+      - postgres
+      - trino
+      - cdc
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    ports:
+      - target: 5432
+        published: "${POSTGRES_PORT:-5432}"
+        host_ip: "${POSTGRES_BIND_ADDRESS:-127.0.0.1}"
+        protocol: tcp
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+      POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES_HOSTNAME: "${POSTGRES_HOSTNAME:-localhost}"
+      POSTGRES_CLIENT_STORE_PASSWORD: "${POSTGRES_CLIENT_STORE_PASSWORD:-changeit}"
+      POSTGRES_MTLS_ENABLED: "${POSTGRES_MTLS_ENABLED:-true}"
+    entrypoint:
+      - /bin/bash
+      - /etc/postgresql/configure-tls.sh
+    command:
+      - postgres
+      - -c
+      - ssl=on
+      - -c
+      - ssl_cert_file=/etc/postgresql/tls/server.crt
+      - -c
+      - ssl_key_file=/var/run/postgresql/tls/server.key
+      - -c
+      - ssl_ca_file=/etc/postgresql/tls/ca.crt
+      - -c
+      - ssl_min_protocol_version=TLSv1.2
+      - -c
+      - hba_file=/var/run/postgresql/tls/pg_hba.conf
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=10
+      - -c
+      - max_wal_senders=10
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          if [ "$${POSTGRES_MTLS_ENABLED}" = "true" ]; then
+            export PGSSLCERT=/etc/postgresql/tls/client.crt;
+            export PGSSLKEY=/var/run/postgresql/tls/client.key;
+          else
+            export PGPASSWORD="$${POSTGRES_PASSWORD}";
+          fi;
+          PGCONNECT_TIMEOUT=5
+          PGSSLMODE=verify-full
+          PGSSLROOTCERT=/etc/postgresql/tls/ca.crt
+          psql
+          --host=postgres
+          --username="$${POSTGRES_USER}"
+          --dbname="$${POSTGRES_DB}"
+          --no-password
+          --tuples-only
+          --command='SELECT 1'
+          | grep -q 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./postgres/configure-tls.sh:/etc/postgresql/configure-tls.sh:ro
+      - ./postgres/certificates:/etc/postgresql/tls
+    networks:
+      - backend
+      - tunnel
+      - external
+
+  kafka-4:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    image: local/kafka:4.1.0
+    build:
+      context: kafka-4
+      dockerfile: Dockerfile
+    container_name: kafka-4
+    profiles:
+      - kafka
+      - postgres
+      - cdc
+      - flink
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    ports:
+      - target: 9092
+        published: "${KAFKA_4_PORT:-9092}"
+        host_ip: "${KAFKA_4_BIND_ADDRESS:-127.0.0.1}"
+        protocol: tcp
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-4:29093
+      KAFKA_LISTENERS: INTERNAL://:29092,SSL://:${KAFKA_4_PORT:-9092},CONTROLLER://:29093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-4-backend:29092,SSL://${KAFKA_HOSTNAME:?KAFKA_HOSTNAME must be set}:${KAFKA_4_PORT:-9092}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:SSL,SSL:SSL,CONTROLLER:SSL
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_HOSTNAME: "${KAFKA_HOSTNAME:?KAFKA_HOSTNAME must be set}"
+      KAFKA_SSL_KEYSTORE_FILENAME: kafka.keystore.p12
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore-password
+      KAFKA_SSL_KEY_CREDENTIALS: key-password
+      KAFKA_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/kafka.truststore.p12
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: "${KAFKA_TLS_STORE_PASSWORD:-changeit}"
+      KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_SSL_CLIENT_AUTH: none
+      KAFKA_SSL_ENABLED_PROTOCOLS: TLSv1.2,TLSv1.3
+      KAFKA_TLS_STORE_PASSWORD: "${KAFKA_TLS_STORE_PASSWORD:-changeit}"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka-4:29092 --command-config /etc/kafka/secrets/client.properties >/dev/null
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+      - ./kafka-4/certificates:/etc/kafka/secrets
+    networks:
+      external:
+        aliases:
+          - kafka-4-external
+      backend:
+        aliases:
+          - kafka-4-backend
+      tunnel:
+        aliases:
+          - kafka-4-tunnel
+
+  debezium-postgres-init:
+    image: postgres:18
+    profiles:
+      - postgres
+      - cdc
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - label=disable
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+      POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES_MTLS_ENABLED: "${POSTGRES_MTLS_ENABLED:-true}"
+      DEBEZIUM_SCHEMA: "${DEBEZIUM_SCHEMA:-public}"
+    entrypoint: ["/bin/bash", "/init-postgres.sh"]
+    volumes:
+      - ./debezium/init-postgres.sh:/init-postgres.sh:ro
+      - ./postgres/certificates:/etc/postgresql/tls:ro
+      - debezium-postgres-config:/etc/debezium/postgres
+    networks:
+      - backend
+
+  debezium:
+    image: quay.io/debezium/connect:3.3.2.Final
+    container_name: debezium
+    profiles:
+      - postgres
+      - cdc
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    depends_on:
+      kafka-4:
+        condition: service_healthy
+      debezium-postgres-init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:${DEBEZIUM_PORT:-8083}:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka-4-backend:29092
+      GROUP_ID: compose-debezium
+      CONFIG_STORAGE_TOPIC: _debezium_configs
+      OFFSET_STORAGE_TOPIC: _debezium_offsets
+      STATUS_STORAGE_TOPIC: _debezium_status
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_PARTITIONS: 1
+      CONNECT_STATUS_STORAGE_PARTITIONS: 1
+      OFFSET_FLUSH_INTERVAL_MS: 1000
+      REST_HOST_NAME: 0.0.0.0
+      ADVERTISED_HOST_NAME: debezium
+      CONNECT_SECURITY_PROTOCOL: SSL
+      CONNECT_SSL_TRUSTSTORE_LOCATION: /etc/kafka/tls/kafka.truststore.p12
+      CONNECT_SSL_TRUSTSTORE_PASSWORD: "${KAFKA_TLS_STORE_PASSWORD:-changeit}"
+      CONNECT_SSL_TRUSTSTORE_TYPE: PKCS12
+      CONNECT_PRODUCER_SECURITY_PROTOCOL: SSL
+      CONNECT_PRODUCER_SSL_TRUSTSTORE_LOCATION: /etc/kafka/tls/kafka.truststore.p12
+      CONNECT_PRODUCER_SSL_TRUSTSTORE_PASSWORD: "${KAFKA_TLS_STORE_PASSWORD:-changeit}"
+      CONNECT_PRODUCER_SSL_TRUSTSTORE_TYPE: PKCS12
+      CONNECT_CONFIG_PROVIDERS: file,env
+      CONNECT_CONFIG_PROVIDERS_FILE_CLASS: org.apache.kafka.common.config.provider.FileConfigProvider
+      CONNECT_CONFIG_PROVIDERS_FILE_PARAM_ALLOWED_PATHS: /etc/debezium/postgres/credentials.properties
+      CONNECT_CONFIG_PROVIDERS_ENV_CLASS: org.apache.kafka.common.config.provider.EnvVarConfigProvider
+      CONNECT_CONFIG_PROVIDERS_ENV_PARAM_ALLOWLIST_PATTERN: POSTGRES_DB|DEBEZIUM_SCHEMA|DEBEZIUM_TOPIC_PREFIX
+      POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      DEBEZIUM_SCHEMA: "${DEBEZIUM_SCHEMA:-public}"
+      DEBEZIUM_TOPIC_PREFIX: "${DEBEZIUM_TOPIC_PREFIX:-postgres}"
+    volumes:
+      - ./kafka-4/certificates:/etc/kafka/tls:ro
+      - debezium-postgres-config:/etc/debezium/postgres:ro
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8083/connectors"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - backend
+      - frontend
+
+  debezium-register:
+    image: quay.io/debezium/connect:3.3.2.Final
+    profiles:
+      - postgres
+      - cdc
+    depends_on:
+      debezium:
+        condition: service_healthy
+    security_opt:
+      - label=disable
+    entrypoint: ["/bin/bash", "/etc/debezium/register-connector.sh"]
+    volumes:
+      - ./debezium/register-connector.sh:/etc/debezium/register-connector.sh:ro
+      - ./debezium/postgres-connector.json:/etc/debezium/postgres-connector.json:ro
+    networks:
+      - backend
+
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    container_name: kafka-ui
+    profiles:
+      - kafka
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+      kafka-4:
+        condition: service_healthy
+    environment:
+      DYNAMIC_CONFIG_ENABLED: "true"
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-4:29092
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SSL
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_LOCATION: /etc/kafka/tls/kafka.truststore.p12
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_PASSWORD: "${KAFKA_TLS_STORE_PASSWORD:-changeit}"
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_TYPE: PKCS12
+    volumes:
+      - ./kafka-4/certificates:/etc/kafka/tls:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.localhost`)
+      - traefik.http.routers.kafka-ui.entrypoints=web
+      - traefik.http.services.kafka-ui.loadbalancer.server.port=8080
+    networks:
+      - frontend
+      - backend

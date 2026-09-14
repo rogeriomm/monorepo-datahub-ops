@@ -1,0 +1,208 @@
+services:
+  hive-metastore:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+      seaweedfs-init:
+        condition: service_completed_successfully
+      hive-postgres-init:
+        condition: service_completed_successfully
+    build:
+      context: hive-metastore
+      args:
+        HIVE_VERSION: "${HIVE_VERSION:-4.2.1}"
+    image: local/hive-metastore:${HIVE_VERSION:-4.2.1}
+    container_name: hive-metastore
+    profiles:
+      - trino
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    environment:
+      AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      DB_DRIVER: postgres
+      HIVE_CUSTOM_CONF_DIR: /etc/hive/postgres/conf
+      HIVE_AUX_JARS_PATH: "/opt/hadoop/share/hadoop/tools/lib/hadoop-aws-3.4.1.jar,/opt/hadoop/share/hadoop/tools/lib/bundle-2.24.6.jar"
+      SERVICE_NAME: metastore
+      SERVICE_OPTS: >-
+        -Dmetastore.warehouse.dir=s3a://trino-lakehouse
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/9083'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    volumes:
+      - hive-metastore-data:/opt/hive/data/warehouse
+      - hive-postgres-config:/etc/hive/postgres:ro
+      - ./hive-metastore/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
+      # Hive renders its own configuration from this template on every start.
+      - ./hive-metastore/core-site.xml:/opt/hive/conf/core-site.xml.template:ro
+    networks:
+      - backend
+
+  hive-postgres-init:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    image: postgres:18
+    profiles:
+      - trino
+    security_opt:
+      - label=disable
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+      POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES_MTLS_ENABLED: "${POSTGRES_MTLS_ENABLED:-true}"
+    entrypoint: ["/bin/bash", "/init-postgres.sh"]
+    volumes:
+      - ./hive-metastore/init-postgres.sh:/init-postgres.sh:ro
+      - ./postgres/certificates:/etc/postgresql/tls:ro
+      - hive-postgres-config:/etc/hive/postgres
+    networks:
+      - backend
+
+  trino:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+      hive-metastore:
+        condition: service_healthy
+      seaweedfs-init:
+        condition: service_completed_successfully
+    image: trinodb/trino:483
+    container_name: trino
+    profiles:
+      - trino
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    entrypoint:
+      - /bin/bash
+      - /etc/trino/configure-tls.sh
+    command:
+      - /usr/lib/trino/bin/run-trino
+    ports:
+      - target: 8443
+        published: "${TRINO_PORT:-8443}"
+        host_ip: "${TRINO_BIND_ADDRESS:-127.0.0.1}"
+        protocol: tcp
+    environment:
+      TRINO_CLIENT_NAME: "${TRINO_CLIENT_NAME:-trino-client}"
+      TRINO_CLIENT_STORE_PASSWORD: "${TRINO_CLIENT_STORE_PASSWORD:-changeit}"
+      TRINO_HOSTNAME: "${TRINO_HOSTNAME:?TRINO_HOSTNAME must be set}"
+      SEAWEEDFS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      SEAWEEDFS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      TRINO_TLS_STORE_PASSWORD: "${TRINO_TLS_STORE_PASSWORD:-changeit}"
+    volumes:
+      - ./trino/config.properties:/etc/trino/config.properties:ro
+      - ./trino/catalog:/etc/trino/catalog:ro
+      - ./trino/configure-tls.sh:/etc/trino/configure-tls.sh:ro
+      - ./trino/certificates:/etc/trino/tls
+      - ./Volumes:/Volumes
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          curl --fail --silent --show-error
+          --cacert /etc/trino/tls/ca.crt
+          --cert-type P12
+          --cert /etc/trino/tls/trino-client.p12
+          --pass "$${TRINO_CLIENT_STORE_PASSWORD}"
+          --resolve "$${TRINO_HOSTNAME}:8443:127.0.0.1"
+          --header "X-Trino-User: $${TRINO_CLIENT_NAME}"
+          "https://$${TRINO_HOSTNAME}:8443/v1/info"
+          | grep -q '"starting":[[:space:]]*false'
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - backend
+      - external
+
+  seaweedfs:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    image: local/seaweedfs:4.39
+    build:
+      context: seaweedfs
+      dockerfile: Dockerfile
+    container_name: seaweedfs
+    profiles:
+      - seaweedfs
+      - s3
+      - trino
+      - flink
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    command: >-
+      server -dir=/data -filer -s3 -ip=seaweedfs -ip.bind=0.0.0.0
+      -master.volumeSizeLimitMB=1024
+      -s3.port=8334
+      -s3.port.https=8333
+      -s3.cert.file=/etc/seaweedfs/tls/server.crt
+      -s3.key.file=/etc/seaweedfs/tls/server.key
+    ports:
+      - target: 8333
+        published: "${SEAWEEDFS_S3_PORT:-8333}"
+        host_ip: "${SEAWEEDFS_BIND_ADDRESS:-0.0.0.0}"
+        protocol: tcp
+    environment:
+      AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      SEAWEEDFS_HOSTNAME: "${SEAWEEDFS_HOSTNAME:?SEAWEEDFS_HOSTNAME must be set}"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8888/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - seaweedfs-data:/data
+      - ./seaweedfs/certificates:/etc/seaweedfs/tls
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.seaweedfs-master.rule=Host(`seaweedfs-master.localhost`)
+      - traefik.http.routers.seaweedfs-master.entrypoints=web
+      - traefik.http.routers.seaweedfs-master.service=seaweedfs-master
+      - traefik.http.services.seaweedfs-master.loadbalancer.server.port=9333
+      - traefik.http.routers.seaweedfs-filer.rule=Host(`seaweedfs-filer.localhost`)
+      - traefik.http.routers.seaweedfs-filer.entrypoints=web
+      - traefik.http.routers.seaweedfs-filer.service=seaweedfs-filer
+      - traefik.http.services.seaweedfs-filer.loadbalancer.server.port=8888
+      - traefik.http.routers.seaweedfs-s3.rule=Host(`seaweedfs-s3.localhost`)
+      - traefik.http.routers.seaweedfs-s3.entrypoints=web
+      - traefik.http.routers.seaweedfs-s3.service=seaweedfs-s3
+      - traefik.http.services.seaweedfs-s3.loadbalancer.server.port=8333
+      - traefik.http.services.seaweedfs-s3.loadbalancer.server.scheme=https
+      - traefik.http.services.seaweedfs-s3.loadbalancer.serversTransport=seaweedfs-s3-tls@file
+    networks:
+      - frontend
+      - backend
+      - tunnel
+
+  seaweedfs-init:
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    image: local/seaweedfs:4.39
+    container_name: seaweedfs-init
+    profiles:
+      - trino
+      - flink
+    security_opt:
+      - label=disable
+    entrypoint:
+      - /bin/sh
+      - -c
+    command:
+      - >-
+        printf 'fs.mkdir /buckets/trino-lakehouse\nfs.mkdir /buckets/delta-lakehouse\n' |
+        weed shell -master=seaweedfs:9333 -filer=seaweedfs:8888
+    networks:
+      - backend
