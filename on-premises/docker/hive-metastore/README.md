@@ -19,6 +19,10 @@ From `on-premises/docker`, after configuring `.env`:
 docker compose --profile trino up -d --build hive-metastore trino
 ```
 
+The `hive-metastore-catalog-init` service creates isolated Hive Metastore
+catalogs for Trino. The `iceberg` catalog uses `s3a://trino-lakehouse`, and the
+`delta` catalog uses `s3a://delta-lakehouse`.
+
 The Hive image includes the PostgreSQL JDBC driver. Hive initializes or upgrades
 its PostgreSQL schema before starting the metastore. Metadata persists in
 `postgres-data`; the existing `hive-metastore-data` warehouse volume is retained.

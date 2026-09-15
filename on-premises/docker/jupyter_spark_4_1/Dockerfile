@@ -2,6 +2,7 @@ ARG BASE_IMAGE=local/jupyter-pyspark-base:4.1.3
 FROM ${BASE_IMAGE}
 
 ARG SCALA_VERSION=2.13.17
+ARG DOCKER_COMPOSE_VERSION=5.5.1
 
 USER root
 
@@ -14,7 +15,23 @@ RUN apt-get update \
         apt-file \
         netcat-openbsd  nmap net-tools inetutils-ping bsdextrautils \
         postgresql-client-16 \
+        docker.io \
     && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    case "$(dpkg --print-architecture)" in \
+      amd64) compose_arch=x86_64; compose_sha256=db1889184726840f75c4f9c001048430d4f25b3be3cb084d3ddd762bc0aed576 ;; \
+      arm64) compose_arch=aarch64; compose_sha256=732e3a84c1a0f67256ce80bc2598a24546b10ca05f9faa97efceb1171ece2ef7 ;; \
+      *) echo "Unsupported Docker Compose architecture: $(dpkg --print-architecture)" >&2; exit 1 ;; \
+    esac; \
+    compose_plugin=/usr/local/lib/docker/cli-plugins/docker-compose; \
+    mkdir -p "$(dirname "${compose_plugin}")"; \
+    curl --fail --silent --show-error --location \
+      "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-${compose_arch}" \
+      --output "${compose_plugin}"; \
+    echo "${compose_sha256} *${compose_plugin}" | sha256sum --check --strict; \
+    chmod +x "${compose_plugin}"; \
+    docker compose version
 
 RUN curl --fail --location \
         https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-linux.gz \

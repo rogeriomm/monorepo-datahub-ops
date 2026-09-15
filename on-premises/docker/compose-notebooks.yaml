@@ -118,6 +118,8 @@ services:
       - ./Volumes:/Volumes
       # Maven cache, Spark build
       - $HOME/.m2:/home/ubuntu/.m2:z
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
 
     networks:
       - frontend
@@ -131,7 +133,7 @@ services:
 
     build:
       #context: "https://github.com/jupyter/docker-stacks.git#main:images/pyspark-notebook"
-      context: "https://github.com/jupyter/docker-stacks.git#26da4ae66471c8b6714150db241f17d61a1e269a:images/pyspark-notebook"
+      context: "https://github.com/jupyter/docker-stacks.git#0109a43002732d20d84ac1179fd816c203b56236:images/pyspark-notebook"
       args:
         spark_version: "4.1.3"
         hadoop_version: "3"
@@ -193,6 +195,16 @@ services:
       - jupyter_spark_4_1
 
     restart: unless-stopped
+
+    group_add:
+      - "${DOCKER_GID:?DOCKER_GID must be set}"
+
+    post_start:
+      - command:
+          - /bin/sh
+          - -c
+          - groupmod -g "$(stat -c '%g' /var/run/docker.sock)" docker
+        user: root
 
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8888/mcp/healthz"]
@@ -282,6 +294,8 @@ services:
       - ./Volumes:/Volumes
       # Maven cache, Spark build
       - $HOME/.m2:/home/jovyan/.m2:z
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
 
     networks:
       - frontend
@@ -396,6 +410,8 @@ services:
       - ${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw
       - ${HOME}/.databricks:/home/jovyan/.databricks:rw
       - ./Volumes:/Volumes
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
 
     networks:
       - frontend
@@ -440,6 +456,8 @@ services:
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
       - ./Volumes:/Volumes
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
     labels:
       - traefik.enable=true
       - traefik.http.routers.jupyter-glue-5.rule=Host(`jupyter-glue-5.localhost`)
@@ -477,6 +495,8 @@ services:
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
       - ./Volumes:/Volumes
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - frontend
       - backend

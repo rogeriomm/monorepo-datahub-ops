@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 import boto3
@@ -13,12 +14,23 @@ from squid.core.main import env, get_chroot_volumes, is_databricks
 if TYPE_CHECKING:
     from databricks.sdk import WorkspaceClient
 
-
 SECRET_SCOPE = "on-premises-integration"
 DEFAULT_REGION = "us-east-1"
 
 certificate_dir = get_chroot_volumes(CERTIFICATE_DIR, "seaweedfs")
+assert certificate_dir is not None
 ca_certificate_path = certificate_dir / "ca.crt"
+
+
+@dataclass(frozen=True)
+class S3Config:
+    """Resolved connection settings shared by Boto3 and command-line clients."""
+
+    endpoint_url: str | None
+    aws_access_key_id: str | None
+    aws_secret_access_key: str | None
+    region_name: str | None
+    verify: bool | str | None
 
 
 def _default_endpoint_url() -> str | None:
@@ -75,7 +87,7 @@ def _resolve_credentials(
     return None, None
 
 
-def get_s3(
+def get_s3_config(
     workspace_client: WorkspaceClient | None = None,
     *,
     endpoint_url: str | None = None,
@@ -83,19 +95,17 @@ def get_s3(
     aws_secret_access_key: str | None = None,
     region_name: str | None = None,
     verify: bool | str | None = None,
-) -> BaseClient:
-    """Return an environment-aware Boto3 S3 client.
+) -> S3Config:
+    """Resolve the environment-aware settings used to connect to S3.
 
     Known local and Databricks environments connect to the project's
     SeaweedFS S3 endpoint. Other environments use native S3 configuration and
-    Boto3's normal credential provider chain. Every setting can be overridden
-    for an additional S3-compatible deployment.
+    the standard AWS credential provider chain. Every setting can be
+    overridden for an additional S3-compatible deployment.
     """
     default_endpoint_url = _default_endpoint_url()
     resolved_endpoint_url = (
-        endpoint_url
-        or os.getenv("SQUID_S3_ENDPOINT_URL")
-        or default_endpoint_url
+        endpoint_url or os.getenv("SQUID_S3_ENDPOINT_URL") or default_endpoint_url
     )
     using_seaweedfs = (
         default_endpoint_url is not None
@@ -112,30 +122,62 @@ def get_s3(
     if resolved_region_name is None and using_seaweedfs:
         resolved_region_name = DEFAULT_REGION
 
+    resolved_verify = verify
+    if (
+        resolved_verify is None
+        and resolved_endpoint_url is not None
+        and using_seaweedfs
+    ):
+        # The current public tunnel presents a certificate for the internal
+        # SeaweedFS names. Match the existing Databricks workaround until that
+        # endpoint has a matching certificate.
+        resolved_verify = False if is_databricks() else str(ca_certificate_path)
+
+    return S3Config(
+        endpoint_url=resolved_endpoint_url,
+        aws_access_key_id=resolved_access_key,
+        aws_secret_access_key=resolved_secret_key,
+        region_name=resolved_region_name,
+        verify=resolved_verify,
+    )
+
+
+def get_s3(
+    workspace_client: WorkspaceClient | None = None,
+    *,
+    endpoint_url: str | None = None,
+    aws_access_key_id: str | None = None,
+    aws_secret_access_key: str | None = None,
+    region_name: str | None = None,
+    verify: bool | str | None = None,
+) -> BaseClient:
+    """Return an environment-aware Boto3 S3 client."""
+    config = get_s3_config(
+        workspace_client,
+        endpoint_url=endpoint_url,
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+        region_name=region_name,
+        verify=verify,
+    )
+
     client_options: dict[str, Any] = {}
-    if resolved_region_name is not None:
-        client_options["region_name"] = resolved_region_name
-
-    if resolved_endpoint_url is not None:
-        client_options["endpoint_url"] = resolved_endpoint_url
+    if config.region_name is not None:
+        client_options["region_name"] = config.region_name
+    if config.endpoint_url is not None:
+        client_options["endpoint_url"] = config.endpoint_url
         client_options["config"] = Config(s3={"addressing_style": "path"})
-        if verify is not None:
-            client_options["verify"] = verify
-        elif using_seaweedfs:
-            # The current public tunnel presents a certificate for the
-            # internal SeaweedFS names. Match the existing Databricks
-            # workaround until that endpoint has a matching certificate.
-            client_options["verify"] = (
-                False if is_databricks() else str(ca_certificate_path)
-            )
-    elif verify is not None:
-        client_options["verify"] = verify
+    if config.verify is not None:
+        client_options["verify"] = config.verify
 
-    if resolved_access_key is not None and resolved_secret_key is not None:
+    if (
+        config.aws_access_key_id is not None
+        and config.aws_secret_access_key is not None
+    ):
         client_options.update(
             {
-                "aws_access_key_id": resolved_access_key,
-                "aws_secret_access_key": resolved_secret_key,
+                "aws_access_key_id": config.aws_access_key_id,
+                "aws_secret_access_key": config.aws_secret_access_key,
             }
         )
 

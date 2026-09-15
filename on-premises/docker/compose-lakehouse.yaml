@@ -64,12 +64,35 @@ services:
     networks:
       - backend
 
+  hive-metastore-catalog-init:
+    depends_on:
+      hive-metastore:
+        condition: service_healthy
+    image: local/hive-metastore:${HIVE_VERSION:-4.2.1}
+    profiles:
+      - trino
+    security_opt:
+      - label=disable
+    environment:
+      DB_DRIVER: postgres
+      HIVE_CUSTOM_CONF_DIR: /etc/hive/postgres/conf
+    entrypoint: ["/bin/bash", "/init-catalogs.sh"]
+    volumes:
+      - hive-postgres-config:/etc/hive/postgres:ro
+      - ./hive-metastore/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
+      - ./hive-metastore/core-site.xml:/opt/hive/conf/core-site.xml:ro
+      - ./hive-metastore/init-catalogs.sh:/init-catalogs.sh:ro
+    networks:
+      - backend
+
   trino:
     depends_on:
       startup:
         condition: service_completed_successfully
       hive-metastore:
         condition: service_healthy
+      hive-metastore-catalog-init:
+        condition: service_completed_successfully
       seaweedfs-init:
         condition: service_completed_successfully
     image: trinodb/trino:483

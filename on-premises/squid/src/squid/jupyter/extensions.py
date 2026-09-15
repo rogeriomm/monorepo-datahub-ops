@@ -17,6 +17,7 @@ import warnings
 from itables import show
 
 from IPython.core.magic import register_line_magic, register_cell_magic
+from squid.jupyter.s3 import run_s3
 from squid.resources.trino import get_trino
 
 
@@ -332,6 +333,11 @@ def run_tsql(ipython, line: str, cell: str | None = None) -> None:
 
 
 def load_ipython_extension(ipython):
+    ipython.register_magic_function(
+        run_s3,
+        magic_kind="line",
+        magic_name="s3",
+    )
     ipython.register_magic_function(
         lambda line: run_nb(ipython, line),
         magic_kind="line",

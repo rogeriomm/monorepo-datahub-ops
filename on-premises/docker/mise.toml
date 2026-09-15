@@ -1,0 +1,34 @@
+[tasks."docker:start:all"]
+description = "Start all required Docker containers"
+run = "docker compose up -d"
+
+[tasks."docker:stop:all"]
+description = "Stop all required Docker containers"
+run = "docker compose down"
+
+[tasks."docker:restart:all"]
+description = "Restart all required Docker containers"
+run = "docker compose down && docker compose up -d"
+
+[tasks."docker:ps"]
+run = "docker compose ps"
+
+[tasks."flink:logs"]
+description = "Display Flink TaskManager logs in follow mode"
+run = "docker compose logs flink-taskmanager --follow"
+
+[tasks."superset:enter"]
+description = "Superset run shell"
+run = "docker compose exec superset /bin/bash"
+
+[tasks."superset:save"]
+description = "Superset save assets"
+run = "./superset-assets-save.sh"
+
+[tasks."tunnel:enter"]
+description = "Tunnel, run shell"
+run = "ssh tunnel@localhost -p 9023 -i ~/.ssh/id_ed25519_databricks_free"
+
+[tasks."tool:enter"]
+description = "Tool, run shell"
+run = "ssh ubuntu@localhost -p 9022"
