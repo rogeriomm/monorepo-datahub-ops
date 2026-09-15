@@ -20,12 +20,14 @@ services:
     container_name: traefik
     profiles:
       - airflow
+      - deepseek_harness
       - flink
       - jupyter_spark_3_5
       - jupyter_spark_4_1
       - jupyter_spark_4_2
       - jupyter_spark_glue_5
       - kafka
+      - pgadmin
       - seaweedfs
       - superset
       - trino

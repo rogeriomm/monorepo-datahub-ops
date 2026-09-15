@@ -2,6 +2,7 @@
 name: devcontainer
 
 include:
+  - compose-deepseek-harness.yaml
   - compose-core.yaml
   - compose-lakehouse.yaml
   - compose-processing.yaml
@@ -13,6 +14,8 @@ secrets:
     environment: GITHUB_TOKEN
 
 volumes:
+  deepseek-harness-home:
+  deepseek-harness-workspace:
   debezium-postgres-config:
   airflow-2-11-data:
   flink-state:
@@ -20,6 +23,7 @@ volumes:
   hive-postgres-config:
   airflow-data:
   kafka-data:
+  pgadmin-data:
   postgres-data:
   seaweedfs-data:
   ssh-tunnel-config:

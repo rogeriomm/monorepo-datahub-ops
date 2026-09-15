@@ -1,0 +1,78 @@
+#
+# DeepSeek Harness is in developer preview and iterating rapidly. THERE WILL BE COMPATIBILITY-BREAKING CHANGES.
+#
+
+services:
+  deepseek-harness:
+    depends_on:
+      startup:
+        condition: service_completed_successfully
+    build:
+      context: https://github.com/runzhliu/deepseek-harness-docker.git#ee5d15e448861b5f754dc1adf402a76d02eb458d
+      args:
+        DSH_VERSION: "${DSH_VERSION:-0.1.6-alpha.1}"
+        IMAGE_VERSION: "${DSH_IMAGE_VERSION:-0.1.6-alpha.1-r1}"
+        IMAGE_REVISION: ee5d15e448861b5f754dc1adf402a76d02eb458d
+        NODE_IMAGE: "${DSH_NODE_IMAGE:-node:24-trixie}"
+        PNPM_VERSION: "${DSH_PNPM_VERSION:-10.15.1}"
+    image: "local/deepseek-harness:${DSH_IMAGE_VERSION:-0.1.6-alpha.1-r1}"
+    container_name: deepseek-harness
+    profiles:
+      - deepseek_harness
+    command:
+      - web
+      - --patch
+      - /opt/deepseek-harness/web.cordis.patch.yml
+      - --no-open
+      - --trusted-host
+      - deepseek-harness.localhost
+    environment:
+      DSH_TELEMETRY_DISABLED: "1"
+      DSH_DESKTOP_ENABLED: "1"
+      DSH_DESKTOP_PUBLIC_PORT: "${DSH_DESKTOP_PORT:-6080}"
+      HOME: /workspace
+    ports:
+      - target: 6080
+        published: "${DSH_DESKTOP_PORT:-6080}"
+        host_ip: 127.0.0.1
+        protocol: tcp
+    volumes:
+      - deepseek-harness-home:/home/node/.dsh
+      - "${DSH_WORKSPACE:-deepseek-harness-workspace}:/workspace"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=512m
+    shm_size: "1gb"
+    cap_drop:
+      - ALL
+    security_opt:
+      - label=disable
+      - no-new-privileges:true
+    pids_limit: 512
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          Promise.all([fetch('http://127.0.0.1:3080/'),
+          fetch('http://127.0.0.1:6080/vnc.html'),
+          fetch('http://127.0.0.1:9222/json/version')])
+          .then(([web, desktop, cdp]) => {
+          if (web.status !== 401 || !desktop.ok || !cdp.ok) process.exit(1) })
+          .catch(() => process.exit(1))
+      interval: 15s
+      timeout: 3s
+      start_period: 20s
+      retries: 3
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=devcontainer_frontend
+      - traefik.http.routers.deepseek-harness.rule=Host(`deepseek-harness.localhost`)
+      - traefik.http.routers.deepseek-harness.entrypoints=web
+      - traefik.http.routers.deepseek-harness.priority=100
+      - traefik.http.routers.deepseek-harness.service=deepseek-harness
+      - traefik.http.services.deepseek-harness.loadbalancer.server.port=3080
+    networks:
+      - frontend
