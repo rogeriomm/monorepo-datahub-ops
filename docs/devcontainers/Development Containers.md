@@ -10,6 +10,7 @@
 - [Jupyter notebooks](#jupyter-notebooks)
   - [Codex CLI](#codex-cli)
   - [Jupyter CLI tools](#jupyter-cli-tools)
+- [DeepSeek Harness](#deepseek-harness)
 - [AWS CLI](#aws-cli)
 - [Zeppelin notebooks](#zeppelin-notebooks)
 - [Airflow](#airflow)
@@ -98,6 +99,51 @@ can use these servers to inspect and run notebooks from the IDE.
 ### Jupyter CLI tools
 
 ![Jupyter CLI tools](attachments/jupyter-cli-tools.png)
+
+## DeepSeek Harness
+
+The `deepseek-harness` service builds the community
+[`deepseek-harness-docker`](https://github.com/runzhliu/deepseek-harness-docker)
+project from the pinned commit
+[`ee5d15e448861b5f754dc1adf402a76d02eb458d`](https://github.com/runzhliu/deepseek-harness-docker/commit/ee5d15e448861b5f754dc1adf402a76d02eb458d).
+The build packages `@deepseek-ai/dsh` version `0.1.6-alpha.1` and stores its
+configuration, credentials, sessions, and browser profile in the persistent
+`devcontainer_deepseek-harness-home` volume.
+
+Start DeepSeek Harness and Traefik from the repository root:
+
+```shell
+docker compose  \
+  --profile deepseek_harness up -d --build deepseek-harness traefik
+```
+
+Read the startup URL containing the one-time launch token:
+
+```shell
+docker compose \
+  logs deepseek-harness
+```
+
+Replace `http://127.0.0.1:3080` in that URL with
+`http://deepseek-harness.localhost:8080`, preserving its `?token=...` query.
+If `TRAEFIK_HTTP_PORT` is configured, replace `8080` with that value. After the
+first token exchange, use [DeepSeek Harness](http://deepseek-harness.localhost:8080/)
+directly.
+
+The embedded Chromium desktop uses
+`http://deepseek-harness.localhost:6080/`. Its noVNC port is published only on
+the host loopback interface. Set `DSH_DESKTOP_PORT` to use another loopback
+port.
+
+By default, `/workspace` uses the persistent
+`devcontainer_deepseek-harness-workspace` volume. To give the Agent access to a
+specific directory, set `DSH_WORKSPACE` in `on-premises/docker/.env` to a path
+writable by UID `1000` before starting the service.
+
+> [!WARNING]
+> DeepSeek Harness can execute commands in its workspace, and the embedded
+> noVNC endpoint does not have separate authentication. Do not change its
+> loopback-only bind address or expose this development service publicly.
 
 ## AWS CLI
 
@@ -358,6 +404,43 @@ psql \
 
 ### pgAdmin 4
 
+The default local administrator credentials are `admin@example.com` / `admin`.
+Override them in `on-premises/docker/.env`:
+
+```dotenv
+PGADMIN_DEFAULT_EMAIL=developer@example.com
+PGADMIN_DEFAULT_PASSWORD=replace-with-a-strong-password
+```
+
+> [!WARNING]
+> Change `PGADMIN_DEFAULT_PASSWORD` before exposing pgAdmin outside an isolated
+> local environment.
+
+Start pgAdmin, PostgreSQL, and Traefik:
+
+```shell
+docker compose -f on-premises/docker/docker-compose.yaml \
+  --profile pgadmin up -d pgadmin traefik
+```
+
+Open [pgAdmin 4](http://pgadmin.localhost:8080/) and sign in with the
+`PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD` values. If
+`TRAEFIK_HTTP_PORT` is configured, replace `8080` in the URL with that value.
+
+Register the PostgreSQL server with these settings:
+
+- **Host name/address:** `postgres`
+- **Port:** `5432`
+- **Maintenance database:** the `POSTGRES_DB` value, or `postgres` by default
+- **Username:** the `POSTGRES_USER` value, or `postgres` by default
+- **SSL mode:** `verify-full`
+
+The container uses the generated CA and client certificate from
+`on-premises/docker/postgres/certificates/`. When
+`POSTGRES_MTLS_ENABLED=false`, enter the `POSTGRES_PASSWORD` value when pgAdmin
+prompts for the database password. When mutual TLS is enabled, PostgreSQL uses
+the client certificate identity.
+
 ![PostgreSQL connection configured in pgAdmin 4](attachments/pgadmin-postgres-connection.png)
 
 ## Kafka
@@ -501,6 +584,8 @@ Using Visual Studio Code:
 
 - Reverse proxy
   - [Traefik administration interface](http://traefik.localhost:8080/dashboard/)
+- AI agent
+  - [DeepSeek Harness](http://deepseek-harness.localhost:8080/)
 - Jupyter
   - [Spark 3.5](http://jupyter-spark-3-5.localhost:8080/lab)
   - [Spark 4.1](http://jupyter-spark-4-1.localhost:8080/lab)
@@ -521,6 +606,9 @@ Using Visual Studio Code:
 - Data presentation
   - [Superset](http://superset.localhost:8080/)
     - Default local credentials: `admin` / `admin`
+- Database administration
+  - [pgAdmin 4](http://pgadmin.localhost:8080/)
+    - Default local credentials: `admin@example.com` / `admin`
 - Apache Flink
   - [Flink](http://flink.localhost:8080)
 
