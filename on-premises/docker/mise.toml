@@ -10,6 +10,23 @@ run = "docker compose down"
 description = "Restart all required Docker containers"
 run = "docker compose down && docker compose up -d"
 
+
+[tasks."docker:build:jupyter_spark_3_5"]
+description = "Build jupyter_spark_3_5"
+run = "docker compose build pyspark-base-3.5 --no-cache && docker compose build jupyter-spark-3.5 --no-cache"
+
+[tasks."docker:build:jupyter-spark-4_1"]
+description = "Build jupyter-spark-4_1"
+run = "docker compose build pyspark-base-4.1 --no-cache && docker compose build jupyter-spark-4.1 --no-cache"
+
+[tasks."docker:build:jupyter-spark-4_2"]
+description = "Build jupyter-spark-4_2"
+run = "docker compose build pyspark-base-4.2 --no-cache && docker compose build jupyter-spark-4.2 --no-cache"
+
+[tasks."docker:build:hive-metastore"]
+description = "Build hive metastore"
+run = "docker compose build hive-metastore --no-cache"
+
 [tasks."docker:ps"]
 run = "docker compose ps"
 

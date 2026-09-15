@@ -2,6 +2,7 @@ ARG BASE_IMAGE=local/jupyter-pyspark-base:4.1.3
 FROM ${BASE_IMAGE}
 
 ARG SCALA_VERSION=2.13.17
+ARG COURSIER_VERSION=2.1.25-M26
 ARG DOCKER_COMPOSE_VERSION=5.5.1
 
 USER root
@@ -33,12 +34,20 @@ RUN set -eux; \
     chmod +x "${compose_plugin}"; \
     docker compose version
 
-RUN curl --fail --location \
-        https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-linux.gz \
-        --output /tmp/cs.gz \
-    && gzip --decompress /tmp/cs.gz \
-    && install -m 0755 /tmp/cs /usr/local/bin/cs \
-    && rm -f /tmp/cs
+RUN set -eux; \
+    case "$(dpkg --print-architecture)" in \
+      amd64) coursier_arch=x86_64; coursier_sha256=017812b4da91a72fadd3cb0fb97caae4a16cb947a7bd6be2b46e5aa984458cbf ;; \
+      arm64) coursier_arch=aarch64; coursier_sha256=68288bcd47a81f3a3bcf0392572d40ec0981172bba9055a8b662413691358be9 ;; \
+      *) echo "Unsupported Coursier architecture: $(dpkg --print-architecture)" >&2; exit 1 ;; \
+    esac; \
+    curl --fail --silent --show-error --location \
+      "https://github.com/coursier/coursier/releases/download/v${COURSIER_VERSION}/cs-${coursier_arch}-pc-linux.gz" \
+      --output /tmp/cs.gz; \
+    echo "${coursier_sha256} */tmp/cs.gz" | sha256sum --check --strict; \
+    gzip --decompress /tmp/cs.gz; \
+    install -m 0755 /tmp/cs /usr/local/bin/cs; \
+    rm -f /tmp/cs; \
+    cs version
 
 RUN pip install --no-cache-dir \
     pandas parquet-tools kagglehub contexttimer rich findspark \
