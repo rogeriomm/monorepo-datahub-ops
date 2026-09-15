@@ -9,14 +9,18 @@
 - [Traefik reverse proxy](#traefik-reverse-proxy)
 - [Jupyter notebooks](#jupyter-notebooks)
   - [Codex CLI](#codex-cli)
+  - [Jupyter CLI tools](#jupyter-cli-tools)
 - [AWS CLI](#aws-cli)
 - [Zeppelin notebooks](#zeppelin-notebooks)
 - [Airflow](#airflow)
+- [Trino](#trino)
 - [Superset](#superset)
 - [Local S3 object store](#local-s3-object-store)
   - [Cleaning the S3 object store](#cleaning-the-s3-object-store)
 - [Hive metastore](#hive-metastore)
   - [Enable Hive metastore CDC](#enable-hive-metastore-cdc)
+  - [Delta and Iceberg catalogs](#delta-and-iceberg-catalogs)
+  - [Recreating catalogs](#recreating-catalogs)
 - [PostgreSQL](#postgresql)
   - [Debugging](#debugging)
   - [Cleaning the database](#cleaning-the-database)
@@ -91,6 +95,10 @@ can use these servers to inspect and run notebooks from the IDE.
 
 ![Codex running a Jupyter notebook through an MCP server](attachments/jupyter-ai-mcp-codex.png)
 
+### Jupyter CLI tools
+
+![Jupyter CLI tools](attachments/jupyter-cli-tools.png)
+
 ## AWS CLI
 
 - [AWS CLI hello world notebook](../../notebooks/jupyter/aws/aws-cli-hello-world.ipynb)
@@ -106,6 +114,10 @@ Get the administrator password using the repository's
 docker compose -f on-premises/docker/docker-compose.yaml exec airflow-3.3 \
   cat /opt/airflow/simple_auth_manager_passwords.json.generated
 ```
+
+
+## Trino
+
 
 ## Superset
 
@@ -236,6 +248,16 @@ cd /workspaces/on-premises/docker/debezium
 ```
 
 ![Hive metastore CDC topics in Kafka UI](attachments/hive-metastore-cdc-topics.png)
+
+
+### Delta and Iceberg catalogs
+
+- [Iceberg catalog configuration](../../on-premises/docker/trino/catalog/iceberg.properties)
+- [Delta catalog configuration](../../on-premises/docker/trino/catalog/delta.properties)
+
+### Recreating catalogs
+
+[Drop and recreate Hive Metastore catalogs](../../notebooks/jupyter/hive-metastore/hive-metatore-drop-catalogs.ipynb)
 
 ## PostgreSQL
 
@@ -500,7 +522,7 @@ Using Visual Studio Code:
   - [Superset](http://superset.localhost:8080/)
     - Default local credentials: `admin` / `admin`
 - Apache Flink
-	- [Flink](http://flink.localhost:8080)
+  - [Flink](http://flink.localhost:8080)
 
 ## References
 

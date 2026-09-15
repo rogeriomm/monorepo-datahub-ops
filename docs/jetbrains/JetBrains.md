@@ -1,4 +1,7 @@
 # JetBrains
+## Docker
+- Docker compose schema version 5.5
+	- https://github.com/compose-spec/compose-spec/blob/main/schema/compose-spec.json
 
 ## Kubernetes
 

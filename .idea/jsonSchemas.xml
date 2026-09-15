@@ -48,6 +48,9 @@
                   <Item>
                     <option name="path" value="mise.toml" />
                   </Item>
+                  <Item>
+                    <option name="path" value="on-premises/docker/mise.toml" />
+                  </Item>
                 </list>
               </option>
             </SchemaInfo>
