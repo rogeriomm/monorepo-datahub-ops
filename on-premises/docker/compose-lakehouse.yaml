@@ -85,6 +85,42 @@ services:
     networks:
       - backend
 
+  hive-server2:
+    depends_on:
+      hive-metastore:
+        condition: service_healthy
+      hive-metastore-catalog-init:
+        condition: service_completed_successfully
+      seaweedfs-init:
+        condition: service_completed_successfully
+    image: local/hive-metastore:${HIVE_VERSION:-4.2.1}
+    container_name: hive-server2
+    profiles:
+      - trino
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    environment:
+      AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      HIVE_AUX_JARS_PATH: "/opt/hadoop/share/hadoop/tools/lib/hadoop-aws-3.4.1.jar,/opt/hadoop/share/hadoop/tools/lib/bundle-2.24.6.jar"
+      IS_RESUME: "true"
+      SERVICE_NAME: hiveserver2
+      SERVICE_OPTS: >-
+        -Dhive.metastore.uris=thrift://hive-metastore:9083
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/10000'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    volumes:
+      - ./hive-metastore/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
+      # Hive renders its own configuration from this template on every start.
+      - ./hive-metastore/core-site.xml:/opt/hive/conf/core-site.xml.template:ro
+    networks:
+      - backend
+
   trino:
     depends_on:
       startup:
