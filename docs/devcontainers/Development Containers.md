@@ -8,6 +8,7 @@
 - [Docker](#docker)
 - [Traefik reverse proxy](#traefik-reverse-proxy)
 - [Jupyter notebooks](#jupyter-notebooks)
+  - [Built-in magic commands](#built-in-magic-commands)
   - [Codex CLI](#codex-cli)
   - [Jupyter CLI tools](#jupyter-cli-tools)
 - [DeepSeek Harness](#deepseek-harness)
@@ -21,7 +22,8 @@
 - [Hive metastore](#hive-metastore)
   - [Enable Hive metastore CDC](#enable-hive-metastore-cdc)
   - [Delta and Iceberg catalogs](#delta-and-iceberg-catalogs)
-  - [Recreating catalogs](#recreating-catalogs)
+  - [Recreating Delta and Iceberg catalogs](#recreating-delta-and-iceberg-catalogs)
+  - [BeeLine](#beeline)
 - [PostgreSQL](#postgresql)
   - [Debugging](#debugging)
   - [Cleaning the database](#cleaning-the-database)
@@ -87,6 +89,16 @@ Open the [Traefik dashboard](http://traefik.localhost:8080/dashboard/) to access
 ## Jupyter notebooks
 
 See the [local services](#local-services) for the available Jupyter endpoints.
+
+### Built-in magic commands
+
+See the [IPython built-in magic command reference](https://ipython.readthedocs.io/en/stable/interactive/magics.html).
+
+```text
+%sql
+%tsql
+%run_nb 
+```
 
 ### Codex CLI
 
@@ -250,7 +262,7 @@ aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
 
 ![SeaweedFS S3 buckets listed by the AWS CLI](attachments/seaweedfs-s3-aws-cli.png)
 
-[S3 hello world notebook](../../notebooks/jupyter/s3/s3-hello-world.ipynb)
+[S3 hello world notebook](../../notebooks/jupyter/s3/s3-hello-world-aws-cli.ipynb)
 
 ### Cleaning the S3 object store
 
@@ -300,10 +312,61 @@ cd /workspaces/on-premises/docker/debezium
 
 - [Iceberg catalog configuration](../../on-premises/docker/trino/catalog/iceberg.properties)
 - [Delta catalog configuration](../../on-premises/docker/trino/catalog/delta.properties)
+- [init-catalogs.sh](../../on-premises/docker/hive-metastore/init-catalogs.sh)
+  - Recreate both catalogs when hive-metastore-catalog-init runs.
 
-### Recreating catalogs
+### Recreating Delta and Iceberg catalogs
 
-[Drop and recreate Hive Metastore catalogs](../../notebooks/jupyter/hive-metastore/hive-metatore-drop-catalogs.ipynb)
+- [Drop and recreate Hive Metastore catalogs](../../notebooks/jupyter/hive-metastore/hive-metatore-drop-catalogs.ipynb)
+
+### BeeLine
+
+BeeLine is a JDBC client for HiveServer2. It cannot connect directly to the
+Hive Metastore Thrift endpoint on port `9083`. Start both services before
+connecting:
+
+```shell
+docker compose \
+  --profile trino up -d hive-metastore hive-server2
+```
+
+From an interactive terminal, start BeeLine in the Hive Metastore container:
+
+```shell
+docker compose exec hive-metastore \
+  beeline --silent=true --showHeader=true --outputformat=table \
+  -u 'jdbc:hive2://hive-server2:10000/default' -n hive
+```
+
+At the `beeline>` prompt, list every table in the default `hive` Metastore
+catalog:
+
+```text
+!tables
+```
+
+To run the same query from a Jupyter `%%bash` cell, let `script` provide the
+pseudo-terminal required by Hive 4.2.1:
+
+```bash
+docker compose exec -T hive-metastore \
+  script -qec "beeline --silent=true --showHeader=true --outputformat=table -u 'jdbc:hive2://hive-server2:10000/default' -n hive -e '!tables'" \
+  /dev/null
+```
+
+Drop a table from the default catalog with:
+
+```shell
+docker compose exec -T hive-metastore \
+  script -qec "beeline --silent=true -u 'jdbc:hive2://hive-server2:10000/default' -n hive -e 'DROP TABLE IF EXISTS nyc_gov.country_codes;'" \
+  /dev/null
+```
+
+The example table is external, so dropping it removes its Hive Metastore
+registration while leaving its object-store data in place unless purge behavior
+has been enabled explicitly.
+
+![Hive Metastore tables listed with BeeLine](attachments/hive-metastore-beeline-tables.png)
 
 ## PostgreSQL
 
