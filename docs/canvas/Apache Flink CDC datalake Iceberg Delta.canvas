@@ -2,17 +2,19 @@
 	"nodes":[
 		{"id":"a24b62207534df64","type":"link","url":"https://youtu.be/Dol_cmcBV4U?t=271","x":-720,"y":20,"width":860,"height":560},
 		{"id":"47da199deea71aa5","type":"text","text":"# *mise run*","x":340,"y":100,"width":240,"height":60},
-		{"id":"e96026272b57fc58","type":"file","file":"docs/attachments/books/Grokking Streaming Systems - Josh Fischer.pdf","x":-1780,"y":-860,"width":820,"height":800},
 		{"id":"64fc66acdfdb8c81","type":"file","file":"docs/attachments/books/Kafka for Architects - Katya Gorshkova.pdf","x":-1780,"y":20,"width":820,"height":1000},
-		{"id":"27ddef5410172a2e","type":"text","text":"# Basic Concepts\n","x":-1550,"y":-1100,"width":360,"height":81},
-		{"id":"637db534c30b962f","type":"text","text":"# Notebooks\n - [[hive-metastore-hello-world.ipynb]]","x":-760,"y":-640,"width":980,"height":580},
 		{"id":"30344dd2c67915e9","type":"link","url":"https://youtu.be/i46Y1EDwjJY?t=694","x":760,"y":-770,"width":872,"height":542},
 		{"id":"b95a3eafec4b4521","type":"link","url":"https://www.youtube.com/watch?v=JilAIFFzAxs","x":760,"y":-160,"width":860,"height":520},
-		{"id":"df61b6a842a92b4c","type":"file","file":"docs/canvas/attachments/Pasted image 20260914114850.png","x":-634,"y":-1600,"width":1094,"height":630}
+		{"id":"df61b6a842a92b4c","type":"file","file":"docs/canvas/attachments/Pasted image 20260914114850.png","x":-634,"y":-1600,"width":1094,"height":630},
+		{"id":"e96026272b57fc58","type":"file","file":"docs/attachments/books/Grokking Streaming Systems - Josh Fischer.pdf","x":-2340,"y":-1150,"width":780,"height":870},
+		{"id":"10c86d808975c5de","type":"file","file":"docs/attachments/books/Streaming Databases - Hubert Dulay.pdf","x":-1520,"y":-1150,"width":680,"height":922},
+		{"id":"27ddef5410172a2e","type":"text","text":"# Basic Concepts\n","x":-1740,"y":-1560,"width":360,"height":80},
+		{"id":"637db534c30b962f","type":"text","text":"# Notebooks\n - [[hive-metastore-hello-world.ipynb]]","x":-634,"y":-600,"width":840,"height":320}
 	],
 	"edges":[
 		{"id":"6be93a95f849599a","fromNode":"30344dd2c67915e9","fromSide":"left","toNode":"df61b6a842a92b4c","toSide":"right"},
 		{"id":"3582674bee0e9566","fromNode":"47da199deea71aa5","fromSide":"left","toNode":"a24b62207534df64","toSide":"right"},
-		{"id":"b3a0d5027af5c500","fromNode":"27ddef5410172a2e","fromSide":"bottom","toNode":"e96026272b57fc58","toSide":"top"}
+		{"id":"b3a0d5027af5c500","fromNode":"27ddef5410172a2e","fromSide":"bottom","toNode":"e96026272b57fc58","toSide":"top"},
+		{"id":"158e50f46bfd3bfe","fromNode":"27ddef5410172a2e","fromSide":"bottom","toNode":"10c86d808975c5de","toSide":"top"}
 	]
 }

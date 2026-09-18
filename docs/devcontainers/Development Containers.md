@@ -82,13 +82,73 @@ docker ps -a
 
 ## Traefik reverse proxy
 
-Open the [Traefik dashboard](http://traefik.localhost:8080/dashboard/) to access the administration interface.
+Traefik exposes authenticated HTTP and HTTPS entrypoints. Set their published
+ports and shared BasicAuth credentials in `on-premises/docker/.env`:
+
+```dotenv
+TRAEFIK_HTTP_PORT=8080
+TRAEFIK_HTTPS_PORT=8444
+TRAEFIK_HTTPS_BIND=127.0.0.1
+TRAEFIK_BASIC_AUTH_USERNAME=admin
+TRAEFIK_BASIC_AUTH_PASSWORD=replace-with-a-strong-password
+```
+
+Set `TRAEFIK_HTTPS_BIND` to the host network-interface address that should
+accept HTTPS connections. Use `127.0.0.1` for host-only access or `0.0.0.0` to
+listen on every interface.
+
+The `traefik-auth-init` service hashes the password with bcrypt and writes only
+the generated users file to the `traefik-auth` Docker volume. Authentication is
+applied to every router attached to the `web` and `websecure` entrypoints.
+
+After changing either credential, recreate the initializer and Traefik:
+
+```shell
+docker compose -f on-premises/docker/docker-compose.yaml \
+  up -d --force-recreate traefik-auth-init traefik
+```
+
+Open the dashboard over either entrypoint and enter the configured credentials:
+
+- [Traefik dashboard over HTTP](http://traefik.localhost:8080/dashboard/)
+- [Traefik dashboard over HTTPS](https://traefik.localhost:8444/dashboard/)
+
+The HTTPS entrypoint uses Traefik's generated development certificate, so it is
+not trusted automatically by browsers or command-line clients. For example,
+use `curl --insecure` for local verification. Configure a trusted certificate
+before using the endpoint outside a development environment. BasicAuth does not
+encrypt credentials over plain HTTP; use the HTTP entrypoint only on a trusted
+local network and prefer HTTPS for remote access.
 
 ![Traefik administration interface](attachments/reverse-proxy-admin-1.png)
 
 ## Jupyter notebooks
 
 See the [local services](#local-services) for the available Jupyter endpoints.
+
+The `jupyter-spark-4.1` service is available through both Traefik entrypoints:
+
+- `http://jupyter-spark-4-1.localhost:${TRAEFIK_HTTP_PORT}`
+- `https://jupyter-spark-4-1.localhost:${TRAEFIK_HTTPS_PORT}`
+
+To route an additional DNS name to the same service, set a hostname without a
+URL scheme or port in `on-premises/docker/.env`:
+
+```dotenv
+JUPYTER_SPARK_4_1_ADDITIONAL_HOSTNAME=jupyter.example.com
+```
+
+Recreate the service so Traefik receives the updated labels:
+
+```shell
+docker compose -f on-premises/docker/docker-compose.yaml \
+  up -d --force-recreate jupyter-spark-4.1
+```
+
+The local and additional hostnames then work through HTTP and HTTPS and route to
+the same Jupyter server. The additional hostname must resolve to the Docker
+host. Enter the Traefik BasicAuth credentials when prompted. Jupyter runs
+without its own login token in this development stack.
 
 ### Built-in magic commands
 
@@ -169,7 +229,7 @@ Get the administrator password using the repository's
 [`docker-compose.yaml`](../../on-premises/docker/docker-compose.yaml) file:
 
 ```shell
-docker compose -f on-premises/docker/docker-compose.yaml exec airflow-3.3 \
+docker compose exec airflow-3.3 \
   cat /opt/airflow/simple_auth_manager_passwords.json.generated
 ```
 

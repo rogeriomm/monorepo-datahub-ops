@@ -1,0 +1,7 @@
+{
+	"nodes":[
+		{"id":"9c0bb5827f043eba","type":"link","url":"https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem","x":-880,"y":-580,"width":1220,"height":743},
+		{"id":"0efd15e7188150d7","type":"link","url":"https://github.com/radumalica/infrastructure-mcp","x":480,"y":-580,"width":1000,"height":743}
+	],
+	"edges":[]
+}
