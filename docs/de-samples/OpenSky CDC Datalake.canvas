@@ -1,8 +1,11 @@
 {
 	"nodes":[
 		{"id":"5c788e8022df0294","type":"link","url":"https://github.com/rafaelladuarte/opensky-cdc-datalake","x":-940,"y":-600,"width":1140,"height":820},
-		{"id":"8e94d72c82c84f71","type":"link","url":"https://opensky-network.org/","x":279,"y":-600,"width":781,"height":820},
-		{"id":"449d789d80a02e49","type":"file","file":"docs/de-samples/attachments/Pasted image 20260914112630.png","x":-920,"y":-1160,"width":760,"height":502}
+		{"id":"8e94d72c82c84f71","type":"link","url":"https://opensky-network.org/","x":200,"y":-600,"width":781,"height":820},
+		{"id":"67dd3a5f61f396f9","x":981,"y":-600,"width":1060,"height":820,"type":"link","url":"https://grndcntrl.net/links"},
+		{"id":"449d789d80a02e49","type":"file","file":"docs/de-samples/attachments/Pasted image 20260914112630.png","x":-900,"y":-1150,"width":760,"height":502},
+		{"id":"17afdb2b07d1bbcc","x":-99,"y":-1150,"width":1080,"height":522,"type":"link","url":"https://github.com/Jxck-S/plane-notify"},
+		{"id":"05d9081025f89b32","x":1000,"y":-1560,"width":980,"height":932,"type":"link","url":"https://github.com/Jxck-S/plane-notify/blob/69bd4163d8d56dba7c80c35a9994fc1b38b4ae95/PseudoCode.md"}
 	],
 	"edges":[]
 }
