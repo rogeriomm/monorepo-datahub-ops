@@ -2,6 +2,55 @@
 
 set -eu
 
+docker_volume_path() {
+  local volume="$1"
+
+  printf 'docker%s\n' "${volume#dbfs:}"
+}
+
+copy_docker_volume_files() {
+  local source_directory="$1"
+  local volume="$2"
+  local destination_directory
+  local filename
+  local source_file
+
+  shift 2
+  destination_directory="$(docker_volume_path "$volume")"
+  mkdir -p "$destination_directory"
+
+  echo "Copy local Docker volume $destination_directory from $source_directory files: $*"
+
+  for filename in "$@"; do
+    source_file="$source_directory/$filename"
+    if [[ ! -s "$source_file" ]]; then
+      echo "Missing TLS file: $source_file" >&2
+      return 1
+    fi
+
+    cp "$source_file" "$destination_directory/$filename"
+  done
+}
+
+copy_docker_volume_secret() {
+  local password_file="$1"
+  local volume="$2"
+  local destination_directory
+  local destination_file
+
+  if [[ ! -s "$password_file" ]]; then
+    echo "Missing secret file: $password_file" >&2
+    return 1
+  fi
+
+  destination_directory="$(docker_volume_path "$volume")"
+  destination_file="$destination_directory/secret-${password_file##*/}"
+  mkdir -p "$destination_directory"
+
+  echo "Copy local Docker volume secret: $destination_file"
+  cp "$password_file" "$destination_file"
+}
+
 copy_databricks() {
   certificate_path="$1"
   volume="$2"

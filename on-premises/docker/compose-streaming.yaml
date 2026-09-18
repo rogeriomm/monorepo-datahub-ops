@@ -278,7 +278,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.localhost`)
-      - traefik.http.routers.kafka-ui.entrypoints=web
+      - traefik.http.routers.kafka-ui.entrypoints=web,websecure
       - traefik.http.services.kafka-ui.loadbalancer.server.port=8080
     networks:
       - frontend

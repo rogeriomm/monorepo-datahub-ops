@@ -70,7 +70,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=devcontainer_frontend
       - traefik.http.routers.deepseek-harness.rule=Host(`deepseek-harness.localhost`)
-      - traefik.http.routers.deepseek-harness.entrypoints=web
+      - traefik.http.routers.deepseek-harness.entrypoints=web,websecure
       - traefik.http.routers.deepseek-harness.priority=100
       - traefik.http.routers.deepseek-harness.service=deepseek-harness
       - traefik.http.services.deepseek-harness.loadbalancer.server.port=3080

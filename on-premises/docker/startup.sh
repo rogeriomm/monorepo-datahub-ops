@@ -15,7 +15,9 @@ touch $HOME/.databrickscfg
 # /var/run/docker.sock
 # /opt/jetbrains/agent.jar
 
-mkdir -p $HOME/.m2 \
+mkdir -p \
+       $HOME/.m2 \
+       $HOME/.ivy2.5.2 \
        $HOME/.local/share/mise \
        $HOME/.tmux \
        $HOME/.aws \

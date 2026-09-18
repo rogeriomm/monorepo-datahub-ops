@@ -59,27 +59,27 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.jupyter-spark-3-5.rule=Host(`jupyter-spark-3-5.localhost`)
-      - traefik.http.routers.jupyter-spark-3-5.entrypoints=web
+      - traefik.http.routers.jupyter-spark-3-5.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-3-5.priority=100
       - traefik.http.routers.jupyter-spark-3-5.service=jupyter-spark-3-5
       - traefik.http.services.jupyter-spark-3-5.loadbalancer.server.port=8888
       - traefik.http.routers.jupyter-spark-3-5-spark-ui.rule=Host(`jupyter-spark-3-5.localhost`) && PathPrefix(`/webui`)
-      - traefik.http.routers.jupyter-spark-3-5-spark-ui.entrypoints=web
+      - traefik.http.routers.jupyter-spark-3-5-spark-ui.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-3-5-spark-ui.priority=300
       - traefik.http.routers.jupyter-spark-3-5-spark-ui.service=jupyter-spark-3-5-spark-ui
       - traefik.http.routers.jupyter-spark-3-5-spark-ui.middlewares=jupyter-spark-3-5-spark-ui-strip-prefix
       - traefik.http.routers.jupyter-spark-3-5-spark-pages.rule=Host(`jupyter-spark-3-5.localhost`) && (PathPrefix(`/jobs`) || PathPrefix(`/stages`) || PathPrefix(`/storage`) || PathPrefix(`/environment`) || PathPrefix(`/executors`) || PathPrefix(`/SQL`) || PathPrefix(`/api/v1`))
-      - traefik.http.routers.jupyter-spark-3-5-spark-pages.entrypoints=web
+      - traefik.http.routers.jupyter-spark-3-5-spark-pages.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-3-5-spark-pages.priority=300
       - traefik.http.routers.jupyter-spark-3-5-spark-pages.middlewares=jupyter-spark-3-5-spark-pages-redirect
       - traefik.http.routers.jupyter-spark-3-5-spark-pages.service=noop@internal
       - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.rule=Host(`jupyter-spark-3-5.localhost`) && PathRegexp(`^/webui/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
-      - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.entrypoints=web
+      - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.priority=400
       - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.service=jupyter-spark-3-5-spark-ui
       - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.middlewares=jupyter-spark-3-5-spark-ui-strip-prefix
       - traefik.http.routers.jupyter-spark-3-5-spark-static.rule=Host(`jupyter-spark-3-5.localhost`) && PathRegexp(`^/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
-      - traefik.http.routers.jupyter-spark-3-5-spark-static.entrypoints=web
+      - traefik.http.routers.jupyter-spark-3-5-spark-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-3-5-spark-static.priority=300
       - traefik.http.routers.jupyter-spark-3-5-spark-static.middlewares=jupyter-spark-3-5-spark-static-redirect
       - traefik.http.routers.jupyter-spark-3-5-spark-static.service=noop@internal
@@ -92,7 +92,7 @@ services:
       - traefik.http.middlewares.jupyter-spark-3-5-spark-static-redirect.redirectregex.permanent=false
       - traefik.http.middlewares.jupyter-spark-3-5-spark-ui-strip-prefix.stripprefix.prefixes=/webui
       - traefik.http.routers.spark-connect-3-5.rule=Host(`spark-connect-3-5.localhost`)
-      - traefik.http.routers.spark-connect-3-5.entrypoints=web
+      - traefik.http.routers.spark-connect-3-5.entrypoints=web,websecure
       - traefik.http.routers.spark-connect-3-5.service=spark-connect-3-5
       - traefik.http.services.spark-connect-3-5.loadbalancer.server.port=15002
       - traefik.http.services.spark-connect-3-5.loadbalancer.server.scheme=h2c
@@ -177,7 +177,7 @@ services:
 
     environment:
       - JUPYTER_ENABLE_LAB=yes
-      - IPYTHONDIR=/home/jovyan/work/.ipython
+      - IPYTHONDIR=/home/jovyan/.ipython
       - JUPYTER_SERVICE_NAME=jupyter-spark-4.1
       - TRAEFIK_HTTP_PORT=${TRAEFIK_HTTP_PORT:-8080}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
@@ -219,28 +219,28 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=devcontainer_frontend
-      - traefik.http.routers.jupyter-spark-4-1.rule=Host(`jupyter-spark-4-1.localhost`)
-      - traefik.http.routers.jupyter-spark-4-1.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-1.rule=Host(`jupyter-spark-4-1.localhost`) || Host(`${JUPYTER_SPARK_4_1_ADDITIONAL_HOSTNAME:-jupyter-spark-4-1.localhost}`)
+      - traefik.http.routers.jupyter-spark-4-1.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-1.priority=100
       - traefik.http.routers.jupyter-spark-4-1.service=jupyter-spark-4-1
       - traefik.http.services.jupyter-spark-4-1.loadbalancer.server.port=8888
-      - traefik.http.routers.jupyter-spark-4-1-spark-ui.rule=Host(`jupyter-spark-4-1.localhost`) && PathPrefix(`/webui`)
-      - traefik.http.routers.jupyter-spark-4-1-spark-ui.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-1-spark-ui.rule=(Host(`jupyter-spark-4-1.localhost`) || Host(`${JUPYTER_SPARK_4_1_ADDITIONAL_HOSTNAME:-jupyter-spark-4-1.localhost}`)) && PathPrefix(`/webui`)
+      - traefik.http.routers.jupyter-spark-4-1-spark-ui.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-1-spark-ui.priority=300
       - traefik.http.routers.jupyter-spark-4-1-spark-ui.service=jupyter-spark-4-1-spark-ui
       - traefik.http.routers.jupyter-spark-4-1-spark-ui.middlewares=jupyter-spark-4-1-spark-ui-strip-prefix
-      - traefik.http.routers.jupyter-spark-4-1-spark-pages.rule=Host(`jupyter-spark-4-1.localhost`) && (PathPrefix(`/jobs`) || PathPrefix(`/stages`) || PathPrefix(`/storage`) || PathPrefix(`/environment`) || PathPrefix(`/executors`) || PathPrefix(`/SQL`) || PathPrefix(`/api/v1`))
-      - traefik.http.routers.jupyter-spark-4-1-spark-pages.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-1-spark-pages.rule=(Host(`jupyter-spark-4-1.localhost`) || Host(`${JUPYTER_SPARK_4_1_ADDITIONAL_HOSTNAME:-jupyter-spark-4-1.localhost}`)) && (PathPrefix(`/jobs`) || PathPrefix(`/stages`) || PathPrefix(`/storage`) || PathPrefix(`/environment`) || PathPrefix(`/executors`) || PathPrefix(`/SQL`) || PathPrefix(`/api/v1`))
+      - traefik.http.routers.jupyter-spark-4-1-spark-pages.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-1-spark-pages.priority=300
       - traefik.http.routers.jupyter-spark-4-1-spark-pages.middlewares=jupyter-spark-4-1-spark-pages-redirect
       - traefik.http.routers.jupyter-spark-4-1-spark-pages.service=noop@internal
-      - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.rule=Host(`jupyter-spark-4-1.localhost`) && PathRegexp(`^/webui/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
-      - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.rule=(Host(`jupyter-spark-4-1.localhost`) || Host(`${JUPYTER_SPARK_4_1_ADDITIONAL_HOSTNAME:-jupyter-spark-4-1.localhost}`)) && PathRegexp(`^/webui/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
+      - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.priority=400
       - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.service=jupyter-spark-4-1-spark-ui
       - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.middlewares=jupyter-spark-4-1-spark-ui-strip-prefix
-      - traefik.http.routers.jupyter-spark-4-1-spark-static.rule=Host(`jupyter-spark-4-1.localhost`) && PathRegexp(`^/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
-      - traefik.http.routers.jupyter-spark-4-1-spark-static.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-1-spark-static.rule=(Host(`jupyter-spark-4-1.localhost`) || Host(`${JUPYTER_SPARK_4_1_ADDITIONAL_HOSTNAME:-jupyter-spark-4-1.localhost}`)) && PathRegexp(`^/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
+      - traefik.http.routers.jupyter-spark-4-1-spark-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-1-spark-static.priority=300
       - traefik.http.routers.jupyter-spark-4-1-spark-static.middlewares=jupyter-spark-4-1-spark-static-redirect
       - traefik.http.routers.jupyter-spark-4-1-spark-static.service=noop@internal
@@ -253,7 +253,7 @@ services:
       - traefik.http.middlewares.jupyter-spark-4-1-spark-static-redirect.redirectregex.permanent=false
       - traefik.http.middlewares.jupyter-spark-4-1-spark-ui-strip-prefix.stripprefix.prefixes=/webui
       - traefik.http.routers.spark-connect-4-1.rule=Host(`spark-connect-4-1.localhost`)
-      - traefik.http.routers.spark-connect-4-1.entrypoints=web
+      - traefik.http.routers.spark-connect-4-1.entrypoints=web,websecure
       - traefik.http.routers.spark-connect-4-1.service=spark-connect-4-1
       - traefik.http.services.spark-connect-4-1.loadbalancer.server.port=15002
       - traefik.http.services.spark-connect-4-1.loadbalancer.server.scheme=h2c
@@ -263,6 +263,8 @@ services:
       - -lc
       - |
         set -o errexit -o pipefail
+        mkdir -p "$${IPYTHONDIR}/profile_default"
+        cp /etc/ipython-kernel-config.py "$${IPYTHONDIR}/profile_default/ipython_kernel_config.py"
         if /home/jovyan/.local/bin/mise ls --missing --no-header | grep -q .; then
           /home/jovyan/.local/bin/mise install
         fi
@@ -278,7 +280,7 @@ services:
       # Git repository
       - ../..:/home/jovyan/work
       # IPython kernel configuration and project notebook magics
-      - ./jupyter_spark_4_1/ipython-kernel-config.py:/home/jovyan/work/.ipython/profile_default/ipython_kernel_config.py:ro
+      - ./jupyter_spark_4_1/ipython-kernel-config.py:/etc/ipython-kernel-config.py:ro
       # Kafka development CA certificate
       - ./kafka-4/certificates:/etc/kafka/tls:ro
       # seaweedfs development CA certificate
@@ -291,9 +293,12 @@ services:
       # Databricks CLI
       - ${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw
       - ${HOME}/.databricks:/home/jovyan/.databricks:rw
+      # Mimic Databricks volumes
       - ./Volumes:/Volumes
       # Maven cache, Spark build
       - $HOME/.m2:/home/jovyan/.m2:z
+      # Apache Spark's local Ivy dependency cache
+      - $HOME/.ivy2.5.2:/home/jovyan/.ivy2.5.2:z
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -346,27 +351,27 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.jupyter-spark-4-2.rule=Host(`jupyter-spark-4-2.localhost`)
-      - traefik.http.routers.jupyter-spark-4-2.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-2.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-2.priority=100
       - traefik.http.routers.jupyter-spark-4-2.service=jupyter-spark-4-2
       - traefik.http.services.jupyter-spark-4-2.loadbalancer.server.port=8888
       - traefik.http.routers.jupyter-spark-4-2-spark-ui.rule=Host(`jupyter-spark-4-2.localhost`) && PathPrefix(`/webui`)
-      - traefik.http.routers.jupyter-spark-4-2-spark-ui.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-2-spark-ui.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-2-spark-ui.priority=300
       - traefik.http.routers.jupyter-spark-4-2-spark-ui.service=jupyter-spark-4-2-spark-ui
       - traefik.http.routers.jupyter-spark-4-2-spark-ui.middlewares=jupyter-spark-4-2-spark-ui-strip-prefix
       - traefik.http.routers.jupyter-spark-4-2-spark-pages.rule=Host(`jupyter-spark-4-2.localhost`) && (PathPrefix(`/jobs`) || PathPrefix(`/stages`) || PathPrefix(`/storage`) || PathPrefix(`/environment`) || PathPrefix(`/executors`) || PathPrefix(`/SQL`) || PathPrefix(`/api/v1`))
-      - traefik.http.routers.jupyter-spark-4-2-spark-pages.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-2-spark-pages.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-2-spark-pages.priority=300
       - traefik.http.routers.jupyter-spark-4-2-spark-pages.middlewares=jupyter-spark-4-2-spark-pages-redirect
       - traefik.http.routers.jupyter-spark-4-2-spark-pages.service=noop@internal
       - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.rule=Host(`jupyter-spark-4-2.localhost`) && PathRegexp(`^/webui/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
-      - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.priority=400
       - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.service=jupyter-spark-4-2-spark-ui
       - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.middlewares=jupyter-spark-4-2-spark-ui-strip-prefix
       - traefik.http.routers.jupyter-spark-4-2-spark-static.rule=Host(`jupyter-spark-4-2.localhost`) && PathRegexp(`^/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
-      - traefik.http.routers.jupyter-spark-4-2-spark-static.entrypoints=web
+      - traefik.http.routers.jupyter-spark-4-2-spark-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-2-spark-static.priority=300
       - traefik.http.routers.jupyter-spark-4-2-spark-static.middlewares=jupyter-spark-4-2-spark-static-redirect
       - traefik.http.routers.jupyter-spark-4-2-spark-static.service=noop@internal
@@ -379,7 +384,7 @@ services:
       - traefik.http.middlewares.jupyter-spark-4-2-spark-static-redirect.redirectregex.permanent=false
       - traefik.http.middlewares.jupyter-spark-4-2-spark-ui-strip-prefix.stripprefix.prefixes=/webui
       - traefik.http.routers.spark-connect-4-2.rule=Host(`spark-connect-4-2.localhost`)
-      - traefik.http.routers.spark-connect-4-2.entrypoints=web
+      - traefik.http.routers.spark-connect-4-2.entrypoints=web,websecure
       - traefik.http.routers.spark-connect-4-2.service=spark-connect-4-2
       - traefik.http.services.spark-connect-4-2.loadbalancer.server.port=15002
       - traefik.http.services.spark-connect-4-2.loadbalancer.server.scheme=h2c
@@ -461,7 +466,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.jupyter-glue-5.rule=Host(`jupyter-glue-5.localhost`)
-      - traefik.http.routers.jupyter-glue-5.entrypoints=web
+      - traefik.http.routers.jupyter-glue-5.entrypoints=web,websecure
       - traefik.http.services.jupyter-glue-5.loadbalancer.server.port=8888
     networks:
       - frontend
@@ -488,7 +493,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.zeppelin.rule=Host(`zeppelin.localhost`)
-      - traefik.http.routers.zeppelin.entrypoints=web
+      - traefik.http.routers.zeppelin.entrypoints=web,websecure
       - traefik.http.services.zeppelin.loadbalancer.server.port=8080
     volumes:
       - ../../notebooks/zeppelin:/notebooks

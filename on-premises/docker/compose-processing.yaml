@@ -43,8 +43,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=devcontainer_frontend
-      - traefik.http.routers.pgadmin.rule=Host(`pgadmin.localhost`)
-      - traefik.http.routers.pgadmin.entrypoints=web
+      - traefik.http.routers.pgadmin.rule=Host(`pgadmin.localhost`) || Host(`${PGADMIN_ADDITIONAL_HOSTNAME:-pgadmin.localhost}`)
+      - traefik.http.routers.pgadmin.entrypoints=web,websecure
       - traefik.http.services.pgadmin.loadbalancer.server.port=80
     networks:
       - backend
@@ -121,7 +121,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=devcontainer_frontend
       - traefik.http.routers.flink.rule=Host(`flink.localhost`)
-      - traefik.http.routers.flink.entrypoints=web
+      - traefik.http.routers.flink.entrypoints=web,websecure
       - traefik.http.services.flink.loadbalancer.server.port=8081
     networks:
       - frontend
@@ -174,19 +174,19 @@ services:
     depends_on:
       startup:
         condition: service_completed_successfully
-    image: local/airflow:3.3.0
+    image: local/airflow:3.3.2
     build:
       context: airflow-3.3
       dockerfile: Dockerfile
     container_name: airflow-3.3
     profiles:
-      - airflow
+      - airflow_3
     restart: unless-stopped
     security_opt:
       - label=disable
     command: standalone
     environment:
-      AIRFLOW__API__BASE_URL: "http://airflow-3-3.localhost:${TRAEFIK_HTTP_PORT:-8080}"
+      AIRFLOW__API__BASE_URL: "http://${AIRFLOW_3_3_ADDITIONAL_HOSTNAME:-airflow-3-3.localhost}:${TRAEFIK_HTTP_PORT:-8080}"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
@@ -201,8 +201,8 @@ services:
       - ./Volumes:/Volumes
     labels:
       - traefik.enable=true
-      - traefik.http.routers.airflow-3-3.rule=Host(`airflow-3-3.localhost`)
-      - traefik.http.routers.airflow-3-3.entrypoints=web
+      - traefik.http.routers.airflow-3-3.rule=Host(`airflow-3-3.localhost`) || Host(`${AIRFLOW_3_3_ADDITIONAL_HOSTNAME:-airflow-3-3.localhost}`)
+      - traefik.http.routers.airflow-3-3.entrypoints=web,websecure
       - traefik.http.services.airflow-3-3.loadbalancer.server.port=8080
     networks:
       - frontend
@@ -218,7 +218,7 @@ services:
       dockerfile: Dockerfile
     container_name: airflow-2.11
     profiles:
-      - airflow
+      - airflow_2
     restart: unless-stopped
     security_opt:
       - label=disable
@@ -245,7 +245,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.airflow-2-11.rule=Host(`airflow-2-11.localhost`)
-      - traefik.http.routers.airflow-2-11.entrypoints=web
+      - traefik.http.routers.airflow-2-11.entrypoints=web,websecure
       - traefik.http.services.airflow-2-11.loadbalancer.server.port=8080
     networks:
       - frontend
@@ -303,8 +303,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=devcontainer_frontend
-      - traefik.http.routers.superset.rule=Host(`superset.localhost`)
-      - traefik.http.routers.superset.entrypoints=web
+      - traefik.http.routers.superset.rule=Host(`superset.localhost`) || Host(`${SUPERSET_ADDITIONAL_HOSTNAME:-superset.localhost}`)
+      - traefik.http.routers.superset.entrypoints=web,websecure
       - traefik.http.services.superset.loadbalancer.server.port=8088
     networks:
       - frontend

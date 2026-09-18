@@ -27,6 +27,7 @@ services:
       SERVICE_NAME: metastore
       SERVICE_OPTS: >-
         -Dmetastore.warehouse.dir=s3a://trino-lakehouse
+        -Dmetastore.catalog.default=iceberg
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/9083'"]
       interval: 10s
@@ -227,15 +228,15 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.seaweedfs-master.rule=Host(`seaweedfs-master.localhost`)
-      - traefik.http.routers.seaweedfs-master.entrypoints=web
+      - traefik.http.routers.seaweedfs-master.entrypoints=web,websecure
       - traefik.http.routers.seaweedfs-master.service=seaweedfs-master
       - traefik.http.services.seaweedfs-master.loadbalancer.server.port=9333
       - traefik.http.routers.seaweedfs-filer.rule=Host(`seaweedfs-filer.localhost`)
-      - traefik.http.routers.seaweedfs-filer.entrypoints=web
+      - traefik.http.routers.seaweedfs-filer.entrypoints=web,websecure
       - traefik.http.routers.seaweedfs-filer.service=seaweedfs-filer
       - traefik.http.services.seaweedfs-filer.loadbalancer.server.port=8888
       - traefik.http.routers.seaweedfs-s3.rule=Host(`seaweedfs-s3.localhost`)
-      - traefik.http.routers.seaweedfs-s3.entrypoints=web
+      - traefik.http.routers.seaweedfs-s3.entrypoints=web,websecure
       - traefik.http.routers.seaweedfs-s3.service=seaweedfs-s3
       - traefik.http.services.seaweedfs-s3.loadbalancer.server.port=8333
       - traefik.http.services.seaweedfs-s3.loadbalancer.server.scheme=https

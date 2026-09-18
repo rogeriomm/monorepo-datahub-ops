@@ -28,6 +28,7 @@ volumes:
   seaweedfs-data:
   ssh-tunnel-config:
   superset-data:
+  traefik-auth:
 
 # https://docs.docker.com/compose/how-tos/networking/
 networks:

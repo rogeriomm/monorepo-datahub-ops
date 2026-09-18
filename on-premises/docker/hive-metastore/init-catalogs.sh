@@ -29,5 +29,5 @@ create_catalog() {
     -catalogDescription "${catalog_description}"
 }
 
-create_catalog iceberg s3a://trino-lakehouse 'Iceberg warehouse'
+create_catalog iceberg s3a://iceberg-lakehouse 'Iceberg warehouse'
 create_catalog delta s3a://delta-lakehouse 'Delta Lake warehouse'

@@ -19,6 +19,10 @@ run = "docker compose build pyspark-base-3.5 --no-cache && docker compose build 
 description = "Build jupyter-spark-4_1"
 run = "docker compose build pyspark-base-4.1 --no-cache && docker compose build jupyter-spark-4.1 --no-cache"
 
+[tasks."docker:logs:jupyter-spark-4_1"]
+description = "Build jupyter-spark-4_1"
+run = "docker compose logs jupyter-spark-4.1 -f"
+
 [tasks."docker:build:jupyter-spark-4_2"]
 description = "Build jupyter-spark-4_2"
 run = "docker compose build pyspark-base-4.2 --no-cache && docker compose build jupyter-spark-4.2 --no-cache"
@@ -49,3 +53,7 @@ run = "ssh tunnel@localhost -p 9023 -i ~/.ssh/id_ed25519_databricks_free"
 [tasks."tool:enter"]
 description = "Tool, run shell"
 run = "ssh ubuntu@localhost -p 9022"
+
+[tasks."airflow:password"]
+description = "Get Airflow 3 user/password"
+run = "docker compose exec airflow-3.3 cat /opt/airflow/simple_auth_manager_passwords.json.generated"
