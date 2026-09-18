@@ -21,6 +21,14 @@ spec:
         - protocol: TCP
           port: 443
 
+    # https://*.orange.worldl.xpt:8006
+    - to:
+      - ipBlock:
+          cidr: 192.168.16.206/32
+      ports:
+        - protocol: TCP
+          port: 8444
+
     # https://pvel.worldl.xpt:8006
     - to:
       - ipBlock:
