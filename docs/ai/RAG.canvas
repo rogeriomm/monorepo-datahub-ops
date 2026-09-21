@@ -1,0 +1,8 @@
+{
+	"nodes":[
+		{"id":"32d00061399d45e0","x":-2480,"y":-1280,"width":1320,"height":880,"type":"link","url":"https://github.com/lanjak/obsidian-postgres-sync"},
+		{"id":"2893e874cb9806a3","type":"link","url":"https://github.com/drewburchfield/obsidian-graph","x":-2480,"y":-340,"width":1320,"height":840},
+		{"id":"d59c36207f8c1db8","x":-840,"y":-900,"width":1260,"height":880,"type":"link","url":"https://github.com/maxkuminov/obsidian-mcp"}
+	],
+	"edges":[]
+}

@@ -558,6 +558,19 @@ Register the PostgreSQL server with these settings:
 - **Username:** the `POSTGRES_USER` value, or `postgres` by default
 - **SSL mode:** `verify-full`
 
+The imported server list also includes **Obsidian RAG Vector Database** when
+the independent Obsidian RAG stack is running:
+
+- **Host name/address:** `obsidian-mcp-postgres`
+- **Port:** `5432`
+- **Maintenance database:** `obsidian_mcp`
+- **Username:** `obsidian_mcp`
+- **SSL mode:** `disable`
+
+The imported server uses the `OBSIDIAN_MCP_POSTGRES_PASSWORD` value from
+`on-premises/docker/.env` through pgAdmin's password-exec support, so it can
+connect without storing a literal password in the tracked server definition.
+
 The container uses the generated CA and client certificate from
 `on-premises/docker/postgres/certificates/`. When
 `POSTGRES_MTLS_ENABLED=false`, enter the `POSTGRES_PASSWORD` value when pgAdmin
