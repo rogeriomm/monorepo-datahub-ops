@@ -1,3 +1,6 @@
+[tools]
+gum = "latest"
+
 [tasks."docker:start:all"]
 description = "Start all required Docker containers"
 run = "docker compose up -d"
@@ -57,3 +60,18 @@ run = "ssh ubuntu@localhost -p 9022"
 [tasks."airflow:password"]
 description = "Get Airflow 3 user/password"
 run = "docker compose exec airflow-3.3 cat /opt/airflow/simple_auth_manager_passwords.json.generated"
+
+
+# AI tasks
+
+[tasks."ai:start:all"]
+description = "Start all required Docker containers"
+run = "docker compose --profile obsidian_mcp up -d obsidian-mcp traefik"
+
+[tasks."ai:stop:all"]
+description = "Stop all required Docker containers"
+run = "docker compose --profile obsidian_mcp stop obsidian-mcp ollama-model ollama obsidian-mcp-postgres"
+
+[tasks."ai:rag:clean"]
+description = "RAG - Clean data"
+run = "docker compose --profile obsidian_mcp rm -fsv obsidian-mcp obsidian-mcp-postgres && docker volume rm obsidian-rag_postgres-data"

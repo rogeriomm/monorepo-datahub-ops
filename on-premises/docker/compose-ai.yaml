@@ -1,0 +1,135 @@
+# Obsidian retrieval stack based on:
+# https://github.com/maxkuminov/obsidian-mcp
+
+services:
+  obsidian-mcp-postgres:
+    profiles:
+      - obsidian_mcp
+    image: pgvector/pgvector:0.8.1-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: obsidian_mcp
+      POSTGRES_USER: obsidian_mcp
+      POSTGRES_PASSWORD: "${OBSIDIAN_MCP_POSTGRES_PASSWORD:?Set OBSIDIAN_MCP_POSTGRES_PASSWORD in .env}"
+    volumes:
+      - obsidian-mcp-postgres-data:/var/lib/postgresql/data
+    configs:
+      - source: obsidian-mcp-postgres-init
+        target: /docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U obsidian_mcp -d obsidian_mcp"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      ai-backend:
+        aliases:
+          - obsidian-mcp-postgres
+      backend:
+        aliases:
+          - obsidian-mcp-postgres
+
+  ollama:
+    profiles:
+      - obsidian_mcp
+    image: ollama/ollama:0.34.2
+    restart: unless-stopped
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      ai-backend:
+        aliases:
+          - obsidian-mcp-ollama
+
+  ollama-model:
+    profiles:
+      - obsidian_mcp
+    image: ollama/ollama:0.34.2
+    restart: "no"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://obsidian-mcp-ollama:11434
+    command:
+      - pull
+      - "${OBSIDIAN_MCP_EMBEDDING_MODEL:-bge-m3}"
+    networks:
+      - ai-backend
+
+  obsidian-mcp:
+    profiles:
+      - obsidian_mcp
+    build:
+      context: https://github.com/maxkuminov/obsidian-mcp.git#v0.8.1
+    image: local/obsidian-mcp:0.8.1
+    restart: unless-stopped
+    init: true
+    depends_on:
+      obsidian-mcp-postgres:
+        condition: service_healthy
+      ollama-model:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://obsidian_mcp:${OBSIDIAN_MCP_POSTGRES_PASSWORD_URLENCODED:?Set OBSIDIAN_MCP_POSTGRES_PASSWORD_URLENCODED in .env}@obsidian-mcp-postgres:5432/obsidian_mcp"
+      VAULT_PATH: /obsidian
+      SECRET_KEY: "${OBSIDIAN_MCP_SECRET_KEY:?Set OBSIDIAN_MCP_SECRET_KEY in .env}"
+      BASE_URL: "${OBSIDIAN_MCP_BASE_URL:-http://localhost:8000}"
+      ALLOWED_ORIGINS: "${OBSIDIAN_MCP_ALLOWED_ORIGINS:-[\"http://localhost:8000\",\"http://obsidian-mcp:8000\"]}"
+      ALLOWED_HOSTS: "${OBSIDIAN_MCP_ALLOWED_HOSTS:-[\"localhost\",\"127.0.0.1\",\"obsidian-mcp\"]}"
+      MULTI_USER_MODE: "false"
+      INDEX_INTERVAL_SECONDS: "${OBSIDIAN_MCP_INDEX_INTERVAL_SECONDS:-300}"
+      FTS_CONFIGS: "${OBSIDIAN_MCP_FTS_CONFIGS:-simple}"
+      EMBEDDING_PROVIDER: ollama
+      EMBEDDING_DIMENSIONS: "1024"
+      EMBEDDING_MODEL: "${OBSIDIAN_MCP_EMBEDDING_MODEL:-bge-m3}"
+      OLLAMA_URL: http://obsidian-mcp-ollama:11434
+      OLLAMA_KEEP_ALIVE: "${OBSIDIAN_MCP_OLLAMA_KEEP_ALIVE:--1}"
+    command:
+      - /bin/sh
+      - -c
+      - alembic upgrade head && exec uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 1
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=devcontainer_frontend
+      - traefik.http.routers.obsidian-mcp.rule=Host(`localhost`) || Host(`obsidian-mcp.localhost`)
+      - traefik.http.routers.obsidian-mcp.entrypoints=mcp
+      - traefik.http.routers.obsidian-mcp.service=obsidian-mcp
+      - traefik.http.services.obsidian-mcp.loadbalancer.server.port=8000
+    volumes:
+      - "${OBSIDIAN_VAULT_PATH:-../../docs}:/obsidian"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    security_opt:
+      - label=disable
+      - no-new-privileges:true
+    networks:
+      - ai-backend
+      - backend
+      - frontend
+
+networks:
+  ai-backend:
+    driver: bridge
+
+volumes:
+  ollama-data:
+    name: obsidian-rag_ollama-data
+  obsidian-mcp-postgres-data:
+    name: obsidian-rag_postgres-data
+
+configs:
+  obsidian-mcp-postgres-init:
+    content: |
+      CREATE EXTENSION IF NOT EXISTS vector;

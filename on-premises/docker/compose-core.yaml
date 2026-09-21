@@ -24,6 +24,7 @@ services:
       - jupyter_spark_4_2
       - jupyter_spark_glue_5
       - kafka
+      - obsidian_mcp
       - pgadmin
       - seaweedfs
       - superset
@@ -62,6 +63,7 @@ services:
       - jupyter_spark_4_2
       - jupyter_spark_glue_5
       - kafka
+      - obsidian_mcp
       - pgadmin
       - seaweedfs
       - superset
@@ -76,6 +78,9 @@ services:
       - --entrypoints.websecure.address=:443
       - --entrypoints.websecure.http.middlewares=traefik-basic-auth@docker
       - --entrypoints.websecure.http.tls=true
+      # Dedicated entrypoint preserves the Obsidian bearer Authorization
+      # header instead of consuming it with the shared BasicAuth middleware.
+      - --entrypoints.mcp.address=:8000
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --providers.file.filename=/etc/traefik/dynamic/seaweedfs-tls.yaml
@@ -85,6 +90,10 @@ services:
       - target: 443
         published: "${TRAEFIK_HTTPS_PORT:-8444}"
         host_ip: "${TRAEFIK_HTTPS_BIND:-127.0.0.1}"
+        protocol: tcp
+      - target: 8000
+        published: "${TRAEFIK_MCP_PORT:-8000}"
+        host_ip: 127.0.0.1
         protocol: tcp
     labels:
       - traefik.enable=true

@@ -5,7 +5,7 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
-    image: dpage/pgadmin4:9.17
+    image: dpage/pgadmin4:9.18
     container_name: pgadmin
     profiles:
       - pgadmin
@@ -18,11 +18,15 @@ services:
       PGADMIN_DEFAULT_PASSWORD: "${PGADMIN_DEFAULT_PASSWORD:-admin}"
       PGADMIN_DISABLE_POSTFIX: "true"
       PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+      PGADMIN_CONFIG_ENABLE_SERVER_PASS_EXEC_CMD: "True"
       PUID: "${HOST_UID:?HOST_UID must be set}"
       PGID: "${HOST_GID:?HOST_GID must be set}"
     configs:
       - source: pgadmin-servers
         target: /pgadmin4/servers.json
+    secrets:
+      - source: OBSIDIAN_MCP_POSTGRES_PASSWORD
+        target: obsidian-mcp-postgres-password
     healthcheck:
       test:
         - CMD
@@ -324,6 +328,18 @@ configs:
             "Username": "${POSTGRES_USER:-postgres}",
             "ConnectionParameters": {
               "sslmode": "verify-full"
+            }
+          },
+          "2": {
+            "Name": "Obsidian RAG Vector Database",
+            "Group": "Servers",
+            "Host": "obsidian-mcp-postgres",
+            "Port": 5432,
+            "MaintenanceDB": "obsidian_mcp",
+            "Username": "obsidian_mcp",
+            "PasswordExecCommand": "cat /run/secrets/obsidian-mcp-postgres-password",
+            "ConnectionParameters": {
+              "sslmode": "disable"
             }
           }
         }

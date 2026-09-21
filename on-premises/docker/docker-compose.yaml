@@ -2,6 +2,7 @@
 name: devcontainer
 
 include:
+  - compose-ai.yaml
   - compose-deepseek-harness.yaml
   - compose-core.yaml
   - compose-lakehouse.yaml
@@ -12,6 +13,8 @@ include:
 secrets:
   GITHUB_TOKEN:
     environment: GITHUB_TOKEN
+  OBSIDIAN_MCP_POSTGRES_PASSWORD:
+    environment: OBSIDIAN_MCP_POSTGRES_PASSWORD
 
 volumes:
   deepseek-harness-home:

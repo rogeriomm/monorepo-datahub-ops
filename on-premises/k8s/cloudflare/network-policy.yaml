@@ -24,7 +24,7 @@ spec:
     # https://*.orange.worldl.xpt:8006
     - to:
       - ipBlock:
-          cidr: 192.168.16.206/32
+          cidr: 192.168.17.206/32
       ports:
         - protocol: TCP
           port: 8444
