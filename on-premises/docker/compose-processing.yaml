@@ -178,6 +178,10 @@ services:
     depends_on:
       startup:
         condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      trino:
+        condition: service_healthy
     image: local/airflow:3.3.2
     build:
       context: airflow-3.3
@@ -188,10 +192,19 @@ services:
     restart: unless-stopped
     security_opt:
       - label=disable
-    command: standalone
+    command:
+      - bash
+      - -c
+      - exec /opt/airflow/configure-connections.sh airflow standalone
     environment:
       AIRFLOW__API__BASE_URL: "http://${AIRFLOW_3_3_ADDITIONAL_HOSTNAME:-airflow-3-3.localhost}:${TRAEFIK_HTTP_PORT:-8080}"
+      AIRFLOW__API__EXPOSE_CONFIG: "true"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__TEST_CONNECTION: "Enabled"
+      POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      TRINO_CLIENT_NAME: "${TRINO_CLIENT_NAME:-trino-client}"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
       interval: 30s
@@ -200,7 +213,10 @@ services:
       start_period: 60s
     volumes:
       - airflow-data:/opt/airflow
+      - ./airflow/configure-connections.sh:/opt/airflow/configure-connections.sh:ro
       - ./airflow/dags:/opt/airflow/dags:ro
+      - ./postgres/certificates:/etc/postgresql/tls:ro
+      - ./trino/certificates:/etc/trino/tls:ro
       - ../../notebooks/jupyter:/opt/airflow/notebooks:ro
       - ./Volumes:/Volumes
     labels:
@@ -216,6 +232,10 @@ services:
     depends_on:
       startup:
         condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      trino:
+        condition: service_healthy
     image: local/airflow:2.11.2
     build:
       context: airflow-2.11
@@ -229,12 +249,14 @@ services:
     command:
       - bash
       - -c
-      - |
-        rm -f /opt/airflow/airflow-webserver.pid
-        exec airflow standalone
+      - exec /opt/airflow/configure-connections.sh airflow standalone
     environment:
       AIRFLOW__WEBSERVER__BASE_URL: "http://airflow-2-11.localhost:${TRAEFIK_HTTP_PORT:-8080}"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      TRINO_CLIENT_NAME: "${TRINO_CLIENT_NAME:-trino-client}"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 30s
@@ -243,7 +265,10 @@ services:
       start_period: 60s
     volumes:
       - airflow-2-11-data:/opt/airflow
+      - ./airflow/configure-connections.sh:/opt/airflow/configure-connections.sh:ro
       - ./airflow/dags:/opt/airflow/dags:ro
+      - ./postgres/certificates:/etc/postgresql/tls:ro
+      - ./trino/certificates:/etc/trino/tls:ro
       - ../../notebooks/jupyter:/opt/airflow/notebooks:ro
       - ./Volumes:/Volumes
     labels:

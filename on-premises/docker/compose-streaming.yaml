@@ -253,7 +253,7 @@ services:
       - backend
 
   kafka-ui:
-    image: ghcr.io/kafbat/kafka-ui:latest
+    image: ghcr.io/kafbat/kafka-ui:v1.5.0
     container_name: kafka-ui
     profiles:
       - kafka
@@ -277,7 +277,8 @@ services:
       - ./kafka-4/certificates:/etc/kafka/tls:ro
     labels:
       - traefik.enable=true
-      - traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.localhost`)
+      - traefik.docker.network=devcontainer_frontend
+      - traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.localhost`) || Host(`${KAFKA_UI_ADDITIONAL_HOSTNAME:-kafka-ui.localhost}`)
       - traefik.http.routers.kafka-ui.entrypoints=web,websecure
       - traefik.http.services.kafka-ui.loadbalancer.server.port=8080
     networks:

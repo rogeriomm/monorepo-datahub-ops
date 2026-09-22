@@ -1,4 +1,4 @@
-FROM chrislusf/seaweedfs:4.39
+FROM chrislusf/seaweedfs:4.47
 
 RUN apk add --no-cache openssl
 

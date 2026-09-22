@@ -482,6 +482,7 @@ services:
       dockerfile: Dockerfile
     environment:
       GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+      ZEPPELIN_ALLOWED_ORIGINS: "http://zeppelin.localhost:${TRAEFIK_HTTP_PORT:-8080},https://zeppelin.localhost:${TRAEFIK_HTTPS_PORT:-8444}"
     container_name: zeppelin_0_12_1
     profiles:
       - zeppelin_0_12_1
@@ -492,8 +493,10 @@ services:
     #  - "${ZEPPELIN_PORT:-6661}:8080"
     labels:
       - traefik.enable=true
+      - traefik.docker.network=devcontainer_frontend
       - traefik.http.routers.zeppelin.rule=Host(`zeppelin.localhost`)
       - traefik.http.routers.zeppelin.entrypoints=web,websecure
+      - traefik.http.routers.zeppelin.service=zeppelin
       - traefik.http.services.zeppelin.loadbalancer.server.port=8080
     volumes:
       - ../../notebooks/zeppelin:/notebooks

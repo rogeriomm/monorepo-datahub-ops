@@ -276,11 +276,16 @@ install -m 644 -o "${export_uid}" -g "${export_gid}" \
 install -m 600 -o "${export_uid}" -g "${export_gid}" \
   "${tls_dir}/ca.key" \
   "${tls_dir}/server.key" \
-  "${tls_dir}/client.key" \
   "${client_keystore}" \
   "${tls_dir}/certificate-hostname" \
   "${tls_dir}/client-name" \
   "${tls_dir}/client-password" \
+  "${certificate_dir}/"
+# libpq accepts a group-readable private key only when root owns it. Airflow
+# runs as uid 50000 with gid 0, so this keeps the key private while allowing
+# every Compose client in the root group to use the shared certificate.
+install -m 640 -o 0 -g 0 \
+  "${tls_dir}/client.key" \
   "${certificate_dir}/"
 
 if [[ "${mtls_enabled}" == false ]]; then

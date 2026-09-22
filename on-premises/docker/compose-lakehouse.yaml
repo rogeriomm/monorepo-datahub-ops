@@ -136,6 +136,7 @@ services:
     container_name: trino
     profiles:
       - trino
+    user: "1000:0"
     restart: unless-stopped
     security_opt:
       - label=disable
@@ -160,6 +161,7 @@ services:
       - ./trino/config.properties:/etc/trino/config.properties:ro
       - ./trino/catalog:/etc/trino/catalog:ro
       - ./trino/configure-tls.sh:/etc/trino/configure-tls.sh:ro
+      - ./trino/ExportPrivateKey.java:/etc/trino/ExportPrivateKey.java:ro
       - ./trino/certificates:/etc/trino/tls
       - ./Volumes:/Volumes
     healthcheck:
@@ -179,15 +181,23 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=devcontainer_frontend
+      - traefik.http.routers.trino.rule=Host(`trino.localhost`) || Host(`${TRINO_ADDITIONAL_HOSTNAME:-trino.localhost}`)
+      - traefik.http.routers.trino.entrypoints=web,websecure
+      - traefik.http.routers.trino.service=trino
+      - traefik.http.services.trino.loadbalancer.server.port=8080
     networks:
       - backend
       - external
+      - frontend
 
   seaweedfs:
     depends_on:
       startup:
         condition: service_completed_successfully
-    image: local/seaweedfs:4.39
+    image: local/seaweedfs:4.47
     build:
       context: seaweedfs
       dockerfile: Dockerfile

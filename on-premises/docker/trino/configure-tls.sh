@@ -11,6 +11,8 @@ ca_keystore=${tls_dir}/trino-ca.p12
 server_keystore=${tls_dir}/trino.keystore.p12
 server_truststore=${tls_dir}/trino.truststore.p12
 client_keystore=${tls_dir}/trino-client.p12
+client_key=${tls_dir}/trino-client-key
+certificate_profile=2
 
 if (( ${#store_password} < 6 )); then
   echo "TRINO_TLS_STORE_PASSWORD must contain at least 6 characters" >&2
@@ -73,6 +75,11 @@ if [[ ! -s "${tls_dir}/certificate-hostname" ]] \
   regenerate_server=true
 fi
 
+if [[ ! -s "${tls_dir}/certificate-profile" ]] \
+  || [[ "$(<"${tls_dir}/certificate-profile")" != "${certificate_profile}" ]]; then
+  regenerate_server=true
+fi
+
 if [[ "${regenerate_server}" == true ]]; then
   echo "===> Generating the Trino server certificate and PKCS12 keystore ..."
   rm -f \
@@ -90,8 +97,8 @@ if [[ "${regenerate_server}" == true ]]; then
     -sigalg SHA256withRSA \
     -dname "CN=local-trino-ca" \
     -validity 3650 \
-    -ext BC=ca:true \
-    -ext KU=keyCertSign,cRLSign \
+    -ext BC:critical=ca:true \
+    -ext KU:critical=keyCertSign,cRLSign \
     -storetype PKCS12 \
     -keystore "${ca_keystore}" \
     -storepass "${store_password}" \
@@ -184,6 +191,7 @@ if [[ "${regenerate_client}" == true ]]; then
   rm -f \
     "${tls_dir}/trino-client.crt" \
     "${tls_dir}/trino-client.csr" \
+    "${client_key}" \
     "${client_keystore}" \
     "${server_truststore}"
 
@@ -250,8 +258,18 @@ if [[ "${regenerate_client}" == true ]]; then
   rm -f "${tls_dir}/trino-client.csr"
 fi
 
+if [[ "${regenerate_client}" == true ]] || [[ ! -s "${client_key}" ]]; then
+  rm -f "${client_key}.tmp"
+  java /etc/trino/ExportPrivateKey.java \
+    "${client_keystore}" \
+    "${client_key}.tmp"
+  chmod 600 "${client_key}.tmp"
+  mv -f "${client_key}.tmp" "${client_key}"
+fi
+
 printf '%s' "${store_password}" > "${tls_dir}/keystore-password"
 printf '%s' "${external_hostname}" > "${tls_dir}/certificate-hostname"
+printf '%s' "${certificate_profile}" > "${tls_dir}/certificate-profile"
 printf '%s' "${client_store_password}" > "${tls_dir}/client-password"
 printf '%s' "${client_name}" > "${tls_dir}/client-name"
 
@@ -264,7 +282,10 @@ chmod 600 \
   "${tls_dir}/client-password" \
   "${tls_dir}/client-name" \
   "${tls_dir}/certificate-hostname" \
+  "${tls_dir}/certificate-profile" \
   "${tls_dir}/internal-shared-secret"
+chgrp 0 "${client_key}"
+chmod 640 "${client_key}"
 chmod 644 \
   "${tls_dir}/ca.crt" \
   "${tls_dir}/trino.crt" \
