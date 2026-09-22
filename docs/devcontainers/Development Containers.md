@@ -232,10 +232,62 @@ Get the administrator password using the repository's
 docker compose exec airflow-3.3 \
   cat /opt/airflow/simple_auth_manager_passwords.json.generated
 ```
+or:
+```shell
+mise run airflow:password
+```
 
+ - Dags
+	 - Directory `on-premises/docker/airflow/dags`
+
+Both Airflow versions automatically create or update these connections before
+starting:
+
+| Connection ID | Type | Target |
+| --- | --- | --- |
+| `postgres_default` | PostgreSQL | `postgres:5432`, using the configured database and mutual TLS certificates |
+| `trino_default` | Trino | `https://trino:8443`, using the `system.runtime` namespace and mutual TLS certificates |
+
+The Airflow images include the PostgreSQL and Trino providers. Both services
+wait for healthy PostgreSQL and Trino containers and read their client
+certificates from read-only mounts. Rebuild the images after changing provider
+versions or connection initialization:
+
+```shell
+docker compose -f on-premises/docker/docker-compose.yaml \
+  --profile airflow_2 --profile airflow_3 --profile postgres --profile trino \
+  up -d --build airflow-2.11 airflow-3.3
+```
+
+
+![[Pasted image 20260922103328.png]]
 
 ## Trino
 
+Trino exposes its Web UI through both Traefik entrypoints:
+
+- `http://trino.localhost:${TRAEFIK_HTTP_PORT}/`
+- `https://trino.localhost:${TRAEFIK_HTTPS_PORT}/`
+
+To route an additional DNS hostname to the same Web UI, set it without a URL
+scheme or port in `on-premises/docker/.env`:
+
+```dotenv
+TRINO_ADDITIONAL_HOSTNAME=trino.example.com
+```
+
+Recreate Trino and Traefik so the router uses the current hostname:
+
+```shell
+docker compose -f on-premises/docker/docker-compose.yaml \
+  --profile trino up -d --force-recreate trino traefik
+```
+
+The additional hostname must resolve to the Docker host. Traefik terminates
+TLS, protects the route with its shared BasicAuth middleware, and forwards the
+request to Trino's internal HTTP listener. The Web UI uses the
+`TRINO_CLIENT_NAME` value as its fixed Trino identity. Direct clients on port
+`8443` continue to use mutual TLS.
 
 ## Superset
 
@@ -601,6 +653,23 @@ The `jupyter-spark-4.1` image includes a TLS-enabled [`kafkactl`](https://github
 the internal `kafka-4-backend:29092` listener. Kafka UI uses the same trusted CA and is
 available through the [local services](#local-services) section.
 
+To route an additional DNS hostname to Kafka UI, set it without a URL scheme or
+port in `on-premises/docker/.env`:
+
+```dotenv
+KAFKA_UI_ADDITIONAL_HOSTNAME=kafka-ui.example.com
+```
+
+Recreate Kafka UI so Traefik receives the updated router rule:
+
+```shell
+docker compose -f on-premises/docker/docker-compose.yaml \
+  --profile kafka up -d --force-recreate kafka-ui traefik
+```
+
+The additional hostname must resolve to the Docker host. It works through both
+the HTTP and HTTPS Traefik entrypoints and uses the shared BasicAuth middleware.
+
 ```shell
 docker compose -f on-premises/docker/docker-compose.yaml \
   exec jupyter-spark-4.1 \
@@ -742,12 +811,16 @@ Using Visual Studio Code:
 - Data presentation
   - [Superset](http://superset.localhost:8080/)
     - Default local credentials: `admin` / `admin`
+- Query engine
+  - [Trino Web UI](http://trino.localhost:8080/)
 - Database administration
   - [pgAdmin 4](http://pgadmin.localhost:8080/)
     - Default local credentials: `admin@example.com` / `admin`
 - Apache Flink
   - [Flink](http://flink.localhost:8080)
-
+- Trino
+	- [Trino UI - https](https://trino.localhost:8444/ui/)
+	- [Trino UI](http://trino.localhost:8444/ui/)
 ## References
 
 - [Video: My Entire Neovim + Tmux + Workflow (2026 Update)](https://youtu.be/fjoGZ90bOzw?t=2947)
