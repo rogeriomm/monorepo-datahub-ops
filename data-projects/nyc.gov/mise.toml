@@ -1,2 +1,10 @@
 [tools]
 java = "21"
+
+[tasks."dbt:seed:prod"]
+description = "DBT seed prod"
+run = "cd simple && dbt seed --target prod"
+
+[tasks."dbt:seed:dev"]
+description = "DBT seed prod"
+run = "cd simple && dbt seed --target dev"

@@ -1,16 +1,207 @@
+version: 2
+
 seeds:
   - name: country_codes
     config:
       column_types:
         country_code: varchar(2)
         country_name: varchar(400)
+
   - name: popular_names_by_country_2026
+    description: >
+      Most popular given names and surnames by country for 2026,
+      ranked by in-country frequency.
+      Contains the top 100 given names and top 100 surnames
+      for each country.
+      Source: https://onomaverse.com/datasets/popular-names-by-country-2026
+      Licensed under CC BY 4.0.
+
     config:
       column_types:
-        country_code: varchar(2)
-        country_name: varchar(400)
-        type: varchar(15)
-        rank: int
-        name: varchar(15)
-        name_id: varchar(15)
-        gender: char
+        country_code: varchar
+        country_name: varchar
+        type: varchar
+        rank: integer
+        name: varchar
+        name_id: varchar
+        gender: varchar
+        count: bigint
+
+    columns:
+      - name: country_code
+        description: ISO 3166-1 alpha-2 country code.
+        data_tests:
+          - not_null
+
+      - name: country_name
+        description: English country name.
+        # FIXME
+        #data_tests:
+        #  - not_null
+
+      - name: type
+        description: Type of name.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - forename
+                  - surname
+
+      - name: rank
+        description: >
+          Rank of the name within the country and name type.
+          Rank 1 represents the most common name.
+        data_tests:
+          - not_null
+
+      - name: name
+        description: Name in its primary form.
+        data_tests:
+          - not_null
+
+      - name: name_id
+        description: Stable Onomaverse identifier for the name.
+        data_tests:
+          - not_null
+
+      - name: gender
+        description: >
+          Recorded gender or genders for the name,
+          semicolon-separated. Primarily applicable to forenames.
+
+      - name: count
+        description: Number of occurrences of the name within the country.
+        data_tests:
+          - not_null
+
+  - name: given_name_frequency
+    description: >
+      Global given-name frequency dataset from Onomaverse.
+      Contains the frequency of each given name by country, including
+      gender, absolute count, and share within the country.
+      Source: https://onomaverse.com/datasets/given-name-frequency
+      Licensed under CC BY 4.0.
+
+    config:
+      column_types:
+        name: varchar
+        name_id: varchar
+        gender: varchar
+        country_code: varchar
+        country_name: varchar
+        count: bigint
+        pct_in_country: double
+        origin: varchar
+
+    columns:
+      - name: name
+        description: Given name in its primary Latin form.
+        data_tests:
+          - not_null
+
+      - name: name_id
+        description: Stable Onomaverse identifier for the given name.
+        data_tests:
+          - not_null
+
+      - name: gender
+        description: >
+          Recorded gender or genders for the name.
+          Values may be M, F, or M;F.
+        # FIXME
+        data_tests:
+          #- not_null FIXME
+          - accepted_values:
+              arguments:
+                values:
+                  - M
+                  - F
+                  - "M;F"
+                  - "F;M"
+
+      - name: country_code
+        description: ISO 3166-1 alpha-2 country code.
+        data_tests:
+          - not_null
+
+      - name: country_name
+        description: English name of the country.
+        # FIXME
+        #data_tests:
+        #  - not_null
+
+      - name: count
+        description: Number of people recorded with this name in the country.
+        data_tests:
+          - not_null
+
+      - name: pct_in_country
+        description: >
+          Share of all given-name records in the country represented
+          by this name, expressed as a value from 0 to 1.
+        data_tests:
+          - not_null
+
+      - name: origin
+        description: Short etymological origin label.
+
+
+  - name: name_equivalence
+    description: >
+      Name equivalence graph from Onomaverse, linking names to variants,
+      similar forms, and cross-language equivalents.
+      Source: https://onomaverse.com/datasets/name-equivalence
+      Licensed under CC BY 4.0.
+
+    config:
+      column_types:
+        name_id: varchar
+        name: varchar
+        type: varchar
+        related_id: varchar
+        related_name: varchar
+        relation: varchar
+
+    columns:
+      - name: name_id
+        description: Source name identifier.
+        data_tests:
+          - not_null
+
+      - name: name
+        description: Source name in its primary form.
+        data_tests:
+          - not_null
+
+      - name: type
+        description: Name type, either forename or surname.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - forename
+                  - surname
+
+      - name: related_id
+        description: Identifier of the linked name.
+        data_tests:
+          - not_null
+
+      - name: related_name
+        description: Linked name in its primary form.
+        data_tests:
+          - not_null
+
+      - name: relation
+        description: Relationship between the source and linked name.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - variant
+                  - similar
+                  - cultural_equivalent

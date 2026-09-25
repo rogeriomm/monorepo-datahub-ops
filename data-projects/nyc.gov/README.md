@@ -7,4 +7,6 @@ dbt seed --full-refresh
 ```
 
 # Links
- - https://onomaverse.com/datasets/popular-names-by-country-2026
+ - https://onomaverse.com/datasets
+   - https://onomaverse.com/datasets/popular-names-by-country-2026
+   - https://github.com/onomaverse/datasets
