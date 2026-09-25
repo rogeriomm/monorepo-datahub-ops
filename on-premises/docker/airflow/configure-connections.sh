@@ -3,12 +3,15 @@
 set -o errexit -o nounset -o pipefail
 
 postgres_tls_dir=/etc/postgresql/tls
+postgres_runtime_tls_dir=${AIRFLOW_HOME:-/opt/airflow}/tls/postgresql
+seaweedfs_tls_dir=/etc/seaweedfs/tls
 trino_tls_dir=/etc/trino/tls
 
 required_files=(
   "${postgres_tls_dir}/ca.crt"
   "${postgres_tls_dir}/client.crt"
   "${postgres_tls_dir}/client.key"
+  "${seaweedfs_tls_dir}/ca.crt"
   "${trino_tls_dir}/ca.crt"
   "${trino_tls_dir}/trino-client.crt"
   "${trino_tls_dir}/trino-client-key"
@@ -20,6 +23,11 @@ for required_file in "${required_files[@]}"; do
     exit 1
   fi
 done
+
+install -d -m 0700 "${postgres_runtime_tls_dir}"
+install -m 0600 \
+  "${postgres_tls_dir}/client.key" \
+  "${postgres_runtime_tls_dir}/client.key"
 
 airflow db migrate
 
@@ -38,7 +46,13 @@ replace_connection postgres_default \
   --conn-password "${POSTGRES_PASSWORD}" \
   --conn-port 5432 \
   --conn-schema "${POSTGRES_DB}" \
-  --conn-extra '{"sslmode":"verify-full","sslrootcert":"/etc/postgresql/tls/ca.crt","sslcert":"/etc/postgresql/tls/client.crt","sslkey":"/etc/postgresql/tls/client.key"}'
+  --conn-extra "{\"sslmode\":\"verify-full\",\"sslrootcert\":\"/etc/postgresql/tls/ca.crt\",\"sslcert\":\"/etc/postgresql/tls/client.crt\",\"sslkey\":\"${postgres_runtime_tls_dir}/client.key\"}"
+
+replace_connection aws_default \
+  --conn-type aws \
+  --conn-login "${SEAWEEDFS_ACCESS_KEY_ID}" \
+  --conn-password "${SEAWEEDFS_SECRET_ACCESS_KEY}" \
+  --conn-extra "{\"endpoint_url\":\"https://seaweedfs:8333\",\"region_name\":\"${SEAWEEDFS_REGION}\",\"verify\":\"${seaweedfs_tls_dir}/ca.crt\",\"config_kwargs\":{\"s3\":{\"addressing_style\":\"path\"}}}"
 
 replace_connection trino_default \
   --conn-type trino \

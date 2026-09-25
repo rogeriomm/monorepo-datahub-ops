@@ -219,6 +219,9 @@ services:
       POSTGRES_CONNECTION_USAGE_MAX_PERCENT: "${POSTGRES_CONNECTION_USAGE_MAX_PERCENT:-90}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
       POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      SEAWEEDFS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      SEAWEEDFS_REGION: "${SEAWEEDFS_REGION:-us-east-1}"
+      SEAWEEDFS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
       TRINO_CLIENT_NAME: "${TRINO_CLIENT_NAME:-trino-client}"
       TRINO_QUEUED_QUERIES_MAX: "${TRINO_QUEUED_QUERIES_MAX:-10}"
     healthcheck:
@@ -232,6 +235,7 @@ services:
       - ./airflow/configure-connections.sh:/opt/airflow/configure-connections.sh:ro
       - ./airflow-3.3/dags:/opt/airflow/dags:ro
       - ./postgres/certificates:/etc/postgresql/tls:ro
+      - ./seaweedfs/certificates:/etc/seaweedfs/tls:ro
       - ./trino/certificates:/etc/trino/tls:ro
       - ../../notebooks/jupyter:/opt/airflow/notebooks:ro
       - ./Volumes:/Volumes
@@ -272,6 +276,9 @@ services:
       POSTGRES_DB: "${POSTGRES_DB:-postgres}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
       POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      SEAWEEDFS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
+      SEAWEEDFS_REGION: "${SEAWEEDFS_REGION:-us-east-1}"
+      SEAWEEDFS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
       TRINO_CLIENT_NAME: "${TRINO_CLIENT_NAME:-trino-client}"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
@@ -284,6 +291,7 @@ services:
       - ./airflow/configure-connections.sh:/opt/airflow/configure-connections.sh:ro
       - ./airflow/dags:/opt/airflow/dags:ro
       - ./postgres/certificates:/etc/postgresql/tls:ro
+      - ./seaweedfs/certificates:/etc/seaweedfs/tls:ro
       - ./trino/certificates:/etc/trino/tls:ro
       - ../../notebooks/jupyter:/opt/airflow/notebooks:ro
       - ./Volumes:/Volumes
