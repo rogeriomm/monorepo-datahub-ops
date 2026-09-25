@@ -1,0 +1,1 @@
+Install Docker normally, then configure rootless mode

@@ -1,0 +1,12 @@
+{
+	"nodes":[
+		{"id":"b6afa8260c666073","type":"file","file":"docs/attachments/books/Analytical Data Processing in SQL - Joseph Machado.pdf","subpath":"#page=34","x":-2500,"y":-820,"width":780,"height":857},
+		{"id":"f6b86920b01cee80","type":"text","text":"Bucketing","x":-2187,"y":-1020,"width":155,"height":50},
+		{"id":"d0fef6ba072f2bf3","type":"text","text":"Partitioning","x":-1300,"y":-995,"width":160,"height":50},
+		{"id":"b26fa2adc52741e3","type":"file","file":"docs/attachments/books/Analytical Data Processing in SQL - Joseph Machado.pdf","subpath":"#page=39","x":-1600,"y":-800,"width":780,"height":857}
+	],
+	"edges":[
+		{"id":"b95b61c977e7e506","fromNode":"f6b86920b01cee80","fromSide":"bottom","toNode":"b6afa8260c666073","toSide":"top"},
+		{"id":"9f220f5e06a161be","fromNode":"d0fef6ba072f2bf3","fromSide":"bottom","toNode":"b26fa2adc52741e3","toSide":"top"}
+	]
+}

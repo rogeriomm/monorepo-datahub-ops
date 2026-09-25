@@ -6,7 +6,9 @@
 		{"id":"17afdb2b07d1bbcc","type":"link","url":"https://github.com/Jxck-S/plane-notify","x":-99,"y":-1150,"width":1080,"height":522},
 		{"id":"05d9081025f89b32","type":"link","url":"https://github.com/Jxck-S/plane-notify/blob/69bd4163d8d56dba7c80c35a9994fc1b38b4ae95/PseudoCode.md","x":1000,"y":-1560,"width":980,"height":932},
 		{"id":"e80ea3bddf5b6d3b","type":"link","url":"https://ourairports.com/data/","x":-180,"y":-1860,"width":1120,"height":660},
-		{"id":"449d789d80a02e49","type":"file","file":"docs/de-samples/attachments/Pasted image 20260914112630.png","x":-940,"y":-1200,"width":760,"height":502}
+		{"id":"449d789d80a02e49","type":"file","file":"docs/de-samples/attachments/Pasted image 20260914112630.png","x":-940,"y":-1200,"width":760,"height":502},
+		{"id":"e78c4a0beafb8770","x":-1086,"y":-1860,"width":906,"height":640,"type":"link","url":"https://opensky-network.org/api/states/all"},
+		{"id":"9d2c9c4381054b07","x":-1120,"y":-3000,"width":1720,"height":1080,"type":"link","url":"https://openskynetwork.github.io/opensky-api/trino.html"}
 	],
 	"edges":[]
 }

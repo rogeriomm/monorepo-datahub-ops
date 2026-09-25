@@ -1,7 +1,6 @@
 # Obsidian RAG
 
-The on-premises Compose project runs
-[obsidian-mcp](https://github.com/maxkuminov/obsidian-mcp) with PostgreSQL,
+The on-premises Compose project runs [obsidian-mcp](https://github.com/maxkuminov/obsidian-mcp) with PostgreSQL,
 pgvector, and Ollama. It indexes the Obsidian vault for full-text and semantic
 search and exposes authenticated MCP tools for reading and updating notes.
 

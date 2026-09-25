@@ -1,0 +1,10 @@
+{
+	"nodes":[
+		{"id":"c5003f8e1a8c0c95","type":"file","file":"docs/attachments/books/Streaming Databases - Hubert Dulay.pdf","subpath":"#page=100","x":-940,"y":-1300,"width":780,"height":940},
+		{"id":"29941deacd2e1d12","type":"file","file":"docs/devcontainers/Development Containers Architecture.md","x":-1960,"y":-1140,"width":760,"height":500},
+		{"id":"16f4af19880da230","type":"file","file":"docs/devcontainers/attachments/Pasted image 20260925110429.png","x":-880,"y":-1620,"width":585,"height":200}
+	],
+	"edges":[
+		{"id":"938a4bbdc204c7b6","fromNode":"16f4af19880da230","fromSide":"bottom","toNode":"c5003f8e1a8c0c95","toSide":"top"}
+	]
+}
