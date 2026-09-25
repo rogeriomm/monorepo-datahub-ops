@@ -20,3 +20,17 @@ hostnames, account information, and origin addresses are intentionally blurred.
 
 
 **Cloudflare Dashboard → Networking → Tunnels → select your tunnel → Routes → Add route → Published application**.
+
+
+# Cloudflare Origin CA leaf certificate and private key
+- https://developers.cloudflare.com/ssl/origin-configuration/origin-ca/
+
+
+ - Open Cloudflare Dashboard.
+ - Select the worldb.site zone.
+ - Go to SSL/TLS → Origin Server.
+ - Select Create Certificate.
+ - Add hostname \*.worldb.site.
+ - Choose PEM format.
+ - Save the outputs on the on premises server
+ 
