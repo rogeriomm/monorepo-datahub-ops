@@ -15,6 +15,8 @@ secrets:
     environment: GITHUB_TOKEN
   OBSIDIAN_MCP_POSTGRES_PASSWORD:
     environment: OBSIDIAN_MCP_POSTGRES_PASSWORD
+  POSTGRES_PASSWORD:
+    environment: POSTGRES_PASSWORD
 
 volumes:
   deepseek-harness-home:

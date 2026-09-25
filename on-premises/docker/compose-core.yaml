@@ -35,6 +35,8 @@ services:
     environment:
       TRAEFIK_BASIC_AUTH_USERNAME: "${TRAEFIK_BASIC_AUTH_USERNAME:?Set TRAEFIK_BASIC_AUTH_USERNAME in on-premises/docker/.env}"
       TRAEFIK_BASIC_AUTH_PASSWORD: "${TRAEFIK_BASIC_AUTH_PASSWORD:?Set TRAEFIK_BASIC_AUTH_PASSWORD in on-premises/docker/.env}"
+      TRAEFIK_GID: "${HOST_GID:?HOST_GID must be set}"
+      TRAEFIK_UID: "${HOST_UID:?HOST_UID must be set}"
     entrypoint:
       - /bin/sh
       - -ec
@@ -42,6 +44,7 @@ services:
       - |
         umask 077
         htpasswd -nbB "$${TRAEFIK_BASIC_AUTH_USERNAME}" "$${TRAEFIK_BASIC_AUTH_PASSWORD}" > /auth/users
+        chown "$${TRAEFIK_UID}:$${TRAEFIK_GID}" /auth/users
     volumes:
       - traefik-auth:/auth
 
@@ -70,12 +73,15 @@ services:
       - trino
       - zeppelin_0_12_1
     restart: unless-stopped
+    user: "${HOST_UID:?HOST_UID must be set}:${HOST_GID:?HOST_GID must be set}"
+    group_add:
+      - "${DOCKER_GID:?DOCKER_GID must be set}"
     security_opt:
       - label=disable
     command:
-      - --entrypoints.web.address=:80
+      - --entrypoints.web.address=:8080
       - --entrypoints.web.http.middlewares=traefik-basic-auth@docker
-      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.address=:8443
       - --entrypoints.websecure.http.middlewares=traefik-basic-auth@docker
       - --entrypoints.websecure.http.tls=true
       # Dedicated entrypoint preserves the Obsidian bearer Authorization
@@ -86,8 +92,8 @@ services:
       - --providers.file.filename=/etc/traefik/dynamic/seaweedfs-tls.yaml
       - --api.dashboard=true
     ports:
-      - "${TRAEFIK_HTTP_PORT:-8080}:80"
-      - target: 443
+      - "${TRAEFIK_HTTP_PORT:-8080}:8080"
+      - target: 8443
         published: "${TRAEFIK_HTTPS_PORT:-8444}"
         host_ip: "${TRAEFIK_HTTPS_BIND:-127.0.0.1}"
         protocol: tcp
@@ -100,7 +106,7 @@ services:
       - traefik.http.middlewares.traefik-basic-auth.basicauth.usersfile=/etc/traefik/auth/users
       - traefik.http.middlewares.traefik-basic-auth.basicauth.removeheader=true
       - traefik.http.middlewares.traefik-basic-auth.basicauth.realm=Development services
-      - traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)
+      - traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`) || Host(`${TRAEFIK_ADDITIONAL_HOSTNAME:-traefik.localhost}`)
       - traefik.http.routers.traefik-dashboard.entrypoints=web,websecure
       - traefik.http.routers.traefik-dashboard.service=api@internal
       - traefik.http.routers.traefik-dashboard-localhost.rule=Host(`localhost`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))

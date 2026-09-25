@@ -13,6 +13,20 @@ services:
     restart: unless-stopped
     security_opt:
       - label=disable
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        mkdir -p /home/pgadmin/.postgresql
+        cp /etc/postgresql/tls/ca.crt /home/pgadmin/.postgresql/root.crt
+        cp /etc/postgresql/tls/client.crt /home/pgadmin/.postgresql/postgresql.crt
+        cp /etc/postgresql/tls/client.key /home/pgadmin/.postgresql/postgresql.key
+        chown -R "$${PUID}:$${PGID}" /home/pgadmin/.postgresql
+        chmod 700 /home/pgadmin/.postgresql
+        chmod 644 /home/pgadmin/.postgresql/root.crt /home/pgadmin/.postgresql/postgresql.crt
+        chmod 600 /home/pgadmin/.postgresql/postgresql.key
+        exec /entrypoint.sh
     environment:
       PGADMIN_DEFAULT_EMAIL: "${PGADMIN_DEFAULT_EMAIL:-admin@example.com}"
       PGADMIN_DEFAULT_PASSWORD: "${PGADMIN_DEFAULT_PASSWORD:-admin}"
@@ -27,6 +41,8 @@ services:
     secrets:
       - source: OBSIDIAN_MCP_POSTGRES_PASSWORD
         target: obsidian-mcp-postgres-password
+      - source: POSTGRES_PASSWORD
+        target: postgres-password
     healthcheck:
       test:
         - CMD
@@ -41,9 +57,6 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
       - ./postgres/certificates:/etc/postgresql/tls:ro
-      - ./postgres/certificates/ca.crt:/home/pgadmin/.postgresql/root.crt:ro
-      - ./postgres/certificates/client.crt:/home/pgadmin/.postgresql/postgresql.crt:ro
-      - ./postgres/certificates/client.key:/home/pgadmin/.postgresql/postgresql.key:ro
     labels:
       - traefik.enable=true
       - traefik.docker.network=devcontainer_frontend
@@ -199,12 +212,15 @@ services:
     environment:
       AIRFLOW__API__BASE_URL: "http://${AIRFLOW_3_3_ADDITIONAL_HOSTNAME:-airflow-3-3.localhost}:${TRAEFIK_HTTP_PORT:-8080}"
       AIRFLOW__API__EXPOSE_CONFIG: "true"
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: "http://127.0.0.1:8080/execution/"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__TEST_CONNECTION: "Enabled"
       POSTGRES_DB: "${POSTGRES_DB:-postgres}"
+      POSTGRES_CONNECTION_USAGE_MAX_PERCENT: "${POSTGRES_CONNECTION_USAGE_MAX_PERCENT:-90}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
       POSTGRES_USER: "${POSTGRES_USER:-postgres}"
       TRINO_CLIENT_NAME: "${TRINO_CLIENT_NAME:-trino-client}"
+      TRINO_QUEUED_QUERIES_MAX: "${TRINO_QUEUED_QUERIES_MAX:-10}"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
       interval: 30s
@@ -214,7 +230,7 @@ services:
     volumes:
       - airflow-data:/opt/airflow
       - ./airflow/configure-connections.sh:/opt/airflow/configure-connections.sh:ro
-      - ./airflow/dags:/opt/airflow/dags:ro
+      - ./airflow-3.3/dags:/opt/airflow/dags:ro
       - ./postgres/certificates:/etc/postgresql/tls:ro
       - ./trino/certificates:/etc/trino/tls:ro
       - ../../notebooks/jupyter:/opt/airflow/notebooks:ro
@@ -351,6 +367,7 @@ configs:
             "Port": 5432,
             "MaintenanceDB": "${POSTGRES_DB:-postgres}",
             "Username": "${POSTGRES_USER:-postgres}",
+            "PasswordExecCommand": "cat /run/secrets/postgres-password",
             "ConnectionParameters": {
               "sslmode": "verify-full"
             }

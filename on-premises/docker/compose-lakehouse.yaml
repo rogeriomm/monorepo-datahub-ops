@@ -260,7 +260,7 @@ services:
     depends_on:
       seaweedfs:
         condition: service_healthy
-    image: local/seaweedfs:4.39
+    image: local/seaweedfs:4.47
     container_name: seaweedfs-init
     profiles:
       - trino
