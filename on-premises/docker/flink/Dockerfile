@@ -2,58 +2,42 @@ ARG FLINK_VERSION=2.1.3
 ARG SCALA_VERSION=2.12
 ARG JAVA_VERSION=17
 
-FROM eclipse-temurin:17-jdk-jammy AS delta-builder
-
-ARG DELTA_VERSION=4.4.0
-ARG DELTA_SOURCE_SHA256=4d343764371e3882749cbad52c335bca707f79efe7f65b51a0155364a793ee19
-ARG FLINK_VERSION=2.1.3
-
-RUN apt-get update \
-    && apt-get install --yes --no-install-recommends ca-certificates curl git \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /src/delta
-
-COPY delta-seaweedfs.patch /tmp/delta-seaweedfs.patch
-
-RUN curl --fail --location --silent --show-error \
-        "https://github.com/delta-io/delta/archive/refs/tags/v${DELTA_VERSION}.tar.gz" \
-        --output /tmp/delta.tar.gz \
-    && echo "${DELTA_SOURCE_SHA256}  /tmp/delta.tar.gz" | sha256sum --check \
-    && tar --extract --gzip --strip-components=1 --file=/tmp/delta.tar.gz \
-    && git apply /tmp/delta-seaweedfs.patch \
-    && ./build/sbt -batch -no-colors -DflinkVersion="${FLINK_VERSION}" flink/assembly \
-    && install --mode=0644 \
-        "flink/target/delta-flink-${FLINK_VERSION}-${DELTA_VERSION}.jar" \
-        /tmp/delta-flink.jar
-
 FROM flink:${FLINK_VERSION}-scala_${SCALA_VERSION}-java${JAVA_VERSION}
 
-ARG AWS_SDK_VERSION=2.23.19
 ARG FLINK_KAFKA_CONNECTOR_VERSION=5.0.0-2.1
-ARG GUAVA_VERSION=33.5.0-jre
+ARG FLINK_KAFKA_CONNECTOR_SHA256=11cbbcd1163c4fae0d23f9e2c55b4ff57a719a39fe96fc780001cd21a4e5ba15
+ARG FLINK_SHADED_HADOOP_VERSION=2.8.3-10.0
+ARG FLINK_SHADED_HADOOP_SHA256=492b2a559f2a1dad3808b51d9a26a575dbb1202004c9f85f5059c520e0632127
+ARG ICEBERG_VERSION=1.11.0
+ARG ICEBERG_FLINK_RUNTIME_SHA256=39e658d876f253815b4b17c6676bebf6a24d517afe93a21298106d1d7fa97331
+ARG ICEBERG_AWS_BUNDLE_SHA256=38f01da7e96850cdd05e6616d758b77b43314b712a8808e3f9a824d56976162f
 
 USER root
-
-COPY --from=delta-builder /tmp/delta-flink.jar /opt/flink/lib/delta-flink.jar
 
 RUN curl --fail --location --silent --show-error \
         "https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-kafka/${FLINK_KAFKA_CONNECTOR_VERSION}/flink-sql-connector-kafka-${FLINK_KAFKA_CONNECTOR_VERSION}.jar" \
         --output /opt/flink/lib/flink-sql-connector-kafka.jar \
     && curl --fail --location --silent --show-error \
-        "https://repo.maven.apache.org/maven2/software/amazon/awssdk/bundle/${AWS_SDK_VERSION}/bundle-${AWS_SDK_VERSION}.jar" \
-        --output /opt/flink/lib/aws-sdk-bundle.jar \
+        "https://repo.maven.apache.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/${FLINK_SHADED_HADOOP_VERSION}/flink-shaded-hadoop-2-uber-${FLINK_SHADED_HADOOP_VERSION}.jar" \
+        --output /opt/flink/lib/flink-shaded-hadoop-2-uber.jar \
     && curl --fail --location --silent --show-error \
-        "https://repo.maven.apache.org/maven2/com/google/guava/guava/${GUAVA_VERSION}/guava-${GUAVA_VERSION}.jar" \
-        --output /opt/flink/lib/guava.jar \
+        "https://repo.maven.apache.org/maven2/org/apache/iceberg/iceberg-flink-runtime-2.1/${ICEBERG_VERSION}/iceberg-flink-runtime-2.1-${ICEBERG_VERSION}.jar" \
+        --output /opt/flink/lib/iceberg-flink-runtime.jar \
+    && curl --fail --location --silent --show-error \
+        "https://repo.maven.apache.org/maven2/org/apache/iceberg/iceberg-aws-bundle/${ICEBERG_VERSION}/iceberg-aws-bundle-${ICEBERG_VERSION}.jar" \
+        --output /opt/flink/lib/iceberg-aws-bundle.jar \
+    && printf '%s  %s\n' \
+        "${FLINK_KAFKA_CONNECTOR_SHA256}" /opt/flink/lib/flink-sql-connector-kafka.jar \
+        "${FLINK_SHADED_HADOOP_SHA256}" /opt/flink/lib/flink-shaded-hadoop-2-uber.jar \
+        "${ICEBERG_FLINK_RUNTIME_SHA256}" /opt/flink/lib/iceberg-flink-runtime.jar \
+        "${ICEBERG_AWS_BUNDLE_SHA256}" /opt/flink/lib/iceberg-aws-bundle.jar \
+        | sha256sum --check \
     && chown flink:flink \
-        /opt/flink/lib/aws-sdk-bundle.jar \
-        /opt/flink/lib/delta-flink.jar \
         /opt/flink/lib/flink-sql-connector-kafka.jar \
-        /opt/flink/lib/guava.jar
+        /opt/flink/lib/flink-shaded-hadoop-2-uber.jar \
+        /opt/flink/lib/iceberg-flink-runtime.jar \
+        /opt/flink/lib/iceberg-aws-bundle.jar
 
-COPY --chown=flink:flink core-site.xml /opt/flink/conf/core-site.xml
-COPY --chown=flink:flink delta-flink.properties /opt/flink/conf/delta-flink.properties
-COPY --chown=flink:flink kafka-debezium-to-delta.sql /opt/flink/examples/kafka-debezium-to-delta.sql
+COPY --chown=flink:flink kafka-debezium-to-iceberg.sql /opt/flink/examples/kafka-debezium-to-iceberg.sql
 
 USER flink

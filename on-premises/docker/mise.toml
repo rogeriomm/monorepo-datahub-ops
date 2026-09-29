@@ -16,19 +16,32 @@ run = "docker compose down && docker compose up -d"
 
 [tasks."docker:build:jupyter_spark_3_5"]
 description = "Build jupyter_spark_3_5"
-run = "docker compose build pyspark-base-3.5 --no-cache && docker compose build jupyter-spark-3.5 --no-cache"
+run = "docker compose --profile jupyter_spark_3_5 build --no-cache "
 
 [tasks."docker:build:jupyter-spark-4_1"]
 description = "Build jupyter-spark-4_1"
-run = "docker compose build pyspark-base-4.1 --no-cache && docker compose build jupyter-spark-4.1 --no-cache"
+run = "docker compose --profile jupyter_spark_4_1 build --no-cache"
+
+[tasks."docker:build:jupyter-spark-4_2"]
+description = "Build jupyter-spark-4_2"
+run = "docker compose --profile jupyter_spark_4_2 build --no-cache "
+
+[tasks."docker:build:flink"]
+description = "Build jupyter-spark-4_2"
+run = "docker compose --profile flink build --no-cache "
+
+[tasks."docker:logs:jupyter-spark-3_5"]
+description = "Build jupyter-spark-3_5"
+run = "docker compose logs jupyter-spark-3.5 -f"
 
 [tasks."docker:logs:jupyter-spark-4_1"]
 description = "Build jupyter-spark-4_1"
 run = "docker compose logs jupyter-spark-4.1 -f"
 
-[tasks."docker:build:jupyter-spark-4_2"]
+[tasks."docker:logs:jupyter-spark-4_2"]
 description = "Build jupyter-spark-4_2"
-run = "docker compose build pyspark-base-4.2 --no-cache && docker compose build jupyter-spark-4.2 --no-cache"
+run = "docker compose logs jupyter-spark-4.2 -f"
+
 
 [tasks."docker:build:hive-metastore"]
 description = "Build hive metastore"

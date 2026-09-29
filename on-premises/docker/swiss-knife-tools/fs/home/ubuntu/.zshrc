@@ -78,7 +78,7 @@ if [[ -d "$HOME/.oh-my-zsh" ]]; then
   # Custom plugins may be added to $ZSH_CUSTOM/plugins/
   # Example format: plugins=(rails git textmate ruby lighthouse)
   # Add wisely, as too many plugins slow down shell startup.
-  plugins=(kubectl eza podman git)
+  plugins=(kubectl helm mise eza podman git )
 
   source $ZSH/oh-my-zsh.sh
 fi

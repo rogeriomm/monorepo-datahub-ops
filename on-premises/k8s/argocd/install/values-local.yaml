@@ -1,0 +1,19 @@
+global:
+  domain: argocd.localhost
+
+configs:
+  params:
+    server.insecure: true
+
+server:
+  service:
+    type: ClusterIP
+
+  ingress:
+    enabled: true
+    controller: generic
+    ingressClassName: traefik
+    hostname: argocd.localhost
+    path: /
+    pathType: Prefix
+    tls: false

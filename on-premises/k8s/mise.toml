@@ -1,0 +1,33 @@
+[tools]
+gum = "latest"
+k3s = "latest"
+helm = "4.3.0"
+k9s = "latest"
+argocd = "3.5.3"
+
+[tasks."k3d:cluster:create"]
+description = "K3D - Create cluster"
+run = '''
+k3d cluster create argocd \
+  --servers 1 \
+  --agents 1 \
+  -p "8081:80@loadbalancer" \
+  -p "8445:443@loadbalancer"
+'''
+
+
+[tasks."k3d:cluster:start"]
+description = "K3D - Start cluster"
+run = "k3d cluster start argocd"
+
+[tasks."k3d:cluster:stop"]
+description = "K3D - Stop cluster"
+run = "k3d cluster stop argocd"
+
+[tasks."k3d:cluster:delete"]
+description = "K3D - Delete cluster"
+run = '''
+if gum confirm --default=false "Delete cluster 'argocd'?"; then
+  k3d cluster delete argocd
+fi
+'''

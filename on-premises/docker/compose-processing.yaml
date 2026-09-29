@@ -69,7 +69,7 @@ services:
 
 # https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/resource-providers/standalone/docker/
   flink-state-init:
-    image: local/flink:2.1.3-delta-4.4.0
+    image: local/flink:2.1.3-iceberg-1.11.0
     build:
       context: flink
       dockerfile: Dockerfile
@@ -94,7 +94,7 @@ services:
         condition: service_healthy
       seaweedfs-init:
         condition: service_completed_successfully
-    image: local/flink:2.1.3-delta-4.4.0
+    image: local/flink:2.1.3-iceberg-1.11.0
     build:
       context: flink
       dockerfile: Dockerfile
@@ -111,12 +111,6 @@ services:
       AWS_REGION: us-east-1
       AWS_DEFAULT_REGION: us-east-1
       AWS_EC2_METADATA_DISABLED: "true"
-      DELTA_TABLE_ROOT: s3://delta-lakehouse
-      HADOOP_CONF_DIR: /opt/flink/conf
-      KAFKA_BOOTSTRAP_SERVERS: kafka-4-backend:29092
-      KAFKA_SECURITY_PROTOCOL: SSL
-      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/tls/ca.crt
-      KAFKA_SSL_TRUSTSTORE_TYPE: PEM
       FLINK_PROPERTIES: |-
         jobmanager.rpc.address: flink-jobmanager
         rest.bind-address: 0.0.0.0
@@ -148,7 +142,7 @@ services:
     depends_on:
       flink-jobmanager:
         condition: service_healthy
-    image: local/flink:2.1.3-delta-4.4.0
+    image: local/flink:2.1.3-iceberg-1.11.0
     build:
       context: flink
       dockerfile: Dockerfile
@@ -165,12 +159,6 @@ services:
       AWS_REGION: us-east-1
       AWS_DEFAULT_REGION: us-east-1
       AWS_EC2_METADATA_DISABLED: "true"
-      DELTA_TABLE_ROOT: s3://delta-lakehouse
-      HADOOP_CONF_DIR: /opt/flink/conf
-      KAFKA_BOOTSTRAP_SERVERS: kafka-4-backend:29092
-      KAFKA_SECURITY_PROTOCOL: SSL
-      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/tls/ca.crt
-      KAFKA_SSL_TRUSTSTORE_TYPE: PEM
       FLINK_PROPERTIES: |-
         jobmanager.rpc.address: flink-jobmanager
         taskmanager.numberOfTaskSlots: 2

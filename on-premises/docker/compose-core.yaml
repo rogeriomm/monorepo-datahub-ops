@@ -87,6 +87,8 @@ services:
       # Dedicated entrypoint preserves the Obsidian bearer Authorization
       # header instead of consuming it with the shared BasicAuth middleware.
       - --entrypoints.mcp.address=:8000
+      - --accesslog=true
+      - --accesslog.format=json
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --providers.file.filename=/etc/traefik/dynamic/seaweedfs-tls.yaml
