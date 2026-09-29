@@ -1,0 +1,7 @@
+{
+	"nodes":[
+		{"id":"1f4a0a992b519360","x":-1000,"y":-580,"width":1500,"height":1120,"type":"link","url":"https://docs.delta.io/delta-update"},
+		{"id":"313330e497d9317c","x":580,"y":-580,"width":1780,"height":1120,"type":"link","url":"https://spark.apache.org/docs/4.1.3//streaming/getting-started.html"}
+	],
+	"edges":[]
+}

@@ -17,8 +17,9 @@ date
 
 
 # Bugs
-## Task state `No Status` indefinetly
-Clock syncronization
+## Airflow - Task state `No Status` indefinetly
+
+- Force clock syncronization
 ```shell
 sudo timedatectl set-ntp false
 sudo timedatectl set-ntp true
@@ -27,4 +28,4 @@ sleep 10
 timedatectl timesync-status
 ```
 
-Firewal open NTP, UDP por 123
+ - Firewal, open NTP access, UDP port 123

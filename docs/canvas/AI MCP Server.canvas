@@ -1,6 +1,8 @@
 {
 	"nodes":[
-		{"id":"d78a761e9482a213","x":-1000,"y":-1380,"width":1162,"height":772,"type":"link","url":"https://github.com/datalayer/jupyter-mcp-server"}
+		{"id":"d78a761e9482a213","type":"link","url":"https://github.com/datalayer/jupyter-mcp-server","x":-1000,"y":-1380,"width":1162,"height":772},
+		{"id":"92e5eed8bb0ce284","x":220,"y":-1380,"width":1149,"height":772,"type":"link","url":"https://github.com/PacktPublishing/AI-Augmented-Domain-Driven-Design/blob/main/README.md"},
+		{"id":"014c96f70aa8b751","x":-1000,"y":-2220,"width":1162,"height":740,"type":"link","url":"https://github.com/mattpocock/skills"}
 	],
 	"edges":[]
 }
