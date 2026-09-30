@@ -12,7 +12,7 @@ experimental:
     postdeploy: |
       source databricks-dab-lib.sh
       databricks bundle run put-postgres-password -t ${bundle.target}
-      databricks bundle run put-seaweedfs-credentials -t ${bundle.target}
+      databricks bundle run put-rustfs-credentials -t ${bundle.target}
       databricks bundle run put-trino-client-keystore-password -t ${bundle.target}
       databricks bundle run upload-kafka-certificates-to-volume -t ${bundle.target}
       databricks bundle run upload-squid-wheel-to-volume -t ${bundle.target}
@@ -90,16 +90,16 @@ scripts:
       copy_databricks_secret "$TRINO_CERTIFICATE_SOURCE" "$TRINO_CERTIFICATE_VOLUME" "docker/trino/certificates/client-password" "$TRINO_SECRET_SCOPE" trino-client-keystore-password
       copy_databricks  "$TRINO_CERTIFICATE_SOURCE" "$TRINO_CERTIFICATE_VOLUME" ca.crt trino-client.p12 
 
-  put-seaweedfs-credentials:
+  put-rustfs-credentials:
     env:
-      SEAWEEDFS_SECRET_SCOPE: ${bundle.name}
-      SEAWEEDFS_CERTIFICATE_SOURCE: docker/seaweedfs/certificates
-      SEAWEEDFS_CERTIFICATE_VOLUME: dbfs:/Volumes/${var.unity_catalog_name}/${var.unity_catalog_schema_name}/${var.unity_catalog_volume_name}/seaweedfs
+      RUSTFS_SECRET_SCOPE: ${bundle.name}
+      RUSTFS_CERTIFICATE_SOURCE: docker/rustfs/certificates
+      RUSTFS_CERTIFICATE_VOLUME: dbfs:/Volumes/${var.unity_catalog_name}/${var.unity_catalog_schema_name}/${var.unity_catalog_volume_name}/rustfs
     content: |
       source databricks-dab-lib.sh
-      copy_databricks_secret_from_env SEAWEEDFS_ACCESS_KEY_ID "$SEAWEEDFS_SECRET_SCOPE" seaweedfs-user
-      copy_databricks_secret_from_env SEAWEEDFS_SECRET_ACCESS_KEY "$SEAWEEDFS_SECRET_SCOPE" seaweedfs-password
-      copy_databricks  "$SEAWEEDFS_CERTIFICATE_SOURCE" "$SEAWEEDFS_CERTIFICATE_VOLUME" ca.crt
+      copy_databricks_secret_from_env RUSTFS_ACCESS_KEY_ID "$RUSTFS_SECRET_SCOPE" rustfs-user
+      copy_databricks_secret_from_env RUSTFS_SECRET_ACCESS_KEY "$RUSTFS_SECRET_SCOPE" rustfs-password
+      copy_databricks  "$RUSTFS_CERTIFICATE_SOURCE" "$RUSTFS_CERTIFICATE_VOLUME" ca.crt
 
   upload-kafka-certificates-to-volume:
     env:

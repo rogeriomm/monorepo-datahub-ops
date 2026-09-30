@@ -31,8 +31,8 @@ copy_docker_volume_files \
   ca.crt trino-client.p12
 
 copy_docker_volume_files \
-  "docker/seaweedfs/certificates" \
-  "$certificate_volume/seaweedfs" \
+  "docker/rustfs/certificates" \
+  "$certificate_volume/rustfs" \
   ca.crt
 
 copy_docker_volume_files \

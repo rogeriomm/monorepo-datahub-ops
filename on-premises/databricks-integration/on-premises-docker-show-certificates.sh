@@ -20,4 +20,4 @@ openssl x509 \
 echo "Kafka"
 
 
-echo "SeaweedFS"
+echo "RustFS"

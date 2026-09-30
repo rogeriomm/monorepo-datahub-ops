@@ -30,7 +30,8 @@ volumes:
   kafka-data:
   pgadmin-data:
   postgres-data:
-  seaweedfs-data:
+  rustfs-data:
+  rustfs-logs:
   ssh-tunnel-config:
   superset-data:
   traefik-auth:

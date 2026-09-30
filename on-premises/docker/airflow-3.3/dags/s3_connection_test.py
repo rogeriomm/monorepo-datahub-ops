@@ -17,14 +17,14 @@ S3_CONNECTION_ID = "aws_default"
 
 @dag(
     dag_id="s3_connection_test",
-    description="Check the TLS-enabled SeaweedFS S3 connection every five minutes.",
+    description="Check the TLS-enabled RustFS S3 connection every five minutes.",
     schedule="*/5 * * * *",
     start_date=pendulum.datetime(2026, 1, 1, tz="UTC"),
     catchup=False,
     is_paused_upon_creation=False,
     max_active_runs=1,
     dagrun_timeout=timedelta(minutes=4),
-    tags=["test", "s3", "seaweedfs", "airflow-3.3"],
+    tags=["test", "s3", "rustfs", "airflow-3.3"],
 )
 def s3_connection_test():
     @task(

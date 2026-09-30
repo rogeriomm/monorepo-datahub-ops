@@ -77,8 +77,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
       - AWS_REGION=${AWS_REGION:-}
-      - SEAWEEDFS_ACCESS_KEY_ID=${SEAWEEDFS_ACCESS_KEY_ID:-admin}
-      - SEAWEEDFS_SECRET_ACCESS_KEY=${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}
+      - RUSTFS_ACCESS_KEY_ID=${RUSTFS_ACCESS_KEY_ID:-rustfsadmin}
+      - RUSTFS_SECRET_ACCESS_KEY=${RUSTFS_SECRET_ACCESS_KEY:-rustfsadmin}
       - DATABRICKS_AUTH_STORAGE=plaintext
       - AWS_CONFIG_FILE=/home/jovyan/.aws/config
       - AWS_LOGIN_CACHE_DIRECTORY=/home/jovyan/.aws/login/cache
@@ -95,6 +95,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.jupyter-spark-3-5.rule=Host(`jupyter-spark-3-5.localhost`)
       - traefik.http.routers.jupyter-spark-3-5.entrypoints=web,websecure
+      - traefik.http.routers.jupyter-spark-3-5.middlewares=traefik-basic-auth@docker
       - traefik.http.routers.jupyter-spark-3-5.priority=100
       - traefik.http.routers.jupyter-spark-3-5.service=jupyter-spark-3-5
       - traefik.http.services.jupyter-spark-3-5.loadbalancer.server.port=8888
@@ -102,21 +103,21 @@ services:
       - traefik.http.routers.jupyter-spark-3-5-spark-ui.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-3-5-spark-ui.priority=300
       - traefik.http.routers.jupyter-spark-3-5-spark-ui.service=jupyter-spark-3-5-spark-ui
-      - traefik.http.routers.jupyter-spark-3-5-spark-ui.middlewares=jupyter-spark-3-5-spark-ui-strip-prefix
+      - traefik.http.routers.jupyter-spark-3-5-spark-ui.middlewares=traefik-basic-auth@docker,jupyter-spark-3-5-spark-ui-strip-prefix
       - traefik.http.routers.jupyter-spark-3-5-spark-pages.rule=Host(`jupyter-spark-3-5.localhost`) && (PathPrefix(`/jobs`) || PathPrefix(`/stages`) || PathPrefix(`/storage`) || PathPrefix(`/environment`) || PathPrefix(`/executors`) || PathPrefix(`/SQL`) || PathPrefix(`/api/v1`))
       - traefik.http.routers.jupyter-spark-3-5-spark-pages.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-3-5-spark-pages.priority=300
-      - traefik.http.routers.jupyter-spark-3-5-spark-pages.middlewares=jupyter-spark-3-5-spark-pages-redirect
+      - traefik.http.routers.jupyter-spark-3-5-spark-pages.middlewares=traefik-basic-auth@docker,jupyter-spark-3-5-spark-pages-redirect
       - traefik.http.routers.jupyter-spark-3-5-spark-pages.service=noop@internal
       - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.rule=Host(`jupyter-spark-3-5.localhost`) && PathRegexp(`^/webui/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
       - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.priority=400
       - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.service=jupyter-spark-3-5-spark-ui
-      - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.middlewares=jupyter-spark-3-5-spark-ui-strip-prefix
+      - traefik.http.routers.jupyter-spark-3-5-spark-prefixed-static.middlewares=traefik-basic-auth@docker,jupyter-spark-3-5-spark-ui-strip-prefix
       - traefik.http.routers.jupyter-spark-3-5-spark-static.rule=Host(`jupyter-spark-3-5.localhost`) && PathRegexp(`^/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
       - traefik.http.routers.jupyter-spark-3-5-spark-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-3-5-spark-static.priority=300
-      - traefik.http.routers.jupyter-spark-3-5-spark-static.middlewares=jupyter-spark-3-5-spark-static-redirect
+      - traefik.http.routers.jupyter-spark-3-5-spark-static.middlewares=traefik-basic-auth@docker,jupyter-spark-3-5-spark-static-redirect
       - traefik.http.routers.jupyter-spark-3-5-spark-static.service=noop@internal
       - traefik.http.services.jupyter-spark-3-5-spark-ui.loadbalancer.server.port=4042
       - traefik.http.middlewares.jupyter-spark-3-5-spark-pages-redirect.redirectregex.regex=^http://([^/]+)/(jobs|stages|storage|environment|executors|SQL|api/v1)(.*)
@@ -128,6 +129,7 @@ services:
       - traefik.http.middlewares.jupyter-spark-3-5-spark-ui-strip-prefix.stripprefix.prefixes=/webui
       - traefik.http.routers.spark-connect-3-5.rule=Host(`spark-connect-3-5.localhost`)
       - traefik.http.routers.spark-connect-3-5.entrypoints=web,websecure
+      - traefik.http.routers.spark-connect-3-5.middlewares=traefik-basic-auth@docker
       - traefik.http.routers.spark-connect-3-5.service=spark-connect-3-5
       - traefik.http.services.spark-connect-3-5.loadbalancer.server.port=15002
       - traefik.http.services.spark-connect-3-5.loadbalancer.server.scheme=h2c
@@ -147,6 +149,8 @@ services:
       - ../../notebooks/jupyter:/home/jovyan/work
       - "${HOME}/.databrickscfg:/home/jovyan/.databrickscfg:rw"
       - "${HOME}/.databricks:/home/jovyan/.databricks:rw"
+      # RustFS development CA certificate
+      - ./rustfs/certificates:/etc/rustfs/tls:ro
       # AWS CLI
       - ${HOME}/.aws:/home/jovyan/.aws:ro
       - ${HOME}/.aws/login/cache:/home/jovyan/.aws/login/cache:rw
@@ -189,8 +193,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
       - AWS_REGION=${AWS_REGION:-}
-      - SEAWEEDFS_ACCESS_KEY_ID=${SEAWEEDFS_ACCESS_KEY_ID:-admin}
-      - SEAWEEDFS_SECRET_ACCESS_KEY=${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}
+      - RUSTFS_ACCESS_KEY_ID=${RUSTFS_ACCESS_KEY_ID:-rustfsadmin}
+      - RUSTFS_SECRET_ACCESS_KEY=${RUSTFS_SECRET_ACCESS_KEY:-rustfsadmin}
       - DATABRICKS_AUTH_STORAGE=plaintext
       - AWS_CONFIG_FILE=/home/jovyan/.aws/config
       - AWS_LOGIN_CACHE_DIRECTORY=/home/jovyan/.aws/login/cache
@@ -225,6 +229,7 @@ services:
       - traefik.docker.network=devcontainer_frontend
       - traefik.http.routers.jupyter-spark-4-1.rule=Host(`jupyter-spark-4-1.localhost`) || Host(`${JUPYTER_SPARK_4_1_ADDITIONAL_HOSTNAME:-jupyter-spark-4-1.localhost}`)
       - traefik.http.routers.jupyter-spark-4-1.entrypoints=web,websecure
+      - traefik.http.routers.jupyter-spark-4-1.middlewares=traefik-basic-auth@docker
       - traefik.http.routers.jupyter-spark-4-1.priority=100
       - traefik.http.routers.jupyter-spark-4-1.service=jupyter-spark-4-1
       - traefik.http.services.jupyter-spark-4-1.loadbalancer.server.port=8888
@@ -232,21 +237,21 @@ services:
       - traefik.http.routers.jupyter-spark-4-1-spark-ui.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-1-spark-ui.priority=300
       - traefik.http.routers.jupyter-spark-4-1-spark-ui.service=jupyter-spark-4-1-spark-ui
-      - traefik.http.routers.jupyter-spark-4-1-spark-ui.middlewares=jupyter-spark-4-1-spark-ui-strip-prefix
+      - traefik.http.routers.jupyter-spark-4-1-spark-ui.middlewares=traefik-basic-auth@docker,jupyter-spark-4-1-spark-ui-strip-prefix
       - traefik.http.routers.jupyter-spark-4-1-spark-pages.rule=(Host(`jupyter-spark-4-1.localhost`) || Host(`${JUPYTER_SPARK_4_1_ADDITIONAL_HOSTNAME:-jupyter-spark-4-1.localhost}`)) && (PathPrefix(`/jobs`) || PathPrefix(`/stages`) || PathPrefix(`/storage`) || PathPrefix(`/environment`) || PathPrefix(`/executors`) || PathPrefix(`/SQL`) || PathPrefix(`/api/v1`))
       - traefik.http.routers.jupyter-spark-4-1-spark-pages.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-1-spark-pages.priority=300
-      - traefik.http.routers.jupyter-spark-4-1-spark-pages.middlewares=jupyter-spark-4-1-spark-pages-redirect
+      - traefik.http.routers.jupyter-spark-4-1-spark-pages.middlewares=traefik-basic-auth@docker,jupyter-spark-4-1-spark-pages-redirect
       - traefik.http.routers.jupyter-spark-4-1-spark-pages.service=noop@internal
       - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.rule=(Host(`jupyter-spark-4-1.localhost`) || Host(`${JUPYTER_SPARK_4_1_ADDITIONAL_HOSTNAME:-jupyter-spark-4-1.localhost}`)) && PathRegexp(`^/webui/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
       - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.priority=400
       - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.service=jupyter-spark-4-1-spark-ui
-      - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.middlewares=jupyter-spark-4-1-spark-ui-strip-prefix
+      - traefik.http.routers.jupyter-spark-4-1-spark-prefixed-static.middlewares=traefik-basic-auth@docker,jupyter-spark-4-1-spark-ui-strip-prefix
       - traefik.http.routers.jupyter-spark-4-1-spark-static.rule=(Host(`jupyter-spark-4-1.localhost`) || Host(`${JUPYTER_SPARK_4_1_ADDITIONAL_HOSTNAME:-jupyter-spark-4-1.localhost}`)) && PathRegexp(`^/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
       - traefik.http.routers.jupyter-spark-4-1-spark-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-1-spark-static.priority=300
-      - traefik.http.routers.jupyter-spark-4-1-spark-static.middlewares=jupyter-spark-4-1-spark-static-redirect
+      - traefik.http.routers.jupyter-spark-4-1-spark-static.middlewares=traefik-basic-auth@docker,jupyter-spark-4-1-spark-static-redirect
       - traefik.http.routers.jupyter-spark-4-1-spark-static.service=noop@internal
       - traefik.http.services.jupyter-spark-4-1-spark-ui.loadbalancer.server.port=4042
       - traefik.http.middlewares.jupyter-spark-4-1-spark-pages-redirect.redirectregex.regex=^http://([^/]+)/(jobs|stages|storage|environment|executors|SQL|api/v1)(.*)
@@ -258,6 +263,7 @@ services:
       - traefik.http.middlewares.jupyter-spark-4-1-spark-ui-strip-prefix.stripprefix.prefixes=/webui
       - traefik.http.routers.spark-connect-4-1.rule=Host(`spark-connect-4-1.localhost`)
       - traefik.http.routers.spark-connect-4-1.entrypoints=web,websecure
+      - traefik.http.routers.spark-connect-4-1.middlewares=traefik-basic-auth@docker
       - traefik.http.routers.spark-connect-4-1.service=spark-connect-4-1
       - traefik.http.services.spark-connect-4-1.loadbalancer.server.port=15002
       - traefik.http.services.spark-connect-4-1.loadbalancer.server.scheme=h2c
@@ -287,8 +293,8 @@ services:
       - ./jupyter_spark_4_1/ipython-kernel-config.py:/etc/ipython-kernel-config.py:ro
       # Kafka development CA certificate
       - ./kafka-4/certificates:/etc/kafka/tls:ro
-      # seaweedfs development CA certificate
-      - ./seaweedfs/certificates:/etc/seaweedfs/tls
+      # RustFS development CA certificate
+      - ./rustfs/certificates:/etc/rustfs/tls:ro
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
       # AWS CLI
@@ -338,8 +344,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
       - AWS_REGION=${AWS_REGION:-}
-      - SEAWEEDFS_ACCESS_KEY_ID=${SEAWEEDFS_ACCESS_KEY_ID:-admin}
-      - SEAWEEDFS_SECRET_ACCESS_KEY=${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}
+      - RUSTFS_ACCESS_KEY_ID=${RUSTFS_ACCESS_KEY_ID:-rustfsadmin}
+      - RUSTFS_SECRET_ACCESS_KEY=${RUSTFS_SECRET_ACCESS_KEY:-rustfsadmin}
       - DATABRICKS_AUTH_STORAGE=plaintext
       - AWS_CONFIG_FILE=/home/jovyan/.aws/config
       - AWS_LOGIN_CACHE_DIRECTORY=/home/jovyan/.aws/login/cache
@@ -356,6 +362,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.jupyter-spark-4-2.rule=Host(`jupyter-spark-4-2.localhost`)
       - traefik.http.routers.jupyter-spark-4-2.entrypoints=web,websecure
+      - traefik.http.routers.jupyter-spark-4-2.middlewares=traefik-basic-auth@docker
       - traefik.http.routers.jupyter-spark-4-2.priority=100
       - traefik.http.routers.jupyter-spark-4-2.service=jupyter-spark-4-2
       - traefik.http.services.jupyter-spark-4-2.loadbalancer.server.port=8888
@@ -363,21 +370,21 @@ services:
       - traefik.http.routers.jupyter-spark-4-2-spark-ui.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-2-spark-ui.priority=300
       - traefik.http.routers.jupyter-spark-4-2-spark-ui.service=jupyter-spark-4-2-spark-ui
-      - traefik.http.routers.jupyter-spark-4-2-spark-ui.middlewares=jupyter-spark-4-2-spark-ui-strip-prefix
+      - traefik.http.routers.jupyter-spark-4-2-spark-ui.middlewares=traefik-basic-auth@docker,jupyter-spark-4-2-spark-ui-strip-prefix
       - traefik.http.routers.jupyter-spark-4-2-spark-pages.rule=Host(`jupyter-spark-4-2.localhost`) && (PathPrefix(`/jobs`) || PathPrefix(`/stages`) || PathPrefix(`/storage`) || PathPrefix(`/environment`) || PathPrefix(`/executors`) || PathPrefix(`/SQL`) || PathPrefix(`/api/v1`))
       - traefik.http.routers.jupyter-spark-4-2-spark-pages.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-2-spark-pages.priority=300
-      - traefik.http.routers.jupyter-spark-4-2-spark-pages.middlewares=jupyter-spark-4-2-spark-pages-redirect
+      - traefik.http.routers.jupyter-spark-4-2-spark-pages.middlewares=traefik-basic-auth@docker,jupyter-spark-4-2-spark-pages-redirect
       - traefik.http.routers.jupyter-spark-4-2-spark-pages.service=noop@internal
       - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.rule=Host(`jupyter-spark-4-2.localhost`) && PathRegexp(`^/webui/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
       - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.priority=400
       - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.service=jupyter-spark-4-2-spark-ui
-      - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.middlewares=jupyter-spark-4-2-spark-ui-strip-prefix
+      - traefik.http.routers.jupyter-spark-4-2-spark-prefixed-static.middlewares=traefik-basic-auth@docker,jupyter-spark-4-2-spark-ui-strip-prefix
       - traefik.http.routers.jupyter-spark-4-2-spark-static.rule=Host(`jupyter-spark-4-2.localhost`) && PathRegexp(`^/static/(bootstrap|vis-timeline|webui|timeline-view|sorttable|jquery-3\\.5\\.1|initialize-tooltips|table|log-view|scroll-button|dataTables|d3|dagre-d3|graphlib-dot|jquery\\.(blockUI|cookies|dataTables|mustache)|spark-dag-viz|spark-logo).*`)
       - traefik.http.routers.jupyter-spark-4-2-spark-static.entrypoints=web,websecure
       - traefik.http.routers.jupyter-spark-4-2-spark-static.priority=300
-      - traefik.http.routers.jupyter-spark-4-2-spark-static.middlewares=jupyter-spark-4-2-spark-static-redirect
+      - traefik.http.routers.jupyter-spark-4-2-spark-static.middlewares=traefik-basic-auth@docker,jupyter-spark-4-2-spark-static-redirect
       - traefik.http.routers.jupyter-spark-4-2-spark-static.service=noop@internal
       - traefik.http.services.jupyter-spark-4-2-spark-ui.loadbalancer.server.port=4042
       - traefik.http.middlewares.jupyter-spark-4-2-spark-pages-redirect.redirectregex.regex=^http://([^/]+)/(jobs|stages|storage|environment|executors|SQL|api/v1)(.*)
@@ -389,6 +396,7 @@ services:
       - traefik.http.middlewares.jupyter-spark-4-2-spark-ui-strip-prefix.stripprefix.prefixes=/webui
       - traefik.http.routers.spark-connect-4-2.rule=Host(`spark-connect-4-2.localhost`)
       - traefik.http.routers.spark-connect-4-2.entrypoints=web,websecure
+      - traefik.http.routers.spark-connect-4-2.middlewares=traefik-basic-auth@docker
       - traefik.http.routers.spark-connect-4-2.service=spark-connect-4-2
       - traefik.http.services.spark-connect-4-2.loadbalancer.server.port=15002
       - traefik.http.services.spark-connect-4-2.loadbalancer.server.scheme=h2c
@@ -408,8 +416,8 @@ services:
       - ../..:/home/jovyan/work
       # Kafka development CA certificate
       - ./kafka-4/certificates:/etc/kafka/tls:ro
-      # seaweedfs development CA certificate
-      - ./seaweedfs/certificates:/etc/seaweedfs/tls
+      # RustFS development CA certificate
+      - ./rustfs/certificates:/etc/rustfs/tls:ro
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
       # AWS CLI
@@ -477,6 +485,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.jupyter-glue-5.rule=Host(`jupyter-glue-5.localhost`)
       - traefik.http.routers.jupyter-glue-5.entrypoints=web,websecure
+      - traefik.http.routers.jupyter-glue-5.middlewares=traefik-basic-auth@docker
       - traefik.http.services.jupyter-glue-5.loadbalancer.server.port=8888
     networks:
       - frontend
@@ -504,6 +513,7 @@ services:
       - traefik.docker.network=devcontainer_frontend
       - traefik.http.routers.zeppelin.rule=Host(`zeppelin.localhost`) || Host(`${ZEPPELIN_ADDITIONAL_HOSTNAME:-zeppelin.localhost}`)
       - traefik.http.routers.zeppelin.entrypoints=web,websecure
+      - traefik.http.routers.zeppelin.middlewares=traefik-basic-auth@docker
       - traefik.http.routers.zeppelin.service=zeppelin
       - traefik.http.services.zeppelin.loadbalancer.server.port=8080
     volumes:

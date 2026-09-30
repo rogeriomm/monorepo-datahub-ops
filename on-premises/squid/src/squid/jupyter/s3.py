@@ -35,7 +35,7 @@ def _aws_environment(config: S3Config) -> dict[str, str]:
     if config.aws_access_key_id is not None:
         environment["AWS_ACCESS_KEY_ID"] = config.aws_access_key_id
         environment["AWS_SECRET_ACCESS_KEY"] = config.aws_secret_access_key or ""
-        # Static SeaweedFS credentials must not inherit a session token from
+        # Static RustFS credentials must not inherit a session token from
         # the notebook process.
         environment.pop("AWS_SESSION_TOKEN", None)
         environment.pop("AWS_SECURITY_TOKEN", None)

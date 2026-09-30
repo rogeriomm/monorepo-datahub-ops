@@ -1,6 +1,8 @@
-FROM chrislusf/seaweedfs:4.47
+FROM rustfs/rustfs:1.0.0
 
-RUN apk add --no-cache openssl
+USER root
+
+RUN apk add --no-cache openssl su-exec
 
 COPY --chmod=755 configure-tls.sh /usr/local/bin/configure-tls
 

@@ -1,0 +1,25 @@
+mode:
+  standalone:
+    enabled: true
+  distributed:
+    enabled: false
+
+secret:
+  existingSecret: rustfs-credentials
+
+config:
+  rustfs:
+    region: us-east-1
+    log_level: info
+    obs_environment: production
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi

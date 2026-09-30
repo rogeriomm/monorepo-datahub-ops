@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import boto3
 from botocore.client import BaseClient
 from botocore.config import Config
 
-from squid.constants import CERTIFICATE_DIR, Environment
+from squid.constants import Environment
 from squid.core.main import env, get_chroot_volumes, is_databricks
 
 if TYPE_CHECKING:
@@ -16,11 +17,6 @@ if TYPE_CHECKING:
 
 SECRET_SCOPE = "on-premises-integration"
 DEFAULT_REGION = "us-east-1"
-
-certificate_dir = get_chroot_volumes(CERTIFICATE_DIR, "seaweedfs")
-assert certificate_dir is not None
-ca_certificate_path = certificate_dir / "ca.crt"
-
 
 @dataclass(frozen=True)
 class S3Config:
@@ -35,12 +31,22 @@ class S3Config:
 
 def _default_endpoint_url() -> str | None:
     if is_databricks():
-        return "https://pub.worldb.dedyn.io:9001"
+        return "https://pub.worldb.dedyn.io:9000"
     if env == Environment.ON_PREMISES:
-        return "https://seaweedfs:8333"
+        return "https://rustfs:9000"
     if env == Environment.DEBUG:
-        return "https://localhost:8333"
+        return "https://localhost:9000"
     return None
+
+
+def _default_ca_certificate_path() -> Path:
+    if env == Environment.ON_PREMISES:
+        return Path("/etc/rustfs/tls/ca.crt")
+    if env == Environment.DEBUG:
+        certificate_dir = get_chroot_volumes(Path("/rustfs/certificates"), None)
+        assert certificate_dir is not None
+        return certificate_dir / "ca.crt"
+    raise RuntimeError(f"RustFS CA certificate is unavailable in {env.name}")
 
 
 def _load_databricks_credentials(
@@ -50,8 +56,8 @@ def _load_databricks_credentials(
 
     client = workspace_client or WorkspaceClient()
     return (
-        client.dbutils.secrets.get(scope=SECRET_SCOPE, key="seaweedfs-user"),
-        client.dbutils.secrets.get(scope=SECRET_SCOPE, key="seaweedfs-password"),
+        client.dbutils.secrets.get(scope=SECRET_SCOPE, key="rustfs-user"),
+        client.dbutils.secrets.get(scope=SECRET_SCOPE, key="rustfs-password"),
     )
 
 
@@ -59,7 +65,7 @@ def _resolve_credentials(
     workspace_client: WorkspaceClient | None,
     aws_access_key_id: str | None,
     aws_secret_access_key: str | None,
-    using_seaweedfs: bool,
+    using_rustfs: bool,
 ) -> tuple[str | None, str | None]:
     if (aws_access_key_id is None) != (aws_secret_access_key is None):
         raise ValueError(
@@ -69,16 +75,16 @@ def _resolve_credentials(
     if aws_access_key_id is not None and aws_secret_access_key is not None:
         return aws_access_key_id, aws_secret_access_key
 
-    if is_databricks() and using_seaweedfs:
+    if is_databricks() and using_rustfs:
         return _load_databricks_credentials(workspace_client)
 
-    if using_seaweedfs:
-        access_key = os.getenv("SEAWEEDFS_ACCESS_KEY_ID")
-        secret_key = os.getenv("SEAWEEDFS_SECRET_ACCESS_KEY")
+    if using_rustfs:
+        access_key = os.getenv("RUSTFS_ACCESS_KEY_ID")
+        secret_key = os.getenv("RUSTFS_SECRET_ACCESS_KEY")
         if not access_key or not secret_key:
             raise RuntimeError(
-                "SeaweedFS credentials are unavailable; set "
-                "SEAWEEDFS_ACCESS_KEY_ID and SEAWEEDFS_SECRET_ACCESS_KEY"
+                "RustFS credentials are unavailable; set "
+                "RUSTFS_ACCESS_KEY_ID and RUSTFS_SECRET_ACCESS_KEY"
             )
         return access_key, secret_key
 
@@ -99,7 +105,7 @@ def get_s3_config(
     """Resolve the environment-aware settings used to connect to S3.
 
     Known local and Databricks environments connect to the project's
-    SeaweedFS S3 endpoint. Other environments use native S3 configuration and
+    RustFS S3 endpoint. Other environments use native S3 configuration and
     the standard AWS credential provider chain. Every setting can be
     overridden for an additional S3-compatible deployment.
     """
@@ -107,7 +113,7 @@ def get_s3_config(
     resolved_endpoint_url = (
         endpoint_url or os.getenv("SQUID_S3_ENDPOINT_URL") or default_endpoint_url
     )
-    using_seaweedfs = (
+    using_rustfs = (
         default_endpoint_url is not None
         and resolved_endpoint_url == default_endpoint_url
     )
@@ -115,23 +121,25 @@ def get_s3_config(
         workspace_client,
         aws_access_key_id,
         aws_secret_access_key,
-        using_seaweedfs,
+        using_rustfs,
     )
 
     resolved_region_name = region_name or os.getenv("SQUID_S3_REGION")
-    if resolved_region_name is None and using_seaweedfs:
+    if resolved_region_name is None and using_rustfs:
         resolved_region_name = DEFAULT_REGION
 
     resolved_verify = verify
     if (
         resolved_verify is None
         and resolved_endpoint_url is not None
-        and using_seaweedfs
+        and using_rustfs
     ):
         # The current public tunnel presents a certificate for the internal
-        # SeaweedFS names. Match the existing Databricks workaround until that
+        # RustFS names. Match the existing Databricks workaround until that
         # endpoint has a matching certificate.
-        resolved_verify = False if is_databricks() else str(ca_certificate_path)
+        resolved_verify = (
+            False if is_databricks() else str(_default_ca_certificate_path())
+        )
 
     return S3Config(
         endpoint_url=resolved_endpoint_url,

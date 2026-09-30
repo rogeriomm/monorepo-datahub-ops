@@ -2,12 +2,12 @@
 
 set -eu
 
-tls_dir=/etc/seaweedfs/tls
+tls_dir=/opt/tls
 ca_certificate="${tls_dir}/ca.crt"
 ca_key="${tls_dir}/ca.key"
-server_certificate="${tls_dir}/server.crt"
-server_key="${tls_dir}/server.key"
-external_hostname=${SEAWEEDFS_HOSTNAME:?SEAWEEDFS_HOSTNAME must be set}
+server_certificate="${tls_dir}/rustfs_cert.pem"
+server_key="${tls_dir}/rustfs_key.pem"
+external_hostname=${RUSTFS_HOSTNAME:?RUSTFS_HOSTNAME must be set}
 
 is_valid_hostname() {
   hostname_to_validate=$1
@@ -37,7 +37,7 @@ is_valid_hostname() {
 }
 
 if ! is_valid_hostname "${external_hostname}"; then
-  echo "Invalid SEAWEEDFS_HOSTNAME: ${external_hostname}" >&2
+  echo "Invalid RUSTFS_HOSTNAME: ${external_hostname}" >&2
   exit 1
 fi
 
@@ -51,7 +51,7 @@ for required_file in "${ca_certificate}" "${ca_key}" "${server_certificate}" "${
 done
 
 if [ -s "${server_certificate}" ]; then
-  for required_hostname in seaweedfs "${external_hostname}"; do
+  for required_hostname in rustfs "${external_hostname}"; do
     if ! openssl x509 \
       -in "${server_certificate}" \
       -noout \
@@ -62,7 +62,7 @@ if [ -s "${server_certificate}" ]; then
 fi
 
 if [ "${regenerate}" = true ]; then
-  echo "Generating the devcontainer SeaweedFS TLS certificate ..."
+  echo "Generating the devcontainer RustFS TLS certificate ..."
   rm -f \
     "${ca_certificate}" \
     "${ca_key}" \
@@ -82,7 +82,7 @@ if [ "${regenerate}" = true ]; then
     -sha256 \
     -days 3650 \
     -key "${ca_key}" \
-    -subj "/CN=devcontainer-seaweedfs-ca" \
+    -subj "/CN=devcontainer-rustfs-ca" \
     -addext "basicConstraints=critical,CA:TRUE" \
     -addext "keyUsage=critical,keyCertSign,cRLSign" \
     -out "${ca_certificate}"
@@ -102,7 +102,7 @@ if [ "${regenerate}" = true ]; then
 basicConstraints=critical,CA:FALSE
 keyUsage=critical,digitalSignature,keyEncipherment
 extendedKeyUsage=serverAuth
-subjectAltName=DNS:${external_hostname},DNS:seaweedfs,DNS:localhost,DNS:seaweedfs-s3.localhost,IP:127.0.0.1
+subjectAltName=DNS:${external_hostname},DNS:rustfs,DNS:localhost,DNS:rustfs-s3.localhost,IP:127.0.0.1
 EOF
 
   openssl x509 \
@@ -122,8 +122,8 @@ EOF
     "${tls_dir}/server-cert.ext"
 fi
 
-chown seaweed:seaweed "${ca_certificate}" "${ca_key}" "${server_certificate}" "${server_key}"
+chown rustfs:rustfs "${ca_certificate}" "${ca_key}" "${server_certificate}" "${server_key}"
 chmod 600 "${ca_key}" "${server_key}"
 chmod 644 "${ca_certificate}" "${server_certificate}"
 
-exec /entrypoint.sh "$@"
+exec su-exec rustfs /entrypoint.sh "$@"

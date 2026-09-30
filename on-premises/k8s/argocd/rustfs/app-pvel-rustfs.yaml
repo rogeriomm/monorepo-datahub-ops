@@ -1,23 +1,24 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: minio
+  name: rustfs
   namespace: argo-cd
 spec:
   project: default
   sources:
-    - repoURL: registry-1.docker.io/bitnamicharts
-      chart: minio
-      targetRevision: 16.0.8
+    - repoURL: https://charts.rustfs.com
+      chart: rustfs
+      targetRevision: 1.0.0
       helm:
         valueFiles:
-          - $values/k8s/minio/values.yaml
+          - $values/on-premises/k8s/rustfs/values.yaml
+          - $values/on-premises/k8s/rustfs/values-pvel.yaml
     - repoURL: git@github.com:rogeriomm/monorepo-datahub-ops-private.git
       targetRevision: master
       ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: minio
+    namespace: rustfs
   syncPolicy:
     automated:
       prune: true

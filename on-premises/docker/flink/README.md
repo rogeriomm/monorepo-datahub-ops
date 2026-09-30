@@ -2,7 +2,7 @@
 
 This image runs Apache Flink 2.1.3 with the Kafka SQL connector and Apache
 Iceberg 1.11.0. It reads Debezium CDC events from Kafka and writes upserts and
-deletes to Iceberg tables in the `trino-lakehouse` SeaweedFS S3 bucket. Flink
+deletes to Iceberg tables in the `trino-lakehouse` RustFS S3 bucket. Flink
 does not connect to PostgreSQL, and Delta Lake is no longer part of the image.
 
 The Apache Flink CDC 3.6 pipeline API cannot be used for this path because its
@@ -14,10 +14,10 @@ Flink 2.3 does not yet have a released Kafka connector.
 The complete data path is:
 
 ```text
-PostgreSQL -> Debezium -> Kafka -> Flink SQL -> Iceberg -> SeaweedFS S3
+PostgreSQL -> Debezium -> Kafka -> Flink SQL -> Iceberg -> RustFS S3
 ```
 
-Start PostgreSQL, Debezium, Kafka, SeaweedFS, and Flink:
+Start PostgreSQL, Debezium, Kafka, RustFS, and Flink:
 
 ```bash
 docker compose --profile cdc --profile flink up -d --build
@@ -42,5 +42,5 @@ Open the Flink UI at <http://flink.localhost:8080> when
 The example creates a format-version 2 Iceberg table with upsert writes. Kafka
 offsets and Iceberg commits are coordinated by Flink checkpoints. The table
 uses an Iceberg Hadoop catalog at `s3://trino-lakehouse/flink-cdc`; its files
-share SeaweedFS storage with the Trino lakehouse, but the table is not
+share RustFS storage with the Trino lakehouse, but the table is not
 automatically registered in the existing Trino Hive catalog.

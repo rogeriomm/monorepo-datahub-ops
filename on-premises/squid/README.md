@@ -30,9 +30,9 @@ docker compose --profile trino up -d --build hive-metastore
 ```
 
 Run Spark on the Compose `backend` network so it can resolve `hive-metastore`
-and `seaweedfs`. Set `HIVE_METASTORE_URI` in the Spark process environment to
-override the metastore address. SeaweedFS credentials come from
-`SEAWEEDFS_ACCESS_KEY_ID` and `SEAWEEDFS_SECRET_ACCESS_KEY`; Compose passes these
+and `rustfs-http`. Set `HIVE_METASTORE_URI` in the Spark process environment to
+override the metastore address. RustFS credentials come from
+`RUSTFS_ACCESS_KEY_ID` and `RUSTFS_SECRET_ACCESS_KEY`; Compose passes these
 to the Jupyter Spark 3.5, 4.1, and 4.2 services. Storage settings apply only to
 the `trino-lakehouse` bucket, preserving AWS access for other buckets.
 

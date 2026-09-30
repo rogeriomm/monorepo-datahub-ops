@@ -1,5 +1,5 @@
 helm upgrade --install argocd argo/argo-cd \
-  --namespace argocd \
+  --namespace argo-cd \
   --create-namespace \
   --version 10.9.3 \
   -f values-local.yaml

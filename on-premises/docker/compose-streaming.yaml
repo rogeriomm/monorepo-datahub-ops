@@ -280,6 +280,7 @@ services:
       - traefik.docker.network=devcontainer_frontend
       - traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.localhost`) || Host(`${KAFKA_UI_ADDITIONAL_HOSTNAME:-kafka-ui.localhost}`)
       - traefik.http.routers.kafka-ui.entrypoints=web,websecure
+      - traefik.http.routers.kafka-ui.middlewares=traefik-basic-auth@docker
       - traefik.http.services.kafka-ui.loadbalancer.server.port=8080
     networks:
       - frontend

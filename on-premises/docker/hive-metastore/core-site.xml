@@ -3,7 +3,7 @@
 <configuration>
   <property>
     <name>fs.s3a.endpoint</name>
-    <value>http://seaweedfs:8334</value>
+    <value>http://rustfs-http:9000</value>
   </property>
   <property>
     <name>fs.s3a.path.style.access</name>

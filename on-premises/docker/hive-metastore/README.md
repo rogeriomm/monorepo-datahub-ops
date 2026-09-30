@@ -82,7 +82,7 @@ Do not pass `-T` to `docker compose exec` for these commands. BeeLine in the Hiv
 
 Switching database backends does **not** migrate existing Derby metadata. Back up
 the old metastore before recreating its container, and migrate or re-register
-existing tables if they must be retained. Lakehouse objects in SeaweedFS remain
+existing tables if they must be retained. Lakehouse objects in RustFS remain
 in place.
 
 After rotating the PostgreSQL CA, rerun the initializer and recreate Hive:

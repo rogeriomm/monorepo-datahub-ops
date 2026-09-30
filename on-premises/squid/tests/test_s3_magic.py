@@ -13,7 +13,7 @@ from squid.resources.s3 import S3Config
 class S3MagicTest(unittest.TestCase):
     def setUp(self) -> None:
         self.config = S3Config(
-            endpoint_url="https://seaweedfs:8333",
+            endpoint_url="https://rustfs:9000",
             aws_access_key_id="access-key",
             aws_secret_access_key="secret-key",
             region_name="us-east-1",
@@ -47,7 +47,7 @@ class S3MagicTest(unittest.TestCase):
             [
                 "aws",
                 "--endpoint-url",
-                "https://seaweedfs:8333",
+                "https://rustfs:9000",
                 "--region",
                 "us-east-1",
                 "--ca-bundle",

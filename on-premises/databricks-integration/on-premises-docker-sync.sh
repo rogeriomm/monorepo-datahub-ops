@@ -14,5 +14,5 @@ scp ../docker/trino/certificates/* \
   $TARGET:~/git/monorepo-datahub-ops-private/on-premises/docker/trino/certificates/
 
 
-scp ../docker/seaweedfs/certificates/* \
-  $TARGET:~/git/monorepo-datahub-ops-private/on-premises/docker/seaweedfs/certificates/
+scp ../docker/rustfs/certificates/* \
+  $TARGET:~/git/monorepo-datahub-ops-private/on-premises/docker/rustfs/certificates/

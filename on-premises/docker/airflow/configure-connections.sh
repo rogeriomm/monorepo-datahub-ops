@@ -4,14 +4,14 @@ set -o errexit -o nounset -o pipefail
 
 postgres_tls_dir=/etc/postgresql/tls
 postgres_runtime_tls_dir=${AIRFLOW_HOME:-/opt/airflow}/tls/postgresql
-seaweedfs_tls_dir=/etc/seaweedfs/tls
+rustfs_tls_dir=/etc/rustfs/tls
 trino_tls_dir=/etc/trino/tls
 
 required_files=(
   "${postgres_tls_dir}/ca.crt"
   "${postgres_tls_dir}/client.crt"
   "${postgres_tls_dir}/client.key"
-  "${seaweedfs_tls_dir}/ca.crt"
+  "${rustfs_tls_dir}/ca.crt"
   "${trino_tls_dir}/ca.crt"
   "${trino_tls_dir}/trino-client.crt"
   "${trino_tls_dir}/trino-client-key"
@@ -50,9 +50,9 @@ replace_connection postgres_default \
 
 replace_connection aws_default \
   --conn-type aws \
-  --conn-login "${SEAWEEDFS_ACCESS_KEY_ID}" \
-  --conn-password "${SEAWEEDFS_SECRET_ACCESS_KEY}" \
-  --conn-extra "{\"endpoint_url\":\"https://seaweedfs:8333\",\"region_name\":\"${SEAWEEDFS_REGION}\",\"verify\":\"${seaweedfs_tls_dir}/ca.crt\",\"config_kwargs\":{\"s3\":{\"addressing_style\":\"path\"}}}"
+  --conn-login "${RUSTFS_ACCESS_KEY_ID}" \
+  --conn-password "${RUSTFS_SECRET_ACCESS_KEY}" \
+  --conn-extra "{\"endpoint_url\":\"https://rustfs:9000\",\"region_name\":\"${RUSTFS_REGION}\",\"verify\":\"${rustfs_tls_dir}/ca.crt\",\"config_kwargs\":{\"s3\":{\"addressing_style\":\"path\"}}}"
 
 replace_connection trino_default \
   --conn-type trino \

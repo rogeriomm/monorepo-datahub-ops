@@ -356,16 +356,16 @@ def get_spark(
         .config("spark.hadoop.fs.s3a.endpoint.region", os.environ.get("AWS_REGION", "us-east-1"))
     )
 
-    # The shared Hive warehouse lives in SeaweedFS. Bucket overrides keep
+    # The shared Hive warehouse lives in RustFS. Bucket overrides keep
     # native AWS credentials and endpoints available for other S3 buckets.
     warehouse_s3_configs = {
-        "endpoint": "http://seaweedfs:8334",
+        "endpoint": "http://rustfs-http:9000",
         "endpoint.region": "us-east-1",
         "path.style.access": "true",
         "connection.ssl.enabled": "false",
         "aws.credentials.provider": "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider",
-        "access.key": os.environ["SEAWEEDFS_ACCESS_KEY_ID"],
-        "secret.key": os.environ["SEAWEEDFS_SECRET_ACCESS_KEY"],
+        "access.key": os.environ["RUSTFS_ACCESS_KEY_ID"],
+        "secret.key": os.environ["RUSTFS_SECRET_ACCESS_KEY"],
     }
     for config_name, config_value in warehouse_s3_configs.items():
         builder = builder.config(

@@ -8,7 +8,7 @@ CREATE CATALOG iceberg_catalog WITH (
   'catalog-type' = 'hadoop',
   'warehouse' = 's3://trino-lakehouse/flink-cdc',
   'io-impl' = 'org.apache.iceberg.aws.s3.S3FileIO',
-  's3.endpoint' = 'http://seaweedfs:8334',
+  's3.endpoint' = 'http://rustfs-http:9000',
   's3.path-style-access' = 'true',
   'client.region' = 'us-east-1'
 );

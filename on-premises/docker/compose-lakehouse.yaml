@@ -3,7 +3,7 @@ services:
     depends_on:
       startup:
         condition: service_completed_successfully
-      seaweedfs-init:
+      rustfs-init:
         condition: service_completed_successfully
       hive-postgres-init:
         condition: service_completed_successfully
@@ -19,8 +19,8 @@ services:
     security_opt:
       - label=disable
     environment:
-      AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
-      AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      AWS_ACCESS_KEY_ID: "${RUSTFS_ACCESS_KEY_ID:-rustfsadmin}"
+      AWS_SECRET_ACCESS_KEY: "${RUSTFS_SECRET_ACCESS_KEY:-rustfsadmin}"
       DB_DRIVER: postgres
       HIVE_CUSTOM_CONF_DIR: /etc/hive/postgres/conf
       HIVE_AUX_JARS_PATH: "/opt/hadoop/share/hadoop/tools/lib/hadoop-aws-3.4.1.jar,/opt/hadoop/share/hadoop/tools/lib/bundle-2.24.6.jar"
@@ -92,7 +92,7 @@ services:
         condition: service_healthy
       hive-metastore-catalog-init:
         condition: service_completed_successfully
-      seaweedfs-init:
+      rustfs-init:
         condition: service_completed_successfully
     image: local/hive-metastore:${HIVE_VERSION:-4.2.1}
     container_name: hive-server2
@@ -102,8 +102,8 @@ services:
     security_opt:
       - label=disable
     environment:
-      AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
-      AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      AWS_ACCESS_KEY_ID: "${RUSTFS_ACCESS_KEY_ID:-rustfsadmin}"
+      AWS_SECRET_ACCESS_KEY: "${RUSTFS_SECRET_ACCESS_KEY:-rustfsadmin}"
       HIVE_AUX_JARS_PATH: "/opt/hadoop/share/hadoop/tools/lib/hadoop-aws-3.4.1.jar,/opt/hadoop/share/hadoop/tools/lib/bundle-2.24.6.jar"
       IS_RESUME: "true"
       SERVICE_NAME: hiveserver2
@@ -130,7 +130,7 @@ services:
         condition: service_healthy
       hive-metastore-catalog-init:
         condition: service_completed_successfully
-      seaweedfs-init:
+      rustfs-init:
         condition: service_completed_successfully
     image: trinodb/trino:483
     container_name: trino
@@ -154,8 +154,8 @@ services:
       TRINO_CLIENT_NAME: "${TRINO_CLIENT_NAME:-trino-client}"
       TRINO_CLIENT_STORE_PASSWORD: "${TRINO_CLIENT_STORE_PASSWORD:-changeit}"
       TRINO_HOSTNAME: "${TRINO_HOSTNAME:?TRINO_HOSTNAME must be set}"
-      SEAWEEDFS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
-      SEAWEEDFS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
+      RUSTFS_ACCESS_KEY_ID: "${RUSTFS_ACCESS_KEY_ID:-rustfsadmin}"
+      RUSTFS_SECRET_ACCESS_KEY: "${RUSTFS_SECRET_ACCESS_KEY:-rustfsadmin}"
       TRINO_TLS_STORE_PASSWORD: "${TRINO_TLS_STORE_PASSWORD:-changeit}"
     volumes:
       - ./trino/config.properties:/etc/trino/config.properties:ro
@@ -186,6 +186,7 @@ services:
       - traefik.docker.network=devcontainer_frontend
       - traefik.http.routers.trino.rule=Host(`trino.localhost`) || Host(`${TRINO_ADDITIONAL_HOSTNAME:-trino.localhost}`)
       - traefik.http.routers.trino.entrypoints=web,websecure
+      - traefik.http.routers.trino.middlewares=traefik-basic-auth@docker
       - traefik.http.routers.trino.service=trino
       - traefik.http.services.trino.loadbalancer.server.port=8080
     networks:
@@ -193,86 +194,119 @@ services:
       - external
       - frontend
 
-  seaweedfs:
+  rustfs:
     depends_on:
       startup:
         condition: service_completed_successfully
-    image: local/seaweedfs:4.47
+    image: local/rustfs:1.0.0
     build:
-      context: seaweedfs
+      context: rustfs
       dockerfile: Dockerfile
-    container_name: seaweedfs
+    container_name: rustfs
     profiles:
-      - seaweedfs
+      - rustfs
       - s3
       - trino
       - flink
     restart: unless-stopped
     security_opt:
       - label=disable
-    command: >-
-      server -dir=/data -filer -s3 -ip=seaweedfs -ip.bind=0.0.0.0
-      -master.volumeSizeLimitMB=1024
-      -s3.port=8334
-      -s3.port.https=8333
-      -s3.cert.file=/etc/seaweedfs/tls/server.crt
-      -s3.key.file=/etc/seaweedfs/tls/server.key
     ports:
-      - target: 8333
-        published: "${SEAWEEDFS_S3_PORT:-8333}"
-        host_ip: "${SEAWEEDFS_BIND_ADDRESS:-0.0.0.0}"
+      - target: 9000
+        published: "${RUSTFS_S3_PORT:-9000}"
+        host_ip: "${RUSTFS_BIND_ADDRESS:-127.0.0.1}"
         protocol: tcp
     environment:
-      AWS_ACCESS_KEY_ID: "${SEAWEEDFS_ACCESS_KEY_ID:-admin}"
-      AWS_SECRET_ACCESS_KEY: "${SEAWEEDFS_SECRET_ACCESS_KEY:-secret}"
-      SEAWEEDFS_HOSTNAME: "${SEAWEEDFS_HOSTNAME:?SEAWEEDFS_HOSTNAME must be set}"
+      RUSTFS_ACCESS_KEY: "${RUSTFS_ACCESS_KEY_ID:-rustfsadmin}"
+      RUSTFS_ADDRESS: "0.0.0.0:9000"
+      RUSTFS_CONSOLE_ADDRESS: "0.0.0.0:9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_HOSTNAME: "${RUSTFS_HOSTNAME:?RUSTFS_HOSTNAME must be set}"
+      RUSTFS_SECRET_KEY: "${RUSTFS_SECRET_ACCESS_KEY:-rustfsadmin}"
+      RUSTFS_TLS_PATH: /opt/tls
+      RUSTFS_VOLUMES: /data
     healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8888/"]
+      test: ["CMD", "curl", "--fail", "--silent", "--cacert", "/opt/tls/ca.crt", "https://localhost:9000/health"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 10s
+      start_period: 20s
     volumes:
-      - seaweedfs-data:/data
-      - ./seaweedfs/certificates:/etc/seaweedfs/tls
+      - rustfs-data:/data
+      - rustfs-logs:/logs
+      - ./rustfs/certificates:/opt/tls
     labels:
       - traefik.enable=true
-      - traefik.http.routers.seaweedfs-master.rule=Host(`seaweedfs-master.localhost`)
-      - traefik.http.routers.seaweedfs-master.entrypoints=web,websecure
-      - traefik.http.routers.seaweedfs-master.service=seaweedfs-master
-      - traefik.http.services.seaweedfs-master.loadbalancer.server.port=9333
-      - traefik.http.routers.seaweedfs-filer.rule=Host(`seaweedfs-filer.localhost`)
-      - traefik.http.routers.seaweedfs-filer.entrypoints=web,websecure
-      - traefik.http.routers.seaweedfs-filer.service=seaweedfs-filer
-      - traefik.http.services.seaweedfs-filer.loadbalancer.server.port=8888
-      - traefik.http.routers.seaweedfs-s3.rule=Host(`seaweedfs-s3.localhost`)
-      - traefik.http.routers.seaweedfs-s3.entrypoints=web,websecure
-      - traefik.http.routers.seaweedfs-s3.service=seaweedfs-s3
-      - traefik.http.services.seaweedfs-s3.loadbalancer.server.port=8333
-      - traefik.http.services.seaweedfs-s3.loadbalancer.server.scheme=https
-      - traefik.http.services.seaweedfs-s3.loadbalancer.serversTransport=seaweedfs-s3-tls@file
+      - traefik.docker.network=devcontainer_frontend
+      - traefik.http.middlewares.rustfs-strip-basic-auth.headers.customrequestheaders.Authorization=
+      - traefik.http.routers.rustfs-console-basic-auth.rule=(Host(`rustfs.localhost`) || Host(`${RUSTFS_ADDITIONAL_HOSTNAME:-rustfs.localhost}`)) && HeaderRegexp(`Authorization`, `(?i)^Basic `)
+      - traefik.http.routers.rustfs-console-basic-auth.entrypoints=web,websecure
+      - traefik.http.routers.rustfs-console-basic-auth.priority=200
+      - traefik.http.routers.rustfs-console-basic-auth.middlewares=rustfs-strip-basic-auth
+      - traefik.http.routers.rustfs-console-basic-auth.service=rustfs-console
+      - traefik.http.routers.rustfs-console.rule=Host(`rustfs.localhost`) || Host(`${RUSTFS_ADDITIONAL_HOSTNAME:-rustfs.localhost}`)
+      - traefik.http.routers.rustfs-console.entrypoints=web,websecure
+      - traefik.http.routers.rustfs-console.service=rustfs-console
+      - traefik.http.services.rustfs-console.loadbalancer.server.port=9001
+      - traefik.http.services.rustfs-console.loadbalancer.server.scheme=https
+      - traefik.http.services.rustfs-console.loadbalancer.serversTransport=rustfs-tls@file
+      - traefik.http.routers.rustfs-s3.rule=Host(`rustfs-s3.localhost`)
+      - traefik.http.routers.rustfs-s3.entrypoints=web,websecure
+      - traefik.http.routers.rustfs-s3.service=rustfs-s3
+      - traefik.http.services.rustfs-s3.loadbalancer.server.port=9000
+      - traefik.http.services.rustfs-s3.loadbalancer.server.scheme=https
+      - traefik.http.services.rustfs-s3.loadbalancer.serversTransport=rustfs-tls@file
     networks:
       - frontend
       - backend
       - tunnel
 
-  seaweedfs-init:
+  rustfs-http:
     depends_on:
-      seaweedfs:
+      rustfs:
         condition: service_healthy
-    image: local/seaweedfs:4.47
-    container_name: seaweedfs-init
+    image: nginx:1.29-alpine
+    container_name: rustfs-http
+    profiles:
+      - trino
+      - flink
+    restart: unless-stopped
+    security_opt:
+      - label=disable
+    volumes:
+      - ./rustfs/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - backend
+
+  rustfs-init:
+    depends_on:
+      rustfs:
+        condition: service_healthy
+      rustfs-http:
+        condition: service_started
+    image: amazon/aws-cli:2.31.22
+    container_name: rustfs-init
     profiles:
       - trino
       - flink
     security_opt:
       - label=disable
+    environment:
+      AWS_ACCESS_KEY_ID: "${RUSTFS_ACCESS_KEY_ID:-rustfsadmin}"
+      AWS_DEFAULT_REGION: "${RUSTFS_REGION:-us-east-1}"
+      AWS_SECRET_ACCESS_KEY: "${RUSTFS_SECRET_ACCESS_KEY:-rustfsadmin}"
     entrypoint:
       - /bin/sh
       - -c
     command:
-      - >-
-        printf 'fs.mkdir /buckets/trino-lakehouse\nfs.mkdir /buckets/delta-lakehouse\n' |
-        weed shell -master=seaweedfs:9333 -filer=seaweedfs:8888
+      - |
+        for bucket in trino-lakehouse delta-lakehouse; do
+          aws --endpoint-url https://rustfs:9000 --ca-bundle /opt/tls/ca.crt \
+            s3api head-bucket --bucket "$${bucket}" >/dev/null 2>&1 ||
+          aws --endpoint-url https://rustfs:9000 --ca-bundle /opt/tls/ca.crt \
+            s3api create-bucket --bucket "$${bucket}"
+        done
+    volumes:
+      - ./rustfs/certificates:/opt/tls:ro
     networks:
       - backend
