@@ -89,13 +89,13 @@ The initial username is `admin`. Retrieve the generated password with the Argo
 CD CLI:
 
 ```shell
-argocd admin initial-password --namespace argocd
+argocd admin initial-password --namespace argo-cd
 ```
 
 Alternatively, read it directly from the Kubernetes secret:
 
 ```shell
-kubectl -n argocd get secret argocd-initial-admin-secret \
+kubectl -n argo-cd get secret argocd-initial-admin-secret \
   --output jsonpath='{.data.password}' | base64 --decode
 echo
 ```
@@ -111,10 +111,10 @@ argocd account update-password
 Check the repo-server status, events, and previous container logs:
 
 ```shell
-kubectl -n argocd get pods
-kubectl -n argocd describe pods \
+kubectl -n argo-cd get pods
+kubectl -n argo-cd describe pods \
   --selector app.kubernetes.io/name=argocd-repo-server
-kubectl -n argocd logs deployment/argocd-repo-server \
+kubectl -n argo-cd logs deployment/argocd-repo-server \
   --container repo-server \
   --previous
 ```

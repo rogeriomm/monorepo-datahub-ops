@@ -334,58 +334,68 @@ FROM information_schema.tables;
 
 ## Local S3 object store
 
-The direct SeaweedFS S3 endpoint requires TLS. Its development CA certificate
-is generated at `on-premises/docker/seaweedfs/certificates/ca.crt` when the service
+The direct RustFS S3 endpoint requires TLS. Its development CA certificate
+is generated at `on-premises/docker/rustfs/certificates/ca.crt` when the service
 first starts.
 
 Use the AWS CLI to connect directly:
 
 ```shell
-export AWS_ACCESS_KEY_ID=admin AWS_SECRET_ACCESS_KEY=secret
-export AWS_CA_BUNDLE=on-premises/docker/seaweedfs/certificates/ca.crt
+export AWS_ACCESS_KEY_ID=rustfsadmin AWS_SECRET_ACCESS_KEY=rustfsadmin
+export AWS_CA_BUNDLE=on-premises/docker/rustfs/certificates/ca.crt
 export AWS_REGION=us-east-1
 ```
 
 Create a bucket:
 
 ```shell
-aws --endpoint-url https://localhost:8333 \
+aws --endpoint-url https://localhost:9000 \
   s3 mb s3://my-bucket
 ```
 
 Remove a bucket:
 
 ```shell
-aws --endpoint-url https://localhost:8333 \
+aws --endpoint-url https://localhost:9000 \
   s3 rm s3://my-bucket
 ```
 
 List buckets:
 
 ```shell
-aws --endpoint-url https://localhost:8333 s3 ls
+aws --endpoint-url https://localhost:9000 s3 ls
 ```
 
 Or connect through Traefik:
 
 ```shell
-aws --endpoint-url http://seaweedfs-s3.localhost:8080 s3 ls
+aws --endpoint-url http://rustfs-s3.localhost:8080 s3 ls
 ```
 
-![SeaweedFS S3 buckets listed by the AWS CLI](attachments/seaweedfs-s3-aws-cli.png)
+To route an additional DNS hostname to the RustFS console, set it without a URL
+scheme or port in `on-premises/docker/.env`:
+
+```dotenv
+RUSTFS_ADDITIONAL_HOSTNAME=rustfs.example.com
+```
+
+Recreate RustFS so Traefik receives the updated router rules:
+
+```shell
+docker compose -f on-premises/docker/docker-compose.yaml \
+  --profile rustfs up -d --force-recreate rustfs
+```
+
+The additional hostname must resolve to the Docker host and works through both
+the HTTP and HTTPS Traefik entrypoints.
 
 [S3 hello world notebook](../../notebooks/jupyter/s3/s3-hello-world-aws-cli.ipynb)
 
 ### Cleaning the S3 object store
 
 ```shell
-docker volume rm devcontainer_seaweedfs-data
+docker volume rm devcontainer_rustfs-data devcontainer_rustfs-logs
 ```
-
-SeaweedFS also documents support for
-[Amazon S3 table buckets](https://github.com/seaweedfs/seaweedfs/wiki/S3-Table-Bucket)
-and an
-[Apache Iceberg catalog](https://github.com/seaweedfs/seaweedfs/wiki/SeaweedFS-Iceberg-Catalog).
 
 ## Hive metastore
 
@@ -802,9 +812,8 @@ Using Visual Studio Code:
 - Zeppelin
   - [Zeppelin 0.12.1](http://zeppelin.localhost:8080)
 - S3 object storage
-  - [SeaweedFS master](http://seaweedfs-master.localhost:8080)
-  - [SeaweedFS filer](http://seaweedfs-filer.localhost:8080)
-  - [SeaweedFS S3](http://seaweedfs-s3.localhost:8080)
+  - [RustFS console](http://rustfs.localhost:8080/rustfs/console/)
+  - [RustFS S3](http://rustfs-s3.localhost:8080)
 - Airflow
   - [Airflow 3.3](http://airflow-3-3.localhost:8080/)
   - [Airflow 2.11](http://airflow-2-11.localhost:8080/)

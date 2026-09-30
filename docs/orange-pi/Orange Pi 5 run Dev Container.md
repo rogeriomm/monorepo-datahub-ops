@@ -32,7 +32,7 @@ docker compose build zeppelin-0.12.1
 
 
 ```shell
-docker compose build seaweedfs
+docker compose build rustfs
 ```
 
 ```shell
@@ -42,4 +42,3 @@ docker compose build hive-metastore
 ```shell
 docker compose build  obsidian-mcp-postgres
 ```
-

@@ -11,7 +11,7 @@ on_premises_certificates/
 │   ├── postgres-client.p12
 │   ├── secret-client-password
 │   └── secret-postgres-password
-├── seaweedfs/
+├── rustfs/
 │   └── ca.crt
 └── trino/
     ├── ca.crt

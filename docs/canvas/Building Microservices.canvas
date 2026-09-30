@@ -1,0 +1,8 @@
+{
+	"nodes":[
+		{"id":"f26e620231eb3b87","type":"file","file":"docs/canvas/Apache Flink CDC datalake Iceberg Delta.canvas","x":-700,"y":-1120,"width":400,"height":380},
+		{"id":"90416f07f87821f1","type":"file","file":"docs/attachments/books/Building Microservices, 2E - Sam Newman.pdf","x":-940,"y":-520,"width":600,"height":700},
+		{"id":"213d10ae5dd17c95","type":"file","file":"docs/attachments/books/System Design Interview Volume 2 (2022, Byte Code LLC).pdf","x":80,"y":-800,"width":960,"height":1020}
+	],
+	"edges":[]
+}
