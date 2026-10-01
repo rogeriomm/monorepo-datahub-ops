@@ -49,4 +49,4 @@ Configure the path to the `dbt` executable for the project:
 
 # Data Sources
 ## DuckDB
-![[Pasted image 20260820114704.png]]
+![JetBrains DuckDB data source](attachments/Pasted%20image%2020260820114704.png)

@@ -201,7 +201,7 @@ Do not claim PASS unless every mandatory core operation succeeded:
 The prompt leaves `jupyter-mcp-complete-test.ipynb`, or its numbered fallback, in the repository root for inspection. Remove that exact test file manually after reviewing the results.
 The browser update in real time as Codex execute the prompt task:
 
-![[Pasted image 20261001094324.png|1245]]
+![JupyterLab updating while Codex runs the MCP integration test](attachments/Pasted%20image%2020261001094324.png)
 
 Codex output:
 

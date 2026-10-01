@@ -27,10 +27,10 @@ hostnames, account information, and origin addresses are intentionally blurred.
 
 
  - Open Cloudflare Dashboard.
- - Select the worldb.site zone.
- - Go to SSL/TLS → Origin Server.
- - Select Create Certificate.
- - Add hostname \*.worldb.site.
- - Choose PEM format.
- - Save the outputs on the on premises server
+	 - Select the worldb.site zone.
+	 - Go to SSL/TLS → Origin Server.
+	 - Select Create Certificate.
+	 - Add hostname \*.worldb.site.
+	 - Choose PEM format.
+	 - Save the outputs on the on premises server
  

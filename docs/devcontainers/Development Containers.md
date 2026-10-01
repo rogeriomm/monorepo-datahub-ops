@@ -260,7 +260,7 @@ docker compose -f on-premises/docker/docker-compose.yaml \
 ```
 
 
-![[Pasted image 20260922103328.png]]
+![Airflow services in the development environment](attachments/Pasted%20image%2020260922103328.png)
 
 ## Trino
 

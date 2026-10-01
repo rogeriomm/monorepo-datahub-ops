@@ -53,10 +53,10 @@ databricks ssh setup --name low-cost --cluster 0626-121515-spu2v7yo  --auto-star
 -  https://us-east-1.console.aws.amazon.com/costmanagement/home#/credits
 # Delete the AWS Cloud Formation resources
 
-![[AwsCloudFormationDeleteDatabricks.png]]
+![Delete the Databricks CloudFormation stack](attachments/AwsCloudFormationDeleteDatabricks.png)
 
 Databricks after AWS Cloud Formation stack deletion
-![[DatabricksAfterCloudFormationDeleteStack.png]]
+![Databricks after CloudFormation stack deletion](attachments/DatabricksAfterCloudFormationDeleteStack.png)
 
 # Change the Databricks managed VPC to a customer-manage VPC
  - https://github.com/databricks/terraform-provider-databricks/blob/main/docs/guides/aws-workspace.md

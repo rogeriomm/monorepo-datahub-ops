@@ -52,4 +52,4 @@ tmux list-keys | grep window
 # Databricks environments
  - https://docs.databricks.com/aws/en/compute/serverless/dependencies?utm_source=chatgpt.com
 	 - Notebook metadata:
-		 - ![[Pasted image 20260811164305.png|831]]
+		 - ![Databricks notebook metadata](attachments/Pasted%20image%2020260811164305.png)
