@@ -13,6 +13,12 @@ may contain Obsidian-specific Markdown, while this README uses GitHub-flavored
 Markdown for compatibility with the GitHub viewer.
 
 - [Development containers with Docker Compose](docs/devcontainers/Development%20Containers.md)
+  - [Jupyter MCP](docs/devcontainers/Development%20Containers%20-%20Jupyter%20MCP.md)
+  - [Obsidian RAG](docs/devcontainers/Development%20Containers%20-%20Obsidian%20RAG.md)
+  - [Architecture](docs/devcontainers/Development%20Containers%20Architecture.md)
+  - [Airflow](docs/devcontainers/Development%20Containers%20-%20Airflow.md)
+  - [Neovim](docs/devcontainers/Development%20Containers%20-%20Neovim.md)
+  - [[Development Containers - Streaming Database Architecture.canvas]]
 - [Local Kubernetes development with K3D](docs/k8s/Local%20Kubernetes%20-%20K3D.md)
 - [On-premises infrastructure](docs/on-premises-infrastructure/On%20Premises%20Infrastructure.md)
 - [Databricks Cloud Infrastructure Premium](docs/cloud-databricks-infrastructure/aws/Cloud%20Databricks%20Infrastructure%20AWS.md)
