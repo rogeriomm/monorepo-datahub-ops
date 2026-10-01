@@ -68,8 +68,8 @@ services:
     profiles:
       - obsidian_mcp
     build:
-      context: https://github.com/maxkuminov/obsidian-mcp.git#v0.8.1
-    image: local/obsidian-mcp:0.8.1
+      context: https://github.com/maxkuminov/obsidian-mcp.git#v0.8.4
+    image: local/obsidian-mcp:0.8.4
     restart: unless-stopped
     init: true
     depends_on:
