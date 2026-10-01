@@ -120,6 +120,42 @@ before using the endpoint outside a development environment. BasicAuth does not
 encrypt credentials over plain HTTP; use the HTTP entrypoint only on a trusted
 local network and prefer HTTPS for remote access.
 
+### Optional custom TLS certificate
+
+Traefik can optionally present a custom PEM certificate for matching DNS names
+on the `websecure` entrypoint. The certificate can come from a public CA, a
+private CA, Cloudflare Origin CA, or another issuer supported by the clients
+that connect to the endpoint. Store the certificate and private key outside the
+repository, then set their absolute host paths in `on-premises/docker/.env`:
+
+```dotenv
+TRAEFIK_CUSTOM_TLS_CERT_FILE=/absolute/path/to/tls-certificate.pem
+TRAEFIK_CUSTOM_TLS_KEY_FILE=/absolute/path/to/tls-private-key.pem
+```
+
+Enable the certificate by adding the optional Compose override whenever
+Traefik is created or recreated:
+
+```shell
+docker compose \
+  -f on-premises/docker/docker-compose.yaml \
+  -f on-premises/docker/compose-traefik-custom-tls.yaml \
+  up -d --force-recreate traefik
+```
+
+The override mounts both files read-only and refuses to create missing source
+paths. Traefik selects the certificate using TLS SNI, so its Subject Alternative
+Names must cover each configured hostname. Whether clients trust the certificate
+depends on its issuer and their configured trust stores.
+
+To return to Traefik's generated development certificate, recreate Traefik
+without the optional override:
+
+```shell
+docker compose -f on-premises/docker/docker-compose.yaml \
+  up -d --force-recreate traefik
+```
+
 ![Traefik administration interface](attachments/reverse-proxy-admin-1.png)
 
 ## Jupyter notebooks
