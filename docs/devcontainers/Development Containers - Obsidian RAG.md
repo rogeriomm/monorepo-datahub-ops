@@ -134,6 +134,7 @@ newly connected agent to call `get_vault_guide` before it reads or writes
 notes. A `CLAUDE.md` at the vault root can describe the vault's structure and
 conventions to connected agents.
 
+```
 ## Connect pgAdmin
 
 The Compose configuration registers the vector database in pgAdmin as

@@ -1,0 +1,7 @@
+{
+	"nodes":[
+		{"id":"2c2d97c4150613ed","type":"file","file":"docs/attachments/books/Chaos Engineering - Casey Rosenthal.pdf","subpath":"#page=7","x":-714,"y":-400,"width":674,"height":900},
+		{"id":"da70c318cc6b1ee3","type":"file","file":"docs/attachments/books/System Design Interview Volume 2 (2022, Byte Code LLC).pdf","subpath":"#page=5","x":60,"y":-400,"width":700,"height":900}
+	],
+	"edges":[]
+}

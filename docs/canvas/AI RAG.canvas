@@ -1,6 +1,8 @@
 {
 	"nodes":[
-		{"id":"2e81945e23e8ecf9","x":-1100,"y":-560,"width":964,"height":724,"type":"link","url":"https://youtu.be/YYG_ddHe2xk?t=11"}
+		{"id":"2e81945e23e8ecf9","type":"link","url":"https://youtu.be/YYG_ddHe2xk?t=11","x":-1100,"y":-560,"width":964,"height":724},
+		{"id":"0ced5ad3f1599bb0","x":-1100,"y":-1280,"width":964,"height":660,"type":"link","url":"https://youtu.be/ySus5ZS0b94?si=Ef1HmkQAy-JOM5g_"},
+		{"id":"ccdb55fdd02a50a6","x":-20,"y":-1280,"width":1020,"height":660,"type":"link","url":"https://github.com/maxkuminov/obsidian-mcp.git"}
 	],
 	"edges":[]
 }
